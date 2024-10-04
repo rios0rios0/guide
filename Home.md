@@ -1,1 +1,25 @@
-Home
+## Context
+This is a guide to developing software the way we do. And its objective is not to limit the development to a specific form, but to provide a common basis so that the synergy is better and starts with learning from past contexts.
+
+## Summary
+- [Cover](Cover.md)
+- [Glossary](Glossary.md)
+- [Onboarding](Onboarding.md)
+- [Agile & Culture](Agile-&-Culture.md)
+  - [Base Process](Agile-&-Culture/Base-Process.md)
+- [Life Cycle](Life-Cycle.md)
+  - [Git Flow](Life-Cycle/Git-Flow.md)
+  - [Architecture](Life-Cycle/Architecture.md)
+  - [Tests](Life-Cycle/Tests.md)
+  - [CI & CD](Life-Cycle/CI-&-CD.md)
+  - [Security](Life-Cycle/Security.md)
+- [Code Style](Code-Style.md)
+  - [Base](Code-Style/Base.md)
+  - [Base Test](Code-Style/Base-Test.md)
+  - [GoLang](Code-Style/GoLang.md)
+  - [GoLang Test](Code-Style/GoLang-Test.md)
+- [Cookbooks](Cookbooks.md)
+  - [Tools-&-Setup](Cookbooks/Tools-&-Setup.md)
+  - [WSL-Setup](Cookbooks/WSL-Setup.md)
+  - [OSD-Plugin-Quickstart](Cookbooks/OSD-Plugin-Quickstart.md)
+  - [Forking-Techinique](Cookbooks/Forking-Techinique.md)
