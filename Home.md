@@ -2,7 +2,7 @@
 This is a guide to developing software the way we do. And its objective is not to limit the development to a specific form, but to provide a common basis so that the synergy is better and starts with learning from past contexts.
 
 ## Summary
-- [Cover](Cover.md)
+- [Home](Home.md)
 - [Glossary](Glossary.md)
 - [Onboarding](Onboarding.md)
 - [Agile & Culture](Agile-&-Culture.md)
@@ -22,4 +22,4 @@ This is a guide to developing software the way we do. And its objective is not t
   - [Tools-&-Setup](Cookbooks/Tools-&-Setup.md)
   - [WSL-Setup](Cookbooks/WSL-Setup.md)
   - [OSD-Plugin-Quickstart](Cookbooks/OSD-Plugin-Quickstart.md)
-  - [Forking-Techinique](Cookbooks/Forking-Techinique.md)
+  - [Forking-Technique](Cookbooks/Forking-Technique.md)
