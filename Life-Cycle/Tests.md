@@ -33,7 +33,7 @@ Martin Fowler, a software developer and author, has written about the different 
 * A **dummy** is a test double that is passed around but never actually used. It is typically used to fill an argument that is required by the test subject but is not actually used.
 * **In-memory** is a term used to refer to the fact that the test double is stored in memory during the test and not persisted to disk or a database.
 
-Martin Fowler's book "Refactoring: Improving the Design of Existing Code" in which he defined and discussed about test doubles such as Fakers, Mocks, Stubs, Dummies and In-memory.
+Martin Fowler's book "Refactoring: Improving the Design of Existing Code" in which he defined and discussed test doubles such as Fakers, Mocks, Stubs, Dummies and In-memory.
 
 So, a **double** is any object that is the actual object for testing, used to simulate an external dependency.
 From that definition and the previous Martin Fowler's definition, we just use some of those things, like:
@@ -44,7 +44,7 @@ From that definition and the previous Martin Fowler's definition, we just use so
 * **Mock:** we want to avoid them as possible. But if we can't, we use as an external library to mimic and verify method calls.
 
 ## Builders
-The Builder Design Pattern is a creational design pattern that allows for the construction of complex objects step by step through a builder object.
+The Builder Design Pattern is a creation design pattern that allows for the construction of complex objects step by step through a builder object.
 It separates the construction of a complex object from its representation and allows for the same construction process to create different representations.
 The builder pattern is a design pattern that allows for the step-by-step construction of complex objects using a builder object.
 

@@ -24,7 +24,7 @@ This structure makes it easy to keep your tests organized and separated from you
 ```
 
 ## General Considerations
-1. Always start the test with a build flag specifing what's the test type, like: `//go:build unit`, `//go:build integration` and so on.
+1. Always start the test with a build flag specifying what's the test type, like: `//go:build unit`, `//go:build integration` and so on.
 2. The test package MUST be used OUTSIDE the production code package. For example, if your production code is `package commands` your test will be in `package commands_test`.
 3. We use primarily the `stretchr/testify` to make the test suites and the assertions inside the automated code.
 4. The file MUST be named with a final prefix `_test`. Like: `pgx_users_repository_test`.

@@ -1,5 +1,5 @@
 ## Context
-The sabe described in the [Base](Base.md), but here it's for GoLang.
+The theory base is described in the page [Base](../Code-Style.md), but here it's very specific for GoLang.
 
 ## File Structure
 ```
@@ -28,12 +28,12 @@ The sabe described in the [Base](Base.md), but here it's for GoLang.
 ## General Considerations
 1. For this language we're using [Snake Case](https://www.alura.com.br/artigos/convencoes-nomenclatura-camel-pascal-kebab-snake-case) as a convention.
 2. We usually use the word `self` to name the reference to the structure attached to the method in question. It words like `this` in other languages.
-3. We don't attach the method to the struct when it doesn't need to change the structure state.
+3. We don't attach the method to the struct when it does not need to change the structure state.
 4. What is DTO pattern? Read [here](https://www.baeldung.com/java-dto-pattern) please.
 
 ## Entities
-They are the core of the application. The logic regarding to the properties and fields, should be inside it.
-They need to be free of any frawmework and external tools. DON'T use any tag inside it.
+They are the core of the application. The logic regarding the properties and fields, should be inside it.
+They need to be free of any framework and external tools. DON'T use any tag inside it.
 
 ## Commands
 * **File Name:** `<operation>_<entity>_command`. Example: `list_users_command.go`
@@ -63,7 +63,7 @@ We don't use this layer for this language.
 
 - **Method Names (contract):**
 
-  These methods are folowing a logical sequence: "find all", "find one", "filters", "save one", "save all", "delete" and "delete all".
+  These methods are following a logical sequence: "find all", "find one", "filters", "save one", "save all", "delete" and "delete all".
   ```go
   // filter just 1 entity by some field
   func (self UsersRepository) FindByTargetField(targetField any) entities.User
@@ -117,7 +117,7 @@ We don't use this layer for this language.
 
 1. **Note:** the `infra` field is usually an external DTO structure, like a database model or an API response.
 2. **Note:** the `MapToEntity` and `MapToEntities` method names are static and must be followed as a standard.
-3. **Note:** the `External` and `any` aren't static, and they need to be changed according to the library, API or technology used as the exernal source.
+3. **Note:** the `External` and `any` aren't static, and they need to be changed according to the library, API or technology used as the external source.
 
 - Inside `controllers` we'll have:
 
@@ -145,7 +145,7 @@ We don't use this layer for this language.
 3. **Note:** DON'T use `json` tags outside the infrastructure layer, because they are strict to requests and responses.
 
 ## Models
-They are always inside the infrastructure layer, and they act like a DTO for the anwsers coming from the external world.
+They are always inside the infrastructure layer, and they act like a DTO for the answers coming from the external world.
 They can be: database models, APIs answers, queue parameters, payloads and so on. They are like entities, but they aren't entities.
 
 To make sure that the models are different from the entities, we adopt the prefix naming standard.

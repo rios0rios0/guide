@@ -1,12 +1,8 @@
-## Context
-This is a guide to developing software the way we do. And its objective is not to limit the development to a specific form, but to provide a common basis so that the synergy is better and starts with learning from past contexts.
-
-## Summary
 - [Home](Home.md)
 - [Glossary](Glossary.md)
 - [Onboarding](Onboarding.md)
 - [Agile & Culture](Agile-&-Culture.md)
-  - [Base Process](Agile-&-Culture/PDCA.md)
+  - [PDCA](Agile-&-Culture/PDCA.md)
 - [Life Cycle](Life-Cycle.md)
   - [Git Flow](Life-Cycle/Git-Flow.md)
     - [Merge Guide](Life-Cycle/Git-Flow/Merge-Guide.md)
@@ -30,6 +26,3 @@ This is a guide to developing software the way we do. And its objective is not t
   - [OpenSearch Dashboards](Cookbooks/OpenSearch-Dashboards.md)
     - [Plugin Quickstart](Cookbooks/OpenSearch-Dashboards/Plugin-Quickstart.md)
     - [Plugin Life Cycle](Cookbooks/OpenSearch-Dashboards/Plugin-Life-Cycle.md)
-
-## References
-- [Vizir's StyleGuide](https://github.com/Vizir/styleguide)

@@ -12,4 +12,4 @@ To keep it all organized, we’ve defined some patterns:
 * To keep our forks up to date with the base project and also apply our changes, we’re using a strategy of always re-base the `main` (community) branch, and placing our customization on top of the newest version.
 * Our version tags are going to be an incremental number over the community version.
 For example, if the community is on version `1.0.0`, and we are synced with them, then our fork version would be `1.0.0.0`.
-If we release a new version of our fork, we increase to `1.0.0.1`. This last digit is incremental and it resets with the community version, so, if the community goes for `1.0.1`, and we re-base the new version, we are on `1.0.1.1`.
+If we release a new version of our fork, we increase to `1.0.0.1`. This last digit is incremental, and it resets with the community version, so, if the community goes for `1.0.1`, and we re-base the new version, we are on `1.0.1.1`.
