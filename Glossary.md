@@ -18,7 +18,7 @@ They include security related topics and concepts which maybe aren't inside the 
 12. **IDS (Intrusion Detection System):** A system that monitors network traffic and analyzes it for signs of malicious activity.
 13. **IPS (Intrusion Prevention System):** A system that blocks potential threats in real-time by analyzing network traffic and identifying malicious patterns.
 14. **MDR (Managed Detection and Response):** A service that provides continuous monitoring and threat detection, as well as incident response and remediation.
-15. **NGAV (Next-Generation Anti-Virus):** A new generation of anti-virus software that uses advanced techniques, such as machine learning, to detect and respond to cyber threats.
+15. **NGAV (Next-Generation Anti-Virus):** A new generation of antivirus software that uses advanced techniques, such as machine learning, to detect and respond to cyber threats.
 16. **NOC (Network Operations Center):** A centralized unit that monitors and manages the performance of a network infrastructure and provides technical support.
 17. **PAM (Privileged Access Management):** A security strategy that controls and monitors access to sensitive systems and data by privileged users, such as system administrators.
 18. **Phishing:** A technique of tricking people into providing sensitive information, such as login credentials, by disguising as a trustworthy entity through email, phone or text message.

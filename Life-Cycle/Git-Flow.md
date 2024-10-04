@@ -9,7 +9,7 @@ Git flow is a feature branch model, with these characteristics:
 3. All feature and fix branches will be merged to the `main` through `merge/pull requests`.
 4. Any synchronization or conflict resolution should be made using the `git rebase` command. You can visit [this tutorial](http://atlassian.com/git/tutorials/rewriting-history/git-rebase) to have a better understanding of `git rebase` and the reason why using this is important.
 
-![](Assets/feature-branches.svg)
+![](.assets/feature-branches.svg)
 
 The flow to create some modification of the code must follow the steps listed below.
 
@@ -23,9 +23,9 @@ The flow to create some modification of the code must follow the steps listed be
 5. **Create a Pull Request in GitLab for the default branch** (usually `main`), adding your QA team to review.
 6. Analyses the code, if all is correct, your PR is approved.
 7. After your pull request is approved, merge your feature branch with the default branch.
-8. The automated pipeline will generate the build of the branch `main`, and it'll delivery this build to the QA environment.
-9. When the QA deployed version is approved by the acceptance team, the developr will follow the instructions in the `CHANGELOG.md` file, inside the repository to generate a production release.
-10. Once the instructions are completly followed, the automated pipeline will deliver the release to the production environment.
+8. The automated pipeline will generate the build of the branch `main`, and it'll deliver this build to the QA environment.
+9. When the QA deployed version is approved by the acceptance team, the developer will follow the instructions in the `CHANGELOG.md` file, inside the repository to generate a production release.
+10. Once the instructions are completely followed, the automated pipeline will deliver the release to the production environment.
 
 ## Naming Convention
 
@@ -92,7 +92,7 @@ fix(RD-000): changed the button colors
 Advices:
 * no dot(.) in the end;
 * don’t capitalize the first letter;
-* use the SIMPLE PAST, like: changed, fixed, corrected, removed, added. Instead of using present continuos;
+* use the SIMPLE PAST, like: changed, fixed, corrected, removed, added. Instead of using present continues;
 * always place the proper coding quotes around "code", like: I'm changing the function `setAnyThing` (proper quote is "`").
 
 In the message, if you need to add more details, you can add a commit description:

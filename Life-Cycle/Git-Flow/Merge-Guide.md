@@ -1,9 +1,9 @@
 # Merge Guide
 
 ### Case 1
-![](Life-Cycle/Assets/case-1-commits-before.png)
+![](.assets/case-1-commits-before.png)
 
-In this case, where we have a second (third, fourth or N branches), dependent on a first branch, we need to merge the last branch (in this case test 2), before merging the first into main (which would be test 1 ).
+In this case, where we have a second (third, fourth or N branches), dependent on a first branch, we need to merge the last branch (in this case test 2), before merging the first into main (which would be tested 1 ).
 
 The merge order for this case is:
 
@@ -24,7 +24,7 @@ x -> thousands of branches
 
 Result:
 
-![](Life-Cycle/Assets/case-1-commits-result.png)
+![](.assets/case-1-commits-result.png)
 
 --------------------------------
 ### Case 2
@@ -57,7 +57,7 @@ After that, give the commands
 -   git rebase –-continue
 -   git push –f
 
-![](Life-Cycle/Assets/case-2commits-error.png)
+![](.assets/case-2-commits-error.png)
 
 Then update your main and merge. The graph will look like this:
-![](Life-Cycle/Assets/case-2-commits-result.png)
+![](.assets/case-2-commits-result.png)
