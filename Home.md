@@ -29,6 +29,7 @@ And its objective is not to limit the development to a specific form, but to pro
     - [Install Azure CLI](Install-Azure-CLI)
     - [Azure Functions Setup](Azure-Functions-Setup)
   - [Forking Technique](Forking-Technique)
+  - [Historical Repository Cleaner](Historical-Repository-Cleaner)
   - [OpenSearch Dashboards](OpenSearch-Dashboards)
     - [Plugin Quickstart](Plugin-Quickstart)
     - [Plugin Life Cycle](Plugin-Life-Cycle)
