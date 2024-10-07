@@ -9,7 +9,7 @@ Git flow is a feature branch model, with these characteristics:
 3. All feature and fix branches will be merged to the `main` through `merge/pull requests`.
 4. Any synchronization or conflict resolution should be made using the `git rebase` command. You can visit [this tutorial](http://atlassian.com/git/tutorials/rewriting-history/git-rebase) to have a better understanding of `git rebase` and the reason why using this is important.
 
-![](.assets/feature-branches.svg)
+[[.assets/feature-branches.svg]]
 
 The flow to create some modification of the code must follow the steps listed below.
 
@@ -113,14 +113,14 @@ The rest of the commit message is then the description of the change, justificat
 #### Referencing issues (tickets)
 Closed bugs should be listed on a separate line in the footer prefixed with the "Closes" keyword like this:
 ```
-Closes RD-567
+Closes TICKET-567
 ```
 
 or in case of multiple issues:
 ```
-Closes RD-567
-Closes RD-568
-Closes RD-569
+Closes TICKET-567
+Closes TICKET-568
+Closes TICKET-569
 ```
 
 #### Complete example
@@ -132,9 +132,9 @@ fix(RD-567+RD-568+RD-569): changed the button colors
 
 **BREAKING CHANGE:** isolate scope bindings definition has changed and the inject option for the directive controller injection was removed
 
-Closes RD-567
-Closes RD-568
-Closes RD-569
+Closes TICKET-567
+Closes TICKET-568
+Closes TICKET-569
 ```
 
 #### Automatic Changelog?
