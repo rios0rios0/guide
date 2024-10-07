@@ -60,17 +60,17 @@ When you are developing some applications, there are some questions about how to
 ### Requests Flow
 This is the structure to make it easier understand how the request coming from the browser pass through an application (API or anything related).
 
-![](.assets/requests_flow.png)
+[[.assets/requests_flow.png]]
 
 ### Mapping/Parsing Flow
 This is the structure related to how to isolate the layers between each other, with the intention to avoid hard coupling between frameworks or external tools.
 
-![](.assets/mapping_flow.png)
+[[.assets/mapping_flow.png]]
 
 ### Dependency Injection Flow
 This is the very simple explanation about a DI schema works and how it gets the proper information through the code.
 
-![](.assets/dependency_injection_flow.png)
+[[.assets/dependency_injection_flow.png]]
 
 ## Testing Schema
 

@@ -7,9 +7,9 @@ A bad design though could lead the developers to struggle a lot when having to c
 And yes, it happens all the time due to requirements updates, for some external library that got deprecated, or for any other issue.
 That’s why the development team is responsible for maintaining the dependencies sane.
 
-|        Polluted Architecture[^1]        |       Clean Architecture[^1]        |
-|:---------------------------------------:|:-----------------------------------:|
-| ![](.assets/not-clean-architecture.png) | ![](.assets/clean-architecture.png) |
+|       Polluted Architecture[^1]        |       Clean Architecture[^1]       |
+|:--------------------------------------:|:----------------------------------:|
+| [[.assets/not-clean-architecture.png]] | [[.assets/clean-architecture.png]] |
 
 [^1]: [Clean Architecture Introduction](https://pusher.com/tutorials/clean-architecture-introduction)
 
