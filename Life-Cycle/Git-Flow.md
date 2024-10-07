@@ -20,7 +20,7 @@ The flow to create some modification of the code must follow the steps listed be
 2. While developing the feature, will be committed to the branch created for this purpose.
 3. Create builds for this feature in the development environment, if needed.
 4. When the feature development is complete, first of all, will need to **rebase with the main** to update your branch and resolve conflicts, if exists.
-5. **Create a Pull Request in GitLab for the default branch** (usually `main`), adding your QA team to review.
+5. **Create a Pull Request in your VCS (GitLab, GitHub, Bitbucket, Azure DevOps, etc.) for the default branch** (usually `main`), adding your QA team to review.
 6. Analyses the code, if all is correct, your PR is approved.
 7. After your pull request is approved, merge your feature branch with the default branch.
 8. The automated pipeline will generate the build of the branch `main`, and it'll deliver this build to the QA environment.
@@ -36,8 +36,8 @@ If **there is** a task created in the project's issue tracker, the card id must 
 
 Examples:
 ```
-feat/RD-000
-fix/SG-990
+feat/TICKET-000
+fix/TICKET-990
 ```
 
 If **there is NOT** a card in the issue tracker, use the change scope: `type/scope`.
@@ -79,14 +79,14 @@ type(TASK-ID): subject
 ```
 
 #### Practical example
-Let's imagine a very simple example, using a short commit message with the `task-id` equals to `RD-000`. And it's a code fix, so:
+Let's imagine a very simple example, using a short commit message with the `task-id` equals to `TICKET-000`. And it's a code fix, so:
 ```
-fix(RD-000)
+fix(TICKET-000)
 ```
 
-For the **subject** is a single line that contains a succinct description of the change, in `RD-000` the change is changing the button color from blue to red. The subject will be like:
+For the **subject** is a single line that contains a succinct description of the change, in `TICKET-000` the change is changing the button color from blue to red. The subject will be like:
 ```
-fix(RD-000): changed the button colors
+fix(TICKET-000): changed the button colors
 ```
 
 Advices:
@@ -97,7 +97,7 @@ Advices:
 
 In the message, if you need to add more details, you can add a commit description:
 ```
-fix(RD-000): changed the button colors
+fix(TICKET-000): changed the button colors
 
 - created a new css file for the buttons
 - changed the color of the cancel button from blue to red
@@ -111,7 +111,7 @@ The rest of the commit message is then the description of the change, justificat
 ```
 
 #### Referencing issues (tickets)
-Closed bugs should be listed on a separate line in the footer prefixed with the "Closes" keyword like this:
+Closed tickets should be listed on a separate line in the footer prefixed with the "Closes" keyword like this:
 ```
 Closes TICKET-567
 ```
@@ -125,7 +125,7 @@ Closes TICKET-569
 
 #### Complete example
 ```
-fix(RD-567+RD-568+RD-569): changed the button colors
+fix(TICKET-567+TICKET-568+TICKET-569): changed the button colors
 
 - created a new CSS file for the buttons
 - changed the color of the cancel button from blue to red
@@ -136,6 +136,8 @@ Closes TICKET-567
 Closes TICKET-568
 Closes TICKET-569
 ```
+
+PS.: this is going to work just if you have a ticket system, like Jira integrated with your VCS.
 
 #### Automatic Changelog?
 How to generate a change log with this established standard? You can try this:
@@ -194,8 +196,7 @@ In `git`, it's important to flag these **BREAKING CHANGES** in 3 places
     **BREAKING CHANGE:** update input to use props for state management. Input behavior now must be implemented by the peer, including value and `handleChange`
     ```
 
- ## References
-
- * [Still using GitFlow? What about a simpler alternative?](https://hackernoon.com/still-using-gitflow-what-about-a-simpler-alternative-74aa9a46b9a3)
- * [Karma Commit Messages](http://karma-runner.github.io/1.0/dev/git-commit-msg.html)
- * [Semantic Versioning](https://semver.org/)
+## References
+- [Still using GitFlow? What about a simpler alternative?](https://hackernoon.com/still-using-gitflow-what-about-a-simpler-alternative-74aa9a46b9a3)
+- [Karma Commit Messages](http://karma-runner.github.io/1.0/dev/git-commit-msg.html)
+- [Semantic Versioning](https://semver.org/)
