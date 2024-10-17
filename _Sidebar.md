@@ -23,6 +23,7 @@
     - [WSL Setup](WSL-Setup)
     - [Install Azure CLI](Install-Azure-CLI)
     - [Azure Functions Setup](Azure-Functions-Setup)
+    - [Database Sync](Database-Sync)
   - [Forking Technique](Forking-Technique)
   - [OpenSearch Dashboards](OpenSearch-Dashboards)
     - [Plugin Quickstart](Plugin-Quickstart)

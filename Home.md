@@ -28,6 +28,7 @@ And its objective is not to limit the development to a specific form, but to pro
     - [WSL Setup](WSL-Setup)
     - [Install Azure CLI](Install-Azure-CLI)
     - [Azure Functions Setup](Azure-Functions-Setup)
+    - [Database Sync](Database-Sync)
   - [Forking Technique](Forking-Technique)
   - [Historical Repository Cleaner](Historical-Repository-Cleaner)
   - [OpenSearch Dashboards](OpenSearch-Dashboards)
