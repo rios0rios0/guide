@@ -37,3 +37,4 @@ And its objective is not to limit the development to a specific form, but to pro
 
 ## References
 - [Vizir's StyleGuide](https://github.com/Vizir/styleguide)
+- [Awesome OSS Alternatives](https://github.com/VolhaBakanouskaya/awesome-oss-alternatives-public)
