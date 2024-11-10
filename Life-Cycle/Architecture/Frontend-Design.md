@@ -11,15 +11,15 @@ As a lightweight approach of the Clean Architecture, the Front End is currently 
 
 A visual representation of each layer and its dependencies:
 
-[[.assets/frontend_architecture_1.png]]
+![](.assets/frontend_architecture_1.png)
 
 Applying the architecture to the Feature Modules system:
 
-[[.assets/frontend_architecture_2.png]]
+![](.assets/frontend_architecture_2.png)
 
 This way, the dependencies are always pointing to the Domain, which is the most abstract and stable layer.
 
-[[.assets/frontend_architecture_3.png]]
+![](.assets/frontend_architecture_3.png)
 
 Obs. At the moment, there’s no State Layer, since we’re always handling state locally inside the components (Presentation). In the future, that would be necessary to update this structure adding support to it.
 

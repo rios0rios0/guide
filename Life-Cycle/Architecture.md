@@ -9,7 +9,7 @@ That’s why the development team is responsible for maintaining the dependencie
 
 |       Polluted Architecture[^1]        |       Clean Architecture[^1]       |
 |:--------------------------------------:|:----------------------------------:|
-| [[.assets/not-clean-architecture.png]] | [[.assets/clean-architecture.png]] |
+| ![](.assets/not-clean-architecture.png) | ![](.assets/clean-architecture.png) |
 
 [^1]: [Clean Architecture Introduction](https://pusher.com/tutorials/clean-architecture-introduction)
 

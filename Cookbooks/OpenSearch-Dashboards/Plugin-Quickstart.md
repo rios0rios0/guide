@@ -18,7 +18,7 @@ $ git clone https://xpto.com/xpto/osd-plugin OpenSearch-Dashboards/plugins/osd-p
 ```
 
 ## Dependencies
-[[.assets/app_relationship.png]]
+![](.assets/app_relationship.png)
 
 ### Base Stack
 As shown above, our base stack is OpenSearch and OpenSearch Dashboards, witch are equivalent for ElasticSearch and Kibana, respectively.

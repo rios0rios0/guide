@@ -9,7 +9,7 @@ Git flow is a feature branch model, with these characteristics:
 3. All feature and fix branches will be merged to the `main` through `merge/pull requests`.
 4. Any synchronization or conflict resolution should be made using the `git rebase` command. You can visit [this tutorial](http://atlassian.com/git/tutorials/rewriting-history/git-rebase) to have a better understanding of `git rebase` and the reason why using this is important.
 
-[[.assets/feature-branches.svg]]
+![](.assets/feature-branches.svg)
 
 The flow to create some modification of the code must follow the steps listed below.
 
