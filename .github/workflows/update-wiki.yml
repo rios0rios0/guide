@@ -1,0 +1,54 @@
+name: 'Update Wiki'
+
+on:
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+jobs:
+  update-wiki:
+    runs-on: 'ubuntu-latest'
+    env:
+      PROJECT_PATH: '.github/workflows/update-wiki'
+
+    steps:
+      - name: 'Checkout Repository'
+        uses: 'actions/checkout@v3'
+        with:
+          fetch-depth: 0
+
+      - name: 'Checkout Wiki'
+        uses: 'actions/checkout@v3'
+        with:
+          path: 'wiki'
+          repository: ${{ github.repository }}.wiki
+          token: ${{ secrets.GH_PAT }}
+
+      - name: 'Set Up Go'
+        uses: 'actions/setup-go@v3'
+        with:
+          go-version: '1.23.2'
+
+      - name: 'Build Go Program'
+        run: |
+          cd $PROJECT_PATH
+          go build -o update-wiki ./...
+
+      - name: 'Run Update Script'
+        run: |
+          ./$PROJECT_PATH/update-wiki
+
+      - name: 'Commit and Push Changes'
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          cd wiki
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.wiki.git
+          git add .
+          git commit -m "chore(update): updated wiki with latest changes from main branch"
+          git fetch origin master
+          git rebase -i origin/master --autosquash
+          git push origin master --force
