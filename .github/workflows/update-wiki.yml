@@ -22,8 +22,8 @@ jobs:
         uses: 'actions/checkout@v3'
         with:
           path: 'wiki'
-          repository: ${{ github.repository }}.wiki
           token: ${{ secrets.GH_PAT }}
+          repository: ${{ github.repository }}.wiki
 
       - name: 'Set Up Go'
         uses: 'actions/setup-go@v3'
@@ -48,7 +48,5 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/${{ github.repository }}.wiki.git
           git add .
-          git commit -m "chore(update): updated wiki with latest changes from main branch"
-          git fetch origin master
-          git rebase -i origin/master --autosquash
+          git commit --amend --message "chore(update): updated wiki with latest changes from main branch"
           git push origin master --force

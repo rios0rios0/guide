@@ -66,7 +66,7 @@ func replaceLinks(text string) string {
 			end := strings.Index(line[start:], ")") + start
 			if end > start {
 				linkPath := line[start:end]
-				if strings.Contains(linkPath, "/") && strings.HasSuffix(linkPath, ".md") {
+				if !strings.HasPrefix(linkPath, "http") && strings.Contains(linkPath, "/") && strings.HasSuffix(linkPath, ".md") {
 					linkName := filepath.Base(linkPath)
 					linkName = strings.TrimSuffix(linkName, ".md")
 					lines[i] = strings.Replace(line, linkPath, linkName, 1)
