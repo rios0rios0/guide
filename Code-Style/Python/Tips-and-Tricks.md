@@ -1,5 +1,6 @@
 # Tips and Tricks
-This page includes some of the tips and tricks while writing Python programs. They don’t quite deserve their own pages, so here they are, stuffed into this one page.
+This page includes some of the tips and tricks while writing Python programs.
+They don't quite deserve their own pages, so here they are, stuffed into this one page.
 
 ## Table of Contents
 - [Use Descriptive Names](#use-descriptive-names)
@@ -35,7 +36,8 @@ while True:
 Using descriptive variable names can make your code much more readable.
 
 ## Write Comments
-Other developers will have to reverse-engineer your code and guess what you were thinking when you were writing it to be able to maintain it. Instead of forcing other people to guess what you meant, write your thoughts down. You might even forget what you were thinking after a while, especially when the code is complex.
+Other developers will have to reverse-engineer your code and guess what you were thinking when you were writing it to be able to maintain it.
+Instead of forcing other people to guess what you meant, write your thoughts down. You might even forget what you were thinking after a while, especially when the code is complex.
 Instead of:
 ```python
 for row in [r for r in results if r is not None]:
@@ -53,4 +55,5 @@ for row in [r for r in results if r is not None]:
     parsed.append(dict(zip(field_name, row)))
 ```
 
-This is a bit of an extreme/made-up example, but you get the point. Although the code is still somewhat tangled, at least now you know what it is doing. You can move on if you don’t need to understand **how** it does its thing but only need to know **what** it does.
+This is a bit of an extreme/made-up example, but you get the point. Although the code is still somewhat tangled, at least now you know what it is doing.
+You can move on if you don't need to understand **how** it does its thing but only need to know **what** it does.

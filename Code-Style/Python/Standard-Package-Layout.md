@@ -1,6 +1,6 @@
 # Standard Package Layout
-This page provides guidelines on where to place files that aren’t the module’s code. Python doesn’t have an official standard for package repository layout, but there are some generally accepted conventions.
-Below are common directory/file names and their purposes. If unsure about naming a directory/file not listed here, consider referring to [Golang’s project layout standard](https://github.com/golang-standards/project-layout). Directories end with a `/`.
+This page provides guidelines on where to place files that aren't the module's code. Python doesn't have an official standard for package repository layout, but there are some generally accepted conventions.
+Below are common directory/file names and their purposes. If unsure about naming a directory/file not listed here, consider referring to [Golang's project layout standard](https://github.com/golang-standards/project-layout). Directories end with a `/`.
 
 ## Table of Contents
 - [`/[package_name]/`](#package_name)
@@ -12,7 +12,7 @@ Below are common directory/file names and their purposes. If unsure about naming
 - [`/README.md`](#readmemd)
 
 ## `/[package_name]/`
-The module’s main code. Replace `[package_name]` with the name of the package, e.g., if the package name is `icarus`, name this directory `icarus`. Python file/directory names can’t contain dashes (`-`), so `ion-cannon` should be `ion_cannon`.
+The module's main code. Replace `[package_name]` with the name of the package, e.g., if the package name is `icarus`, name this directory `icarus`. Python file/directory names can't contain dashes (`-`), so `ion-cannon` should be `ion_cannon`.
 
 ## `/examples/`
 Example codes demonstrating how to run the code or call the library.
@@ -30,7 +30,7 @@ def test_api():
 Run all tests in the `tests` folder with `pytest`.
 
 ## `/Dockerfile`
-The project’s Dockerfile. For multiple Dockerfiles (e.g., for different architectures), name them as follows:
+The project's Dockerfile. For multiple Dockerfiles (e.g., for different architectures), name them as follows:
 - `/Dockerfile.alpine`
 - `/Dockerfile.ubuntu`
 - `/Dockerfile.slim-debian`
@@ -48,7 +48,8 @@ include somedir/README.md
 PEP 518 and PEP 621-compliant package metadata.
 
 ## `/README.md`
-The project’s README file. It can be in Markdown (`README.md`), reStructuredText (`README.rst`), or plain text (`README` or `README.txt`). This file should describe the program’s purpose and usage instructions.
+The project's README file. It can be in Markdown (`README.md`), reStructuredText (`README.rst`), or plain text (`README` or `README.txt`).
+This file should describe the program's purpose and usage instructions.
 Example content:
 ```markdown
 # Project Name
