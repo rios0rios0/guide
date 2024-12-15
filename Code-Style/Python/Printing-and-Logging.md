@@ -1,5 +1,6 @@
 # Printing and Logging
-Programs often need to write some messages to the console or a log file to show the program’s progress, current state, and error information. There are many caveats to printing messages in Python. This page covers the basics of message printing and logging.
+Programs often need to write some messages to the console or a log file to show the program's progress, current state, and error information.
+There are many caveats to printing messages in Python. This page covers the basics of message printing and logging.
 
 ## Table of Contents
 - [Printing](#PrintingandLogging-Printing)
@@ -35,14 +36,14 @@ xxxxxxx10.12xxxxxxxx
 ```
 
 ## Standard Library: [logging](https://docs.python.org/3/library/logging.html)
-`logging` is one of Python’s standard libraries. It contains most of the basic functions you would want in a logger.
+`logging` is one of Python's standard libraries. It contains most of the basic functions you would want in a logger.
 Basic logging with `logging` looks something like this:
 ```python
 import logging
 logging.info("Here's some information for ya")
 ```
 
-You can also customize the logger’s format, level, etc.:
+You can also customize the logger's format, level, etc.:
 ```python
 import logging
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
@@ -59,13 +60,13 @@ logging.info("Here's some more info")
 | ERROR      | `logging.error()`    |
 | CRITICAL   | `logging.critical()` |
 
-Python’s official documentation already contains a very detailed page on how to use the logging library.
+Python's official documentation already contains a very detailed page on how to use the logging library.
 Refer to `logging`'s [documentation](https://docs.python.org/3/howto/logging.html) for more advanced usages.
 
 ## Third-Party Library: [Loguru](https://loguru.readthedocs.io/en/stable/api/logger.html)
 Loguru is a third-party library that contains a lot of extra fancy features than `logging`.
 It is not the only option out there, but it is a compelling one and is easy to set up and use.
-If you don’t want to do anything fancy, this following snippet is all you need to get started:
+If you don't want to do anything fancy, this following snippet is all you need to get started:
 ```python
 from loguru import logger
 logger.info("Here's some information for ya")
@@ -87,7 +88,7 @@ Below are the logging levels supported by Loguru:
 | ERROR      | 40             | `logger.error()`    |
 | CRITICAL   | 50             | `logger.critical()` |
 
-The logger’s default format is:
+The logger's default format is:
 ```python
 LOGURU_FORMAT = env(
     "LOGURU_FORMAT",
@@ -123,4 +124,4 @@ It formats the exception messages into something easier to read – colorizing t
 
 ![Loguru Exception Colorize](.assets/printing-and-logging-04.png)
 
-For more information, you guessed what I’m about to say: go to [Loguru’s documentation](https://loguru.readthedocs.io/en/stable/api/logger.html).
+For more information, you guessed what I'm about to say: go to [Loguru's documentation](https://loguru.readthedocs.io/en/stable/api/logger.html).

@@ -91,7 +91,7 @@ fix(TICKET-000): changed the button colors
 
 Advices:
 * no dot(.) in the end;
-* don’t capitalize the first letter;
+* don't capitalize the first letter;
 * use the SIMPLE PAST, like: changed, fixed, corrected, removed, added. Instead of using present continues;
 * always place the proper coding quotes around "code", like: I'm changing the function `setAnyThing` (proper quote is "`").
 

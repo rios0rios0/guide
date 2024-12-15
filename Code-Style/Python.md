@@ -1,12 +1,11 @@
 # Python
 
 ## Python
-
 This series of pages outline the best Python development practices and detailed explanations on exactly how something should be done the recommended way and why the recommended method is preferred.
 
 ## The Zen of Python 🐍
-
-The Zen of Python is the basic philosophy you should follow when writing Python code. For instance, you should always write your code as simple as possible and as readable as possible. You can type in `import this` in a Python interactive REPL console to see the full Zen of Python poem.
+The Zen of Python is the basic philosophy you should follow when writing Python code. For instance, you should always write your code as simple as possible and as readable as possible.
+You can type in `import this` in a Python interactive REPL console to see the full Zen of Python poem.
 
 ```python
 >>> import this
@@ -32,3 +31,4 @@ If the implementation is hard to explain, it's a bad idea.
 If the implementation is easy to explain, it may be a good idea.
 Namespaces are one honking great idea -- let's do more of those!
 >>>
+```

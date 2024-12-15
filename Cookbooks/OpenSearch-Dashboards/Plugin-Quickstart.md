@@ -24,12 +24,12 @@ $ git clone https://xpto.com/xpto/osd-plugin OpenSearch-Dashboards/plugins/osd-p
 As shown above, our base stack is OpenSearch and OpenSearch Dashboards, witch are equivalent for ElasticSearch and Kibana, respectively.
 
 * We run the [OpenSearch server in containers](https://opensearch.org/downloads.html), orchestrated by a Docker Compose file that is configured inside the OpenSearch Dashboard project.
-* The OpenSearch Dashboards (it's a fork of Elasticsearch, maintained by AWS) has dependency on our custom plugins and can be started by following some simple steps described on it’s `CONTRIBUTING_PROPRIETARY` file.
+* The OpenSearch Dashboards (it's a fork of Elasticsearch, maintained by AWS) has dependency on our custom plugins and can be started by following some simple steps described on it's `CONTRIBUTING_PROPRIETARY` file.
 
 ### Plugins
-It’s important to notice that the OpenSearch Dashboard plugins are "full-stack" plugins, since they can have a frontend and backend, inside the `/public` and `/server` sub-folders respectively.
+It's important to notice that the OpenSearch Dashboard plugins are "full-stack" plugins, since they can have a frontend and backend, inside the `/public` and `/server` sub-folders respectively.
 
-* The plugin is our main frontend application, and it’s setup is described on the `README.md` file.
+* The plugin is our main frontend application, and it's setup is described on the `README.md` file.
 It depends on the OSD Security plugin on the backend, for getting user information, before we forward the requests to our APIs.
 * The Security Dashboards plugin is used to provide authentication and authorization for the application.
 

@@ -12,7 +12,7 @@ If at any moment, a dev chooses to use macOS or Windows, this place would be a g
 * Handling ssh keys on WSL2 ([Use an ssh-agent in WSL with your ssh setup from Windows 10 | by Philipp Scheit | Medium](https://pscheit.medium.com/use-an-ssh-agent-in-wsl-with-your-ssh-setup-in-windows-10-41756755993e))
 
 ## Containers
-Some projects are going to use Docker and Docker Compose containers. It’s good to have them installed.
+Some projects are going to use Docker and Docker Compose containers. It's good to have them installed.
 
 * [How to set up Docker with WSL?]()
 * [Get Docker](https://docs.docker.com/get-docker/)

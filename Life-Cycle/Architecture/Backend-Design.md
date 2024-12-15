@@ -1,7 +1,7 @@
 ## Concepts
 
 ### Rule Types
-1. **Domain rules (enterprise rules):** define internal business rules of our application, which do not depend on (and don’t change with) external services.
+1. **Domain rules (enterprise rules):** define internal business rules of our application, which do not depend on (and don't change with) external services.
 2. **Application rules:** are domain rules that establish how the application should behave based on the state of the domain entity. In other words, they are the behaviors of the application based on the domain state.
 3. **Adapters rules:** are all kinds of conversion and adaptation of external APIs, databases, etc., to our domain entity classes.
 
