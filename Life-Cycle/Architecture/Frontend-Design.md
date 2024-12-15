@@ -21,7 +21,7 @@ This way, the dependencies are always pointing to the Domain, which is the most 
 
 ![](.assets/frontend_architecture_3.png)
 
-Obs. At the moment, there’s no State Layer, since we’re always handling state locally inside the components (Presentation). In the future, that would be necessary to update this structure adding support to it.
+Obs. At the moment, there's no State Layer, since we're always handling state locally inside the components (Presentation). In the future, that would be necessary to update this structure adding support to it.
 
 ## References:
 
