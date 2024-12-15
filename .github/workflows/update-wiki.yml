@@ -4,16 +4,16 @@ on:
   push:
     branches:
       - 'main'
-  workflow_dispatch:
+  workflow_dispatch: # allows manual triggering of the workflow
 
 jobs:
-  update-wiki:
+  update:
     runs-on: 'ubuntu-latest'
     env:
       PROJECT_PATH: '.github/workflows/update-wiki'
 
     steps:
-      - name: 'Checkout Repository'
+      - name: 'Checkout'
         uses: 'actions/checkout@v4'
         with:
           fetch-depth: 0
