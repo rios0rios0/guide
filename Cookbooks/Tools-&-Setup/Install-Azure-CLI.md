@@ -13,7 +13,9 @@
   ```
 3. Step
   ```bash
-  #AZ_REPO="$(lsb_release -cs)"
+  # Option 01: AZ_REPO="$(lsb_release -cs)"
+  # Option 02: AZ_REPO="$(cat /etc/os-release | grep VERSION_CODENAME | cut -d= -f2)"
+  # Option 03: AZ_REPO=$(grep -E '^(DISTRIB_CODENAME|VERSION_CODENAME)=' /etc/*release 2>/dev/null | awk -F= '{print $2}' | head -n 1)
   AZ_REPO="bullseye"
   echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
     sudo tee /etc/apt/sources.list.d/azure-cli.list
