@@ -28,8 +28,17 @@ You can go to your windows filesystem by:
 ```bash
 cd /mnt
 ```
-
 **Note:** you get the registry error when you are installing the distribution from the Microsoft store, you can download the Linux kernel update package from [Manual installation steps for older versions of WSL](https://docs.microsoft.com/en-us/windows/wsl/install-manual).
+
+## Set up git with ssh and 1Password
+It's highly recommended to use Git with SSH and manage your SSH keys using 1Password. Most distributions already have Git installed by default.
+If that's not the case, you can install it by running:
+```bash
+sudo apt install git
+```
+Follow the guides below to set up your 1Password SSH keys and agent:
+1. [Get started with 1Password for SSH](https://developer.1password.com/docs/ssh/get-started/)
+2. [Use the 1Password SSH agent with WSL](https://developer.1password.com/docs/ssh/integrations/wsl/)
 
 ## How to Set up Docker in WSL?
 1. Follow the steps above until you have the WSL working.
