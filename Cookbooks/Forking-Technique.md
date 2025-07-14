@@ -13,3 +13,7 @@ To keep it all organized, we've defined some patterns:
 * Our version tags are going to be an incremental number over the community version.
 For example, if the community is on version `1.0.0`, and we are synced with them, then our fork version would be `1.0.0.0`.
 If we release a new version of our fork, we increase to `1.0.0.1`. This last digit is incremental, and it resets with the community version, so, if the community goes for `1.0.1`, and we re-base the new version, we are on `1.0.1.1`.
+
+## Caveats
+
+* If, for some reason, your CI/CD or any other release control you have is not accepting more than 3 numbers on the SemVer (X.Y.Z = 3), use a dash to overcome it. For example: X.Y.Z-N, where N is the incremental number.
