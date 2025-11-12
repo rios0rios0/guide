@@ -5,7 +5,6 @@ And its objective is not to limit the development to a specific form, but to pro
 ## Summary
 <!-- in GitHub Wiki each file name (page name) is an anchor. Make sure you have no duplicates -->
 - [Home](Home.md)
-- [Glossary](Glossary.md)
 - [Onboarding](Onboarding.md)
 - [Agile & Culture](Agile-&-Culture.md)
   - [PDCA](Agile-&-Culture/PDCA.md)
