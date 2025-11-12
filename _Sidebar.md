@@ -1,6 +1,5 @@
 <!-- in GitHub Wiki each file name (page name) is an anchor. Make sure you have no duplicates -->
 - [Home](Home)
-- [Glossary](Glossary)
 - [Onboarding](Onboarding)
 - [Agile & Culture](Agile-&-Culture)
   - [PDCA](PDCA)
