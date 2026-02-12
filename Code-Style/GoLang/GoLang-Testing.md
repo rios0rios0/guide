@@ -1,36 +1,48 @@
-## Context
-When you run `go test` command in the root of your application,
-It will look for all the files that end with `_test.go` and run the test cases written in them.
+# Go Testing Conventions
 
-This structure makes it easy to keep your tests organized and separated from your main application code.
+> **TL;DR:** Use build flags (`//go:build unit` or `//go:build integration`) on every test file. Place test files next to production code with the `_test.go` suffix. Use `stretchr/testify` for suites and assertions. Test packages must be **external** to the production package. All tests must follow the BDD pattern with `// given`, `// when`, `// then` comment blocks.
+
+## Overview
+
+Go discovers test files automatically by scanning for files ending in `_test.go`. This document defines the conventions for organizing and writing tests across all Go projects.
 
 ## File Structure
+
 ```
-|__ main
-  |__ domain
-  |__ infrastructure
-    |__ repositories
-      |__ pgx_users_repository.go
-      |__ pgx_users_repository_test.go
-|__ test
-  |__ domain
-    |__ builders
-    |__ doubles
-      |__ repositories
-    |__ helpers
-  |__ infrastructure
-    |__ doubles
-      |__ repositories
+main/
+  domain/
+  infrastructure/
+    repositories/
+      pgx_users_repository.go
+      pgx_users_repository_test.go        <-- placed next to production file
+test/
+  domain/
+    builders/                              <-- test data builders
+    doubles/
+      repositories/                        <-- stubs, dummies, fakes
+    helpers/
+  infrastructure/
+    doubles/
+      repositories/
 ```
 
-## General Considerations
-1. Always start the test with a build flag specifying what's the test type, like: `//go:build unit`, `//go:build integration` and so on.
-2. The test package MUST be used OUTSIDE the production code package. For example, if your production code is `package commands` your test will be in `package commands_test`.
-3. We use primarily the `stretchr/testify` to make the test suites and the assertions inside the automated code.
-4. The file MUST be named with a final prefix `_test`. Like: `pgx_users_repository_test`.
-5. The file in the point 4th is the file which is going to be executed, and should be placed near to the production file.
+## General Conventions
 
-## Commands
+1. **Build flags are mandatory.** Every test file must start with a build flag specifying the test type:
+   ```go
+   //go:build unit
+   ```
+   ```go
+   //go:build integration
+   ```
+2. **External test packages.** The test package must be outside the production code package. For example, if the production code is in `package commands`, the test file must use `package commands_test`.
+3. **Testing framework.** Use [`stretchr/testify`](https://github.com/stretchr/testify) for test suites and assertions.
+4. **File naming.** Test files use the `_test` suffix (e.g., `pgx_users_repository_test.go`).
+5. **File placement.** Test files are placed next to the corresponding production file.
+6. **BDD structure.** Every test must use `// given`, `// when`, `// then` comment blocks to separate preconditions, actions, and assertions.
+
+## Command Tests
+
 ```go
 package myapp_test
 
@@ -48,7 +60,7 @@ import (
 type CommandSuite struct {
 	suite.Suite
 	repository *mocks.MockRepository
-	command  *cmd.CreateUserCommand
+	command    *cmd.CreateUserCommand
 }
 
 func (s *CommandSuite) SetupTest() {
@@ -59,15 +71,17 @@ func (s *CommandSuite) SetupTest() {
 }
 
 func (s *CommandSuite) TestCreateUserCommand() {
+	// given
 	s.repository.On("Save", mock.Anything).Return(nil)
-
 	user := &cmd.User{
 		Name:  "John Doe",
 		Email: "johndoe@example.com",
 	}
 
+	// when
 	err := s.command.Run(user)
 
+	// then
 	s.repository.AssertExpectations(s.T())
 	assert.Nil(s.T(), err)
 }
@@ -77,15 +91,10 @@ func TestCommandSuite(t *testing.T) {
 }
 ```
 
-In this example, the `CommandSuite` struct is used to define a test suite for the `CreateUserCommand` struct, which is part of the application's command layer.
-The `repository` field is used to create a mock implementation of the repository that the command uses, and the `SetupTest` method is used to initialize the command and the mock repository before each test.
-The `TestCreateUserCommand` method is used to test the `Run` method of the `CreateUserCommand` struct.
+The `CommandSuite` struct defines a test suite for the `CreateUserCommand`. The `SetupTest` method initializes the command and its mock repository before each test. The `TestCreateUserCommand` method validates that the `Run` method correctly delegates to the repository and returns no error.
 
-The mock repository's `Save` method is set to return `nil` and the `Run` method is called with a user struct as an argument.
-Then, the `AssertExpectations` method is called on the mock repository to ensure that the `Save` method was called as expected, and the `Nil` method is used to assert that the `Run` method returned a `nil` error.
-Finally, the `TestCommandSuite` function is used to run the test suite using the `testing` package's `Run` method.
+## Controller Tests
 
-## Controllers
 ```go
 package myapp_test
 
@@ -105,7 +114,7 @@ import (
 type ControllerSuite struct {
 	suite.Suite
 	command *mocks.MockCommand
-	ctrl     *ctrl.UserController
+	ctrl    *ctrl.UserController
 }
 
 func (s *ControllerSuite) SetupTest() {
@@ -116,25 +125,29 @@ func (s *ControllerSuite) SetupTest() {
 }
 
 func (s *ControllerSuite) TestCreateUser() {
+	// given
 	s.command.On("Save", mock.Anything).Return(nil)
 
+	// when
 	req, _ := http.NewRequest("POST", "/users", nil)
 	w := httptest.NewRecorder()
-
 	s.ctrl.Create(w, req)
 
+	// then
 	s.command.AssertExpectations(s.T())
 	assert.Equal(s.T(), http.StatusCreated, w.Code)
 }
 
 func (s *ControllerSuite) TestGetUsers() {
+	// given
 	s.command.On("Execute").Return([]*ctrl.User{}, nil)
 
+	// when
 	req, _ := http.NewRequest("GET", "/users", nil)
 	w := httptest.NewRecorder()
-
 	s.ctrl.GetAll(w, req)
 
+	// then
 	s.command.AssertExpectations(s.T())
 	assert.Equal(s.T(), http.StatusOK, w.Code)
 }
@@ -144,12 +157,14 @@ func TestControllerSuite(t *testing.T) {
 }
 ```
 
-This is the same from the previous example, but using the Controller layer.
+Controller tests use `httptest.NewRecorder()` and `httptest.NewRequest()` to simulate HTTP requests and validate response status codes.
 
-## Services
-We don't use this layer for this language.
+## Service Tests
 
-## Repositories
+This layer is **not used** in Go projects.
+
+## Repository Tests (Integration)
+
 ```go
 package myapp_test
 
@@ -172,43 +187,36 @@ func (s *RepositorySuite) SetupTest() {
 }
 
 func (s *RepositorySuite) TestSaveUser() {
+	// given
 	user := &repo.User{
 		Name:  "John Doe",
 		Email: "johndoe@example.com",
 	}
 
+	// when
 	err := s.repo.Save(user)
-	assert.NoError(s.T(), err)
 
+	// then
+	assert.NoError(s.T(), err)
 	retrievedUser, err := s.repo.FindByEmail(user.Email)
 	assert.NoError(s.T(), err)
 	assert.Equal(s.T(), user, retrievedUser)
 }
 
-func (s *RepositorySuite) TestFindByEmail() {
-	email := "johndoe@example.com"
-	user := &repo.User{
-		Name:  "John Doe",
-		Email: email,
-	}
-	s.repo.Save(user)
-
-	retrievedUser, err := s.repo.FindByEmail(email)
-	assert.NoError(s.T(), err)
-	assert.Equal(s.T(), user, retrievedUser)
-}
-
 func (s *RepositorySuite) TestFindAll() {
+	// given
 	users := []*repo.User{
 		{Name: "John Doe", Email: "johndoe@example.com"},
 		{Name: "Jane Smith", Email: "janesmith@example.com"},
 	}
-
 	for _, user := range users {
 		s.repo.Save(user)
 	}
 
+	// when
 	retrievedUsers, err := s.repo.FindAll()
+
+	// then
 	assert.NoError(s.T(), err)
 	assert.ElementsMatch(s.T(), users, retrievedUsers)
 }
@@ -218,8 +226,11 @@ func TestRepositorySuite(t *testing.T) {
 }
 ```
 
-The same from the two previous examples, but here using an integration test as an example.
+Repository tests are **integration tests** that connect to a real test database. Use `SetupTest` and `TearDownTest` to manage database state between test runs.
 
 ## References
 
-* https://github.com/stretchr/testify
+- [stretchr/testify](https://github.com/stretchr/testify)
+- [Go Testing Package](https://pkg.go.dev/testing)
+- [Go Build Constraints](https://pkg.go.dev/cmd/go#hdr-Build_constraints)
+- [Given-When-Then -- Martin Fowler](https://martinfowler.com/bliki/GivenWhenThen.html)

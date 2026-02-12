@@ -1,34 +1,33 @@
-### General
+# JavaScript & TypeScript Conventions
 
-#### Filenames
-All filenames should use `snake_case`.
+> **TL;DR:** Use `snake_case` for file names and `camelCase` for HTML attribute values. Prefer modern syntax (arrow functions, template strings, optional chaining, nullish coalescing). Never use `any` -- use `unknown` instead. Favor immutability and destructuring.
 
-**Right:** `src/opensearch-dashboards/index_patterns/index_pattern.js`
-**Wrong:** `src/opensearch-dashboards/IndexPatterns/IndexPattern.js`
+## General
 
-#### Prettier and linting
-We are gradually moving the OpenSearch Dashboards code base over to Prettier. All TypeScript code
-and some JavaScript code (check `.eslintrc.js`) is using Prettier to format code. You
-can run `node script/eslint --fix` to fix linting issues and apply Prettier formatting.
-We recommend you to enable running ESLint via your IDE.
+### File Names
 
-Whenever possible we are trying to use Prettier and linting overwritten developer guide rules.
-Consider every linting rule and every Prettier rule to be also part of our developer guide
-and disable them only in exceptional cases and ideally leave a comment why they are
-disabled at that specific place.
+All file names must use `snake_case`.
 
-### HTML
-This part contains developer guide rules around general (framework agnostic) HTML usage.
+```
+src/opensearch-dashboards/index_patterns/index_pattern.js    ✅ Correct
+src/opensearch-dashboards/IndexPatterns/IndexPattern.js       ❌ Wrong
+```
 
-#### Camel case `id` and `data-test-subj`
-Use camel case for the values of attributes such as `id` and `data-test-subj` selectors.
+### Formatting and Linting
+
+Use **Prettier** for code formatting and **ESLint** for linting. Every Prettier and ESLint rule is considered part of this guide. Disable rules only in exceptional cases and always leave a comment explaining why.
+
+## HTML
+
+### Camel Case for `id` and `data-test-subj`
+
+Use camelCase for the values of `id` and `data-test-subj` attributes:
 
 ```html
 <button id="veryImportantButton" data-test-subj="clickMeButton">Click me</button>
 ```
 
-The only exception is in cases where you're dynamically creating the value, and you need to use
-hyphens as delimiters:
+The only exception is when dynamically generating values, where hyphens may be used as delimiters:
 
 ```jsx
 buttons.map(btn => (
@@ -41,61 +40,48 @@ buttons.map(btn => (
 ))
 ```
 
-### TypeScript/JavaScript
-The following developer guide rules apply for working with TypeScript/JavaScript files.
+## TypeScript / JavaScript
 
-#### Prefer modern JavaScript/TypeScript syntax
-You should prefer modern language features in a lot of cases, e.g.:
+### Prefer Modern Syntax
 
-- Prefer arrow function over function expressions
-- Prefer template strings over string concatenation
-- Prefer the spread operator for copying arrays (`[...arr]`) over `arr.slice()`
-- Use optional chaining (`?.`) and nullish Coalescing (`??`) over `lodash.get` (and similar utilities)
+- Prefer **arrow functions** over function expressions.
+- Prefer **template strings** over string concatenation.
+- Prefer the **spread operator** (`[...arr]`) over `arr.slice()` for copying arrays.
+- Use **optional chaining** (`?.`) and **nullish coalescing** (`??`) over `lodash.get` and similar utilities.
 
-#### Avoid mutability and state
-Wherever possible, do not rely on mutable state. This means you should not
-reassign variables, modify object properties, or push values to arrays.
-Instead, create new variables, and shallow copies of objects and arrays:
+### Avoid Mutability
+
+Do not reassign variables, modify object properties, or push values to arrays. Instead, create new variables and shallow copies:
 
 ```js
-// good
+// ✅ Good
 function addBar(foos, foo) {
   const newFoo = { ...foo, name: 'bar' };
   return [...foos, newFoo];
 }
 
-// bad
+// ❌ Bad
 function addBar(foos, foo) {
   foo.name = 'bar';
   foos.push(foo);
 }
 ```
 
-#### Avoid `any` whenever possible
-Since TypeScript 3.0 and the introduction of the
-[`unknown` type](https://mariusschulz.com/blog/the-unknown-type-in-typescript) there are rarely any
-reasons to use `any` as a type. Nearly all places of former `any` usage can be replaced by either a
-generic or `unknown` (in cases the type is really not known).
+### Avoid `any`
 
-You should always prefer using those mechanisms over using `any`, since they are stricter typed and
-less likely to introduce bugs in the future due to insufficient types.
+Since TypeScript 3.0 introduced the [`unknown` type](https://mariusschulz.com/blog/the-unknown-type-in-typescript), there is rarely a valid reason to use `any`. Replace `any` with either a generic type parameter or `unknown`, combined with type narrowing.
 
-#### Use object destructuring
-This helps avoid temporary references and helps prevent typo-related bugs.
+### Use Object Destructuring
+
+Destructuring reduces temporary references and prevents typo-related bugs:
 
 ```js
-// best
+// ✅ Best
 function fullName({ first, last }) {
   return `${first} ${last}`;
 }
 
-// good
-function fullName(user) {
-  const { first, last } = user;
-  return `${first} ${last}`;
-}
-
-// bad
+// ❌ Bad
 function fullName(user) {
   const first = user.first;
   const last = user.last;
@@ -103,17 +89,24 @@ function fullName(user) {
 }
 ```
 
-#### Use array destructuring
-Directly accessing array values via index should be avoided, but if it is
-necessary, use array destructuring:
+### Use Array Destructuring
+
+Avoid accessing array values by index. When direct access is necessary, use array destructuring:
 
 ```js
 const arr = [1, 2, 3];
 
-// good
+// ✅ Good
 const [first, second] = arr;
 
-// bad
+// ❌ Bad
 const first = arr[0];
 const second = arr[1];
 ```
+
+## References
+
+- [Prettier](https://prettier.io/)
+- [ESLint](https://eslint.org/)
+- [TypeScript `unknown` Type](https://mariusschulz.com/blog/the-unknown-type-in-typescript)
+- [MDN - Destructuring Assignment](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment)

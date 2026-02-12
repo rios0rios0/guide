@@ -1,13 +1,33 @@
-## Context
-This standard is intended to guide how to proceed in creating files, naming functions, and variables.
-If there's no override documentation (languages standards inside the same level of this document), this standard must be followed as primary instructions.
-The layers mentioned below are defined and exemplified inside this page [here](Life-Cycle/Architecture/Backend-Design.md).
+# Code Style
+
+> **TL;DR:** Follow the naming conventions and file structures defined here as the baseline. Language-specific guides override these defaults where applicable. Use the standard operations vocabulary (`List`, `Get`, `Insert`, `Update`, `Delete`, and their batch variants) for naming files and classes.
+
+## Overview
+
+This document establishes the baseline coding standards for file creation, function naming, and variable naming across all projects. If a language-specific guide exists (see the sub-pages for Go, JavaScript, Java, and Python), its conventions take precedence over this document.
+
+The architectural layers referenced throughout are defined in the [Backend Design](Life-Cycle/Architecture/Backend-Design.md) section.
 
 ## File Structure
-The default file structure is described in the [backend design section](Life-Cycle/Architecture/Backend-Design.md).
 
-## Services
-If you need to create a listener for the service, we usually use the same names as the listeners for the commands.
-When you are naming this file you MUST be careful considering the entities and if they are operated in batch.
+The default file structure follows the [Backend Design](Life-Cycle/Architecture/Backend-Design.md) specification, which separates code into `domain` (contracts) and `infrastructure` (implementations) layers.
 
-1. **Note:** the operation is the kind of "thing" you're doing. Like: `List`, `Get`, `Delete`, `Insert`, `Update`, `BatchDelete`, `BatchInsert`, `BatchUpdate`, `DeleteAll` and so on.
+## Service Naming
+
+When creating service files, the naming must reflect both the **entity** being operated on and whether the operation targets a **single record or a batch**.
+
+### Operations Vocabulary
+
+Use the following standard operation prefixes consistently across all projects:
+
+| Operation     | Description               |
+|---------------|---------------------------|
+| `List`        | Retrieve multiple records |
+| `Get`         | Retrieve a single record  |
+| `Insert`      | Create a single record    |
+| `Update`      | Modify a single record    |
+| `Delete`      | Remove a single record    |
+| `BatchInsert` | Create multiple records   |
+| `BatchUpdate` | Modify multiple records   |
+| `BatchDelete` | Remove multiple records   |
+| `DeleteAll`   | Remove all records        |

@@ -1,82 +1,93 @@
+# Backend Design
+
+> **TL;DR:** Separate code into `domain` (contracts) and `infrastructure` (implementations). The five principal actors are Entities, Controllers, Commands, Services, and Repositories. Use Mappers to isolate layers and Dependency Injection to wire them together.
+
 ## Concepts
 
 ### Rule Types
-1. **Domain rules (enterprise rules):** define internal business rules of our application, which do not depend on (and don't change with) external services.
-2. **Application rules:** are domain rules that establish how the application should behave based on the state of the domain entity. In other words, they are the behaviors of the application based on the domain state.
-3. **Adapters rules:** are all kinds of conversion and adaptation of external APIs, databases, etc., to our domain entity classes.
+
+1. **Domain rules (enterprise rules):** Internal business rules that are independent of external services and do not change when external systems change.
+2. **Application rules:** Rules that define how the application behaves based on the state of domain entities. They orchestrate domain rules.
+3. **Adapter rules:** Conversions and adaptations between external APIs, databases, and domain entity classes.
 
 ### Principal Actors
-1. **Entities:** the core of the business. In these classes, there are many rules related to the actors of the system. The rules handle What are the objects modeled and what is their behavior.
-2. **Controllers:** view (client browser) links with other parts of the system: that is, it receives requests from the view and passes them on to be processed by business and application rules.
-3. **Commands:** business rule. That is, the rules of the feature and logic to be applied.
-4. **Services:** application rule. That is, parsers, conversions, etc.
-5. **Repositories:** database access. In other words, it abstracts all database connection commands, so that if the technology is changed, it is not necessary to change other files/classes, only the repository.
 
-## Concepts Applied
-The three examples below, are the file structure of a module or of a small application (less than 10k lines).
+| Actor            | Responsibility                                                                                                    |
+|------------------|-------------------------------------------------------------------------------------------------------------------|
+| **Entities**     | Core business objects. Contain domain rules about what the modeled objects are and how they behave.               |
+| **Controllers**  | Bridge between the view (client) and the business layer. Receive requests and delegate to commands.               |
+| **Commands**     | Implement business/feature logic and apply domain rules.                                                          |
+| **Services**     | Handle application-level concerns: parsing, conversions, transformations.                                         |
+| **Repositories** | Abstract all data access. Changing the database technology requires modifying only the repository implementation. |
 
-The ideal scenario, is when you have a very simple application with 3 layers. So, mixing the knowledge with a bit of practice, you'll have:
-```
-|__ domain                (contracts)
-  |__ commands              only one exception that doesn't have contract and it's implementation
-  |__ entities
-  |__ repositories
-|__ infrastructure        (implementations)
-  |__ repositories          (orm) begin with tool prefix and return models from the database or the external tool
-```
+## File Structure
 
-But sometimes, the things get complicated, and you need more layers to handle the applications rules, framework isolation and so on.
+The structure scales with complexity. Below are three tiers, from simplest to most complete:
+
+### Minimal (3 layers)
+
 ```
-|__ domain                (contracts)
-  |__ commands              only one exception that doesn't have contract and it's implementation
-  |__ entities
-  |__ repositories          it's a contract to be used by the service
-  |__ services              it's a cotract to be used by the command
-|__ infrastructure        (implementations)
-  |__ repositories          (orm) begin with tool prefix and return models from the database or the external tool
-  |__ services              starts with tool prefix and parse the database return to an entity
+domain/                   (contracts)
+  commands/                 business logic (no separate contract)
+  entities/
+  repositories/
+infrastructure/           (implementations)
+  repositories/             prefixed with tool name
 ```
 
-And it can be fully complicated when you have the API layers in the middle, having each proper parsing/mapping.
+### Intermediate (with Services)
+
 ```
-|__ domain                (contracts)
-  |__ commands              only one exception that doesn't have contract and it's implementation
-  |__ entities
-  |__ repositories          it's a contract to be used by the service
-  |__ services              it's a cotract to be used by the command
-|__ infrastructure        (implementations)
-  |__ controllers
-    |__ requests
-    |__ responses
-    |__ mappers
-  |__ repositories          (orm) begin with tool prefix and return models from the database or the external tool
-  |__ services              starts with tool prefix and parse the database return to an entity
-    |__ mappers
+domain/                   (contracts)
+  commands/
+  entities/
+  repositories/             contract used by services
+  services/                 contract used by commands
+infrastructure/           (implementations)
+  repositories/             prefixed with tool name
+  services/                 prefixed with tool name
 ```
 
-## Flows Explained
-When you are developing some applications, there are some questions about how to develop, place the files and so on.
+### Complete (with API layer)
 
-### Requests Flow
-This is the structure to make it easier understand how the request coming from the browser pass through an application (API or anything related).
+```
+domain/                   (contracts)
+  commands/
+  entities/
+  repositories/             contract used by services
+  services/                 contract used by commands
+infrastructure/           (implementations)
+  controllers/
+    requests/
+    responses/
+    mappers/
+  repositories/             prefixed with tool name
+  services/                 prefixed with tool name
+    mappers/
+```
+
+## Architectural Flows
+
+### Request Flow
+
+Illustrates how an HTTP request from the browser traverses the application layers:
 
 ![](.assets/requests_flow.png)
 
 ### Mapping/Parsing Flow
-This is the structure related to how to isolate the layers between each other, with the intention to avoid hard coupling between frameworks or external tools.
+
+Demonstrates how Mappers isolate layers from each other, preventing hard coupling between frameworks or external tools:
 
 ![](.assets/mapping_flow.png)
 
 ### Dependency Injection Flow
-This is the very simple explanation about a DI schema works and how it gets the proper information through the code.
+
+Shows how DI wires contracts to their implementations at runtime:
 
 ![](.assets/dependency_injection_flow.png)
 
-## Testing Schema
-
-(under development)
-
 ## References
 
-* https://martinfowler.com/bliki/CQRS.html
-* https://martinfowler.com/articles/mocksArentStubs.html
+- [CQRS -- Martin Fowler](https://martinfowler.com/bliki/CQRS.html)
+- [Mocks Aren't Stubs -- Martin Fowler](https://martinfowler.com/articles/mocksArentStubs.html)
+- [Clean Architecture -- Robert C. Martin](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
