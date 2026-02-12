@@ -1,0 +1,16 @@
+# Compiled binaries
+.github/workflows/update-wiki/update-wiki
+
+# Build artifacts
+/tmp/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
