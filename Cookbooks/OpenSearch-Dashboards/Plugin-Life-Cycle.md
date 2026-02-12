@@ -1,19 +1,33 @@
-In an OpenSearch Dashboards plugin, the `setup` and `start` methods are part of the plugin's lifecycle and are called at different stages of the plugin's initialization.
+# Plugin Life Cycle
 
-The `setup` method is called when the plugin is being set up and is used to define the plugin's behavior and how it interacts with the OpenSearch Dashboards platform. The `setup` method is typically used to define the routes that the plugin should respond to, the UI elements that it should display, and any APIs that the plugin should expose.
+> **TL;DR:** OSD plugins have two lifecycle methods: `setup` (define routes, UI elements, and APIs) and `start` (initialize the plugin, register event handlers, and interact with other plugins).
 
-Here's an example of a `setup` method written in TypeScript:
+## Overview
+
+OpenSearch Dashboards plugins follow a defined lifecycle with two key methods that are called during initialization.
+
+## `setup` Method
+
+The `setup` method is called during plugin initialization. It defines the plugin's behavior and its interaction with the OSD platform:
+
+- Register HTTP routes and API endpoints.
+- Define UI modules and components.
+- Configure notifications and platform integrations.
 
 ```ts
-typescriptCopy codeimport { CoreSetup, CoreStart } from 'opensearch-dashboards/src/core/public';
+import { CoreSetup } from 'opensearch-dashboards/src/core/public';
+
 export const setup = (core: CoreSetup): void => {
   const { http, uiModules, notifications } = core;
+
   http.get('/api/my_route', async (req, res) => {
-    // handle the API request
+    // Handle API request
   });
+
   uiModules.registerModule('myModule', {
-    // define UI components
+    // Define UI components
   });
+
   notifications.toasts.addSuccess({
     title: 'My Plugin',
     text: 'Setup complete!',
@@ -21,21 +35,23 @@ export const setup = (core: CoreSetup): void => {
 };
 ```
 
-The `start` method is called after the `setup` method and is used to `start` the plugin.
-In this method, you can perform any necessary initialization steps, such as registering event handlers or starting background tasks.
-The `start` method is also where you can interact with other OpenSearch Dashboards plugins and services, such as accessing data from a data source or sending data to the OpenSearch Dashboards server.
+## `start` Method
 
-Here's an example of a `start` method written in TypeScript:
+The `start` method is called after `setup` completes for all plugins. It performs runtime initialization:
+
+- Register event handlers and start background tasks.
+- Interact with other OSD plugins and services.
+- Access data sources and search indices.
 
 ```ts
-typescriptCopy codeimport { CoreSetup, CoreStart } from 'opensearch-dashboards/src/core/public';
+import { CoreStart } from 'opensearch-dashboards/src/core/public';
 
 export const start = (core: CoreStart): void => {
   const { savedObjects, data } = core;
 
   savedObjects.get('myDataSource')
     .then(dataSource => {
-      // use the data source
+      // Use the data source
     });
 
   data.search({
@@ -47,13 +63,19 @@ export const start = (core: CoreStart): void => {
     },
   })
     .then(res => {
-      // handle the search results
+      // Handle search results
     });
 };
 ```
 
-In summary, the setup method is used to define the plugin's behavior and how it interacts with the OpenSearch Dashboards platform, while the `start` method is used to `start` the plugin and perform any necessary initialization steps.
+## Summary
 
-### References
+| Method  | Timing                       | Purpose                                                               |
+|---------|------------------------------|-----------------------------------------------------------------------|
+| `setup` | During initialization        | Define routes, UI elements, APIs, and platform integrations           |
+| `start` | After all plugins are set up | Initialize runtime behavior, interact with other plugins and services |
 
-- [Kibana Plugin API](https://www.elastic.co/guide/en/kibana/master/kibana-platform-plugin-api.html#:~:text=Kibana%20has%20three%20lifecycles%3A%20setup,been%20completed%20for%20all%20plugins.)
+## References
+
+- [Kibana Plugin API](https://www.elastic.co/guide/en/kibana/master/kibana-platform-plugin-api.html)
+- [OpenSearch Dashboards Developer Guide](https://github.com/opensearch-project/OpenSearch-Dashboards/blob/main/DEVELOPER_GUIDE.md)

@@ -1,18 +1,27 @@
-## Context
-Architecture standards used in all applications.
+# Architecture
 
-## Introduction
-The development of modern applications has ultimately become a huge task of managing dependencies throughout the code.
-A bad design though could lead the developers to struggle a lot when having to change it.
-And yes, it happens all the time due to requirements updates, for some external library that got deprecated, or for any other issue.
-That's why the development team is responsible for maintaining the dependencies sane.
+> **TL;DR:** All applications follow **Clean Architecture** principles, separating business logic from infrastructure concerns. Dependencies always point inward toward the domain. Adhere to SOLID principles for maintainable, testable code.
 
-|       Polluted Architecture[^1]        |       Clean Architecture[^1]       |
-|:--------------------------------------:|:----------------------------------:|
+## Overview
+
+Modern application development is fundamentally a task of **managing dependencies**. Poor architectural design leads to rigid, fragile codebases that are costly to change. Since requirements evolve, libraries get deprecated, and external services change, the development team must actively maintain a clean dependency graph.
+
+|        Polluted Architecture[^1]        |       Clean Architecture[^1]        |
+|:---------------------------------------:|:-----------------------------------:|
 | ![](.assets/not-clean-architecture.png) | ![](.assets/clean-architecture.png) |
 
 [^1]: [Clean Architecture Introduction](https://pusher.com/tutorials/clean-architecture-introduction)
 
-## References:
+Clean Architecture enforces a clear separation of concerns where **business rules are independent of frameworks, databases, and delivery mechanisms**. The inner layers define policies; the outer layers implement mechanisms.
+
+## Sub-Pages
+
+- [Backend Design](Architecture/Backend-Design.md) -- Layers, actors, file structure, and flow diagrams
+- [Frontend Design](Architecture/Frontend-Design.md) -- 5-layer frontend architecture
+
+## References
+
 - [SOLID Principles](https://en.wikipedia.org/wiki/SOLID)
-- [Uncle's Bob Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) and [Clean Architecture Book](https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164)
+- [Uncle Bob's Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [Clean Architecture Book](https://www.amazon.com/Clean-Architecture-Craftsmans-Software-Structure/dp/0134494164)
+- [Clean Architecture Introduction](https://pusher.com/tutorials/clean-architecture-introduction)

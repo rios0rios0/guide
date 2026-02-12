@@ -1,166 +1,111 @@
 # Python Packaging
-This document outlines the best Python development practices and a step-by-step tutorial on how to create a new Python package. **TL;DR: Use Pip + PDM.**
 
-## Table of Contents
-- [Package Initialization with PDM](#PythonPackaging-PackageInitializationwi)
-  - [Initialize Package](#PythonPackaging-InitializePackage)
-  - [Create Package Base Code](#PythonPackaging-CreatePackageBaseCode)
-  - [Update Package Metadata and README](#PythonPackaging-UpdatePackageMetadataan)
-  - [Next Steps](#PythonPackaging-NextSteps)
+> **TL;DR:** Use **PDM** as the package manager with **PEP 621** metadata in `pyproject.toml`. PDM is lightweight, standards-compliant, and easily replaceable by any PEP 621-compatible tool.
 
-There are a lot of Python packaging and distribution tools available. Below are some common ones:
+## Overview
 
-| Name       | Description                                                                            |
-|------------|----------------------------------------------------------------------------------------|
-| Conda      | A cross-platform binary package manager mainly used by Anaconda                        |
-| Setuptools | A fully-featured and popular package builder                                           |
-| Pipenv     | A virtualenv and dependency manager                                                    |
-| Poetry     | A dependency manager, package builder, and package publisher                           |
-| PDM        | A dependency manager, package builder, and package publisher with full PEP 621 support |
+This document provides a step-by-step guide for creating a new Python package. While many packaging tools exist, this guide recommends PDM for the following reasons:
 
-The tools listed above are merely a fraction of all the tools available.
-A more comprehensive comparison between all Python packaging and distribution tools can be found [here](https://chadsmith.dev/python-packaging/).
-In practice, you can choose any tool you like to develop your Python package as long as Pip can recognize the format and install the package.
+- **PEP 621 support:** All metadata lives in a single `pyproject.toml` file.
+- **Portability:** PEP 621 is an official standard, so PDM can be replaced by any compliant tool.
+- **Lightweight:** Unlike Poetry, PDM does not require GCC-compiled components.
 
-This guide **recommends users to use PDM** due to the following reasons:
-- PDM supports **PEP 621**, which allows all the project's metadata to be included in one `pyproject.toml` file instead of spread across `setup.py`, `setup.cfg`, and `pyproject.toml`.
-- PDM can easily be replaced in the future since **PEP 621** is an official standard. Poetry can also store all files in `pyproject.toml`, but it uses custom sections that cannot be recognized by other tools.
-- PDM is relatively light-weight when compared to tools like Poetry, which requires certain components to be compiled by GCC.
+### Tool Comparison
 
-## Package Initialization with PDM
-This section will use PDM as the build tool to demonstrate how to create a standard Python package from scratch.
+| Tool       | Description                                                                      |
+|------------|----------------------------------------------------------------------------------|
+| Conda      | Cross-platform binary package manager (primarily for Anaconda)                   |
+| Setuptools | Fully-featured, legacy package builder                                           |
+| Pipenv     | Virtualenv and dependency manager                                                |
+| Poetry     | Dependency manager + builder + publisher (uses custom `pyproject.toml` sections) |
+| **PDM**    | Dependency manager + builder + publisher with full PEP 621 support               |
 
-### Initialize Package
-Install PDM using Pip:
+For a more comprehensive comparison, see [Python Packaging Tools Comparison](https://chadsmith.dev/python-packaging/).
+
+## Step-by-Step: Package Initialization with PDM
+
+### 1. Install PDM
+
 ```shell
 pip install -U pdm
 ```
 
-Create a directory for the package:
+### 2. Create and Initialize the Package
+
 ```shell
-mkdir icarus
-cd icarus
+mkdir icarus && cd icarus
+pdm init
 ```
 
-Initialize the package using PDM. Answer the questions according to your package's requirements.
-You can use "Proprietary" as the license name for a non-open-source package.
-```shell
-$ pdm init
-Creating a pyproject.toml for PDM...
-Please enter the Python interpreter to use
-0. /usr/bin/python3 (3.10)
-1. /usr/bin/python (3.10)
-Please select: [0]:
-Using Python interpreter: /usr/bin/python3 (3.10)
-Is the project a library that will be uploaded to PyPI? [y/N]:
-License(SPDX name) [MIT]: Proprietary
-Author name [k4yt3x]: K4YT3X
-Author email [i@k4yt3x.com]:
-Python requires('*' to allow any) [>=3.10]: >=3.6
-Changes are written to pyproject.toml.
-```
+Answer the interactive prompts according to your package's requirements. Use `Proprietary` as the license for non-open-source packages.
 
-### Create Package Base Code
+### 3. Create the Package Module
 
-Create the module's directory. This directory's name should be the same as the Python package's name.
 ```shell
 mkdir icarus
 ```
 
-Create the project initialization file:
-```shell
-cat <<EOF> icarus/__init__.py
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
+Create the initialization file:
+```python
+# icarus/__init__.py
 __version__ = "1.0.0"
 from .icarus import main
-EOF
 ```
 
-Create a package `__main__` file. This file will be executed when the module is executed directly like `python -m icarus`.
-```shell
-cat <<EOF> icarus/__main__.py
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-# local imports
-from .icarus import main
-# built-in imports
+Create the `__main__` file (enables `python -m icarus`):
+```python
+# icarus/__main__.py
 import sys
+from .icarus import main
+
 if __name__ == "__main__":
- sys.exit(main())
-EOF
+    sys.exit(main())
 ```
 
-Create the module's entrypoint file:
-```shell
-cat <<EOF> icarus/icarus.py
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
+Create the entrypoint:
+```python
+# icarus/icarus.py
 from . import __version__
-def main():
- print("Don't fly too close to the sun.")
- print(f"The package's version is: {__version__}")
-EOF
+
+def main() -> int:
+    print(f"Icarus v{__version__}")
+    return 0
 ```
 
-Change the Python files' mode to executable:
-```shell
-chmod +x icarus/*.py
+### 4. Configure `pyproject.toml`
+
+Enable dynamic versioning so the version is defined once in `__init__.py`:
+
+```toml
+[project]
+name = "icarus"
+description = "A demo package"
+authors = [{ name = "Author", email = "author@example.com" }]
+dependencies = []
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/org/icarus"
+
+[tool.pdm]
+version = { from = "icarus/__init__.py" }
+
+[build-system]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
 ```
 
-### Update Package Metadata and README
+### 5. Create `README.md`
 
-Edit the `pyproject.toml` file to instruct it to read the package's version from the package's `__init__` file dynamically.
-This way the version only needs to be specified once in the package but is readable by both the packaging tool and the module's main code.
-Also update the other relevant fields in the file like the package's name and description.
-```diff
---- pyproject.toml.orig 2022-02-28 19:33:29.705268473 +0000
-+++ pyproject.toml 2022-02-28 19:24:41.563891539 +0000
-@@ -1,16 +1,17 @@
- [project]
--name = ""
--version = ""
--description = ""
-+name = "icarus"
-+description = "A demo package"
- authors = [{ name = "K4YT3X", email = "i@k4yt3x.com" }]
- dependencies = []
- requires-python = ">=3.10"
- license = { text = "Proprietary" }
-+dynamic = ["version"]
- [project.urls]
--Homepage = ""
-+Homepage = "https://gitlab.com/demo-group/demo-subgroup/icarus"
- [tool.pdm]
-+version = { from = "icarus/__init__.py" }
- [build-system]
- requires = ["pdm-pep517"]
+Provide usage instructions in the project README.
+
+### 6. Final Structure
+
 ```
-
-Create a `README.md` file for this repository:
-```markdown
-# Icarus
-This is a demo package for our Python standardization document.
-
-## Usages
-
-Install the package:
-
-@```shell
-pip install .
-@```
-```
-
-Run the package:
-```bash
-python3 -m icarus
-```
-
-### Next Steps
-When you are done, your repository's structure should look something like this:
-```
-icarus
-├── icarus
+icarus/
+├── icarus/
 │   ├── __init__.py
 │   ├── __main__.py
 │   └── icarus.py
@@ -168,25 +113,22 @@ icarus
 └── README.md
 ```
 
-Your package is now initialized. You can start writing your code.
-Below are some useful commands. For more information, refer to [PDM's documentation](https://pdm.fming.dev/) and [Pip's documentation](https://pip.pypa.io/en/stable/).
+### Useful Commands
+
 ```bash
-# add a new dependency
-pdm add 'opencv-python>=4.5'
-
-# install the package
-pip install .
-
-# build the package's source distribution (sdist)
-pip install -U build
-python3 -m build -s .
-
-# build the package's binary distribution (bdist wheel)
-pip install -U build wheel
-python3 -m build -w .
+pdm add 'opencv-python>=4.5'     # Add a dependency
+pip install .                      # Install the package locally
+python3 -m build -s .             # Build source distribution
+python3 -m build -w .             # Build wheel distribution
 ```
 
-Now you know how to build a simple Python package.
-Here are some more articles helpful for you to better understand Python packaging:
-- [Package-Metadata-Formats](Package-Metadata-Formats.md)
-- [Standard Package Layout](Standard-Package-Layout.md)
+## Next Steps
+
+- [Package Metadata Formats](Package-Metadata-Formats.md) -- Understand the evolution from `setup.py` to PEP 621.
+- [Standard Package Layout](Standard-Package-Layout.md) -- Learn where to place non-code files.
+
+## References
+
+- [PDM Documentation](https://pdm-project.org/)
+- [Pip Documentation](https://pip.pypa.io/)
+- [PEP 621 -- Storing Project Metadata in pyproject.toml](https://peps.python.org/pep-0621/)

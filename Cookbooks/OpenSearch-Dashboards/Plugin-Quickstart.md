@@ -1,127 +1,111 @@
-## Context
-It is about when we need to develop a plugin for the Open Search app (we call it OSD, which is an open source version of Kibana + Elasticsearch).
-And, in this article we have some instructions how to deal with the plugin environment, to be able to start this development.
+# Plugin Quickstart
 
-OpenSearch Dashboards is primarily a Node.js web application built using React.
-To effectively contribute you should be familiar with HTML, SASS styling, TypeScript and JavaScript, and React (take a look at [JavaScript Code Style](../../Code-Style/JavaScript.md)).
+> **TL;DR:** Clone OpenSearch Dashboards, place your plugin in the `plugins/` directory, run `yarn osd bootstrap` to install dependencies, and start the dev server with `yarn start`. OSD plugins are full-stack (frontend in `/public`, backend in `/server`).
 
-## Repositories
-1. OpenSearch Dashboards: https://github.com/opensearch-project/OpenSearch-Dashboards
-2. OpenSearch Dashboards Security Plugin: https://github.com/opensearch-project/security-dashboards-plugin
-3. Plugin: https://xpto.com/xpto/osd-plugin
-4. API: https://xpto.com/xpto
-5. Dev CLI: https://xpto.com/xpto
+## Overview
+
+OpenSearch Dashboards (OSD) is an open-source fork of Kibana, primarily built with Node.js and React. This guide covers setting up a local development environment for plugin development. Familiarity with HTML, SASS, TypeScript, JavaScript, and React is expected (see [JavaScript Conventions](../../Code-Style/JavaScript.md)).
+
+## Repository Setup
+
+Clone the required repositories:
 
 ```bash
-$ git clone git@github.com:opensearch-project/OpenSearch-Dashboards.git
-$ git clone https://xpto.com/xpto/osd-plugin OpenSearch-Dashboards/plugins/osd-plugin
+git clone git@github.com:opensearch-project/OpenSearch-Dashboards.git
+git clone <your-plugin-repo> OpenSearch-Dashboards/plugins/<plugin-name>
 ```
 
-## Dependencies
+### Key Repositories
+
+| Repository                                                                                     | Purpose                          |
+|------------------------------------------------------------------------------------------------|----------------------------------|
+| [OpenSearch Dashboards](https://github.com/opensearch-project/OpenSearch-Dashboards)           | Base platform                    |
+| [Security Dashboards Plugin](https://github.com/opensearch-project/security-dashboards-plugin) | Authentication and authorization |
+
+## Architecture
+
 ![](.assets/app_relationship.png)
 
 ### Base Stack
-As shown above, our base stack is OpenSearch and OpenSearch Dashboards, witch are equivalent for ElasticSearch and Kibana, respectively.
 
-* We run the [OpenSearch server in containers](https://opensearch.org/downloads.html), orchestrated by a Docker Compose file that is configured inside the OpenSearch Dashboard project.
-* The OpenSearch Dashboards (it's a fork of Elasticsearch, maintained by AWS) has dependency on our custom plugins and can be started by following some simple steps described on it's `CONTRIBUTING_PROPRIETARY` file.
+- **OpenSearch** (Elasticsearch fork) runs in containers via Docker Compose.
+- **OpenSearch Dashboards** (Kibana fork) depends on custom plugins and is started via the development server.
 
-### Plugins
-It's important to notice that the OpenSearch Dashboard plugins are "full-stack" plugins, since they can have a frontend and backend, inside the `/public` and `/server` sub-folders respectively.
+### Plugin Structure
 
-* The plugin is our main frontend application, and it's setup is described on the `README.md` file.
-It depends on the OSD Security plugin on the backend, for getting user information, before we forward the requests to our APIs.
-* The Security Dashboards plugin is used to provide authentication and authorization for the application.
+OSD plugins are **full-stack**: the `/public` directory contains frontend code and `/server` contains backend code.
 
-### APIs
-Our main backend service, that provides all the functionality for our app.
-The project runs in containers managed by Docker Compose that loads an API, database and queue services.
+The Security Dashboards plugin provides authentication and authorization. It is used by other plugins to retrieve user information before forwarding requests to backend APIs.
 
-### Dev CLI
-We use this project to build our development stack and populate our APIs.
+## Getting Started
 
-## Getting started guide
-
-This guide is for any developer who wants a running local development environment where you can make, see, and test changes. It's opinionated to get you running as quickly and easily as possible, but it's not the only way to set up a development environment.
-
-### Key technologies
-
-### Bootstrap OpenSearch Dashboards
-
-If you haven't already, change directories to your cloned repository directory:
+### 1. Bootstrap Dependencies
 
 ```bash
-$ cd OpenSearch-Dashboards
+cd OpenSearch-Dashboards
+yarn osd bootstrap
 ```
 
-The `yarn osd bootstrap` command will install the project's dependencies and build all internal packages and plugins. Bootstrapping is necessary any time you need to update packages, plugins, or dependencies, and it's recommended to run it anytime you sync with the latest upstream changes.
+This installs all dependencies and builds internal packages. Run this command whenever you update packages or sync with upstream changes.
+
+**Network timeout?** Add a timeout flag:
 
 ```bash
-$ yarn osd bootstrap
+yarn osd bootstrap --network-timeout 1000000
 ```
 
-Note: If you experience a network timeout while bootstrapping:
-
-```
-| There appears to be trouble with your network connection. Retrying...
-```
-
-You can run command with —network-timeout flag:
-
-```
-$ yarn osd bootstrap —network-timeout 1000000
-```
-
-Or use the timeout by configuring it in the [`.yarnrc`](https://github.com/opensearch-project/OpenSearch-Dashboards/blob/main/.yarnrc). For example:
+Or configure it in `.yarnrc`:
 
 ```
 network-timeout 1000000
 ```
 
-If you've previously bootstrapped the project and need to start fresh, first run:
+To start fresh:
 
 ```bash
-$ yarn osd clean
+yarn osd clean
 ```
 
-### Run OSD Plugin
-
-Start the OpenSearch Dashboards development server:
+### 2. Start the Development Server
 
 ```bash
-$ yarn start
+yarn start
 ```
 
-When the server is up and ready (the console messages will look something like this),
+Wait for the server to be ready:
 
 ```
 [info][listening] Server running at http://localhost:5603/pgt
-[info][server][OpenSearchDashboards][http] http server running at http://localhost:5603/pgt
 ```
 
-Click on the link displayed in your terminal to  access it.
-
-Note - it may take a couple of minutes to generate all the necessary bundles. If the Dashboards link is not yet accessible, wait for a log message like
+Bundle compilation may take a few minutes. Wait for:
 
 ```
 [success][@osd/optimizer] 28 bundles compiled successfully after 145.9 sec, watching for changes
 ```
 
-Note: If you run a docker image, an error may occur:
+### Troubleshooting
+
+**Docker memory error:**
 
 ```
 Error: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
 ```
 
-This error is because there is not enough memory so more memory must be allowed to be used:
+Fix on Linux:
 
-```
-$ sudo sysctl -w vm.max_map_count=262144
+```bash
+sudo sysctl -w vm.max_map_count=262144
 ```
 
-For windows:
+Fix on Windows (WSL):
 
+```bash
+wsl -d docker-desktop
+sysctl -w vm.max_map_count=262144
 ```
-$ wsl -d docker-desktop
-$ sysctl -w vm.max_map_count=262144
-```
+
+## References
+
+- [OpenSearch Dashboards Developer Guide](https://github.com/opensearch-project/OpenSearch-Dashboards/blob/main/DEVELOPER_GUIDE.md)
+- [OpenSearch Downloads](https://opensearch.org/downloads.html)
