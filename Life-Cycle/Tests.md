@@ -1,56 +1,140 @@
-## Context
-The layers mentioned below are defined and exemplified inside this page [here](../Life-Cycle/Architecture/Backend-Design.md).
+# Testing Standards
 
-## File Structure
-The default file structure is described in the [backend design section](../Life-Cycle/Architecture/Backend-Design.md).
+> **TL;DR:** All tests must follow the BDD (Behavior-Driven Development) pattern with `// given`, `// when`, `// then` comment blocks. Write descriptive test names per layer: Commands (`"should call <LISTENER> when ..."`), Controllers (`"should respond <HTTP_STATUS_CODE> when ..."`), Services/Repos (`"should ... when ..."` with success + failure pairs). Prefer Stubs, Dummies, and In-memory doubles over Mocks. Use Builders for test data construction.
 
-## Commands
-For each listener in the command, it is necessary to create a test.
-ALWAYS describe in the method, what is the listener being tested. Or use some string to describe.
+## Overview
 
-Use the provided description field to write as follows: `"should call <LISTENER> when ..."` and the rest will be the complement of what the method does.
+This document defines the testing standards applicable across all languages and projects. The architectural layers referenced here are defined in the [Backend Design](../Life-Cycle/Architecture/Backend-Design.md) section.
 
-## Controllers
-For each status code, it is necessary to create a test to verify if the HTTP code is correct and if it is really returning the data that is being returned is correct.
-ALWAYS describe in the method, what is the answer expected. Or use some string to describe.
+## BDD Structure (Given / When / Then)
 
-Use the provided description field to write as follows: `"should respond <HTTP_STATUS_CODE> (HTTP_STATUS) when ..."` and the rest will be the complement of what the method does.
+**All tests in all languages must follow the BDD pattern** with three clearly separated blocks using comments. This structure makes every test readable, self-documenting, and consistent across the entire codebase.
 
-## Services
-For each public method it's necessary AT LEAST a pair of tests (success and failure).
-ALWAYS describe in the method, what is the method tested and if it's a "successful" return or an "error". Or use some string to describe.
+| Block     | Purpose                                                                               | Also Known As |
+|-----------|---------------------------------------------------------------------------------------|---------------|
+| **given** | Set up preconditions -- initialize objects, configure doubles, prepare input data     | Arrange       |
+| **when**  | Execute the action under test -- call the method, trigger the event, send the request | Act           |
+| **then**  | Assert expected outcomes -- verify return values, check side effects, validate state  | Assert        |
 
-Use the provided description field to write as follows: `"should ... when ...")` and the rest will be the complement of what the method does.
+### Comment Syntax by Language
 
-## Repositories
-Exactly the same as in [Services](#services).
+| Language                | Given      | When      | Then      |
+|-------------------------|------------|-----------|-----------|
+| Go                      | `// given` | `// when` | `// then` |
+| JavaScript / TypeScript | `// given` | `// when` | `// then` |
+| Java                    | `// given` | `// when` | `// then` |
+| Python                  | `# given`  | `# when`  | `# then`  |
 
-## Doubles
-Martin Fowler, a software developer and author, has written about the different types of test doubles, which are objects that can be used in place of real objects during testing.
-* A **faker** is a test double that generates fake data for use in tests.
-* A **mock** is a test double that is configured to expect certain method calls and can be used to verify that the expected calls were made during the test.
-* A **stub** is a test double that returns a pre-configured response when a certain method is called. It can be used to isolate the test subject from external dependencies.
-* A **dummy** is a test double that is passed around but never actually used. It is typically used to fill an argument that is required by the test subject but is not actually used.
-* **In-memory** is a term used to refer to the fact that the test double is stored in memory during the test and not persisted to disk or a database.
+### Example (JavaScript)
 
-Martin Fowler's book "Refactoring: Improving the Design of Existing Code" in which he defined and discussed test doubles such as Fakers, Mocks, Stubs, Dummies and In-memory.
+```ts
+it('should render Content when not loading', () => {
+  // given
+  const props = { loading: false };
 
-So, a **double** is any object that is the actual object for testing, used to simulate an external dependency.
-From that definition and the previous Martin Fowler's definition, we just use some of those things, like:
-* **Stub:** just a canned answer, don't do memory logic here.
-* **Dummy:** ready-made answers if possible, such as empty lists and null answers.
-* **In-memory:** do in-memory logic here without using other modules.
-* **Faker:** we use as an external library to generate smart faked data for us.
-* **Mock:** we want to avoid them as possible. But if we can't, we use as an external library to mimic and verify method calls.
+  // when
+  const component = shallow(<ExampleComponent {...props} />);
+
+  // then
+  expect(component.find(Content).exists()).toBeTruthy();
+  expect(component.find(Loading).exists()).toBeFalsy();
+});
+```
+
+### Example (Go)
+
+```go
+func (s *CommandSuite) TestCreateUserCommand() {
+    // given
+    s.repository.On("Save", mock.Anything).Return(nil)
+    user := &cmd.User{
+        Name:  "John Doe",
+        Email: "johndoe@example.com",
+    }
+
+    // when
+    err := s.command.Run(user)
+
+    // then
+    s.repository.AssertExpectations(s.T())
+    assert.Nil(s.T(), err)
+}
+```
+
+### Example (Python)
+
+```python
+def test_create_user_successfully(self):
+    # given
+    user_data = {"name": "John Doe", "email": "john@example.com"}
+
+    # when
+    result = self.service.create_user(user_data)
+
+    # then
+    assert result.name == "John Doe"
+    assert result.email == "john@example.com"
+```
+
+## Test Description Patterns
+
+### Commands
+
+Create one test per listener in the command. Use this description format:
+
+```
+"should call <LISTENER> when ..."
+```
+
+### Controllers
+
+Create one test per HTTP status code. Verify both the status code and the response body:
+
+```
+"should respond <HTTP_STATUS_CODE> (HTTP_STATUS) when ..."
+```
+
+### Services
+
+Create **at least** one success and one failure test per public method:
+
+```
+"should ... when ..."
+```
+
+### Repositories
+
+Follow the same conventions as [Services](#services).
+
+## Test Doubles
+
+Based on [Martin Fowler's taxonomy](https://martinfowler.com/bliki/TestDouble.html), a **test double** is any object that replaces a real dependency during testing. The team uses the following types:
+
+| Type          | Purpose                                               | Guidelines                                                           |
+|---------------|-------------------------------------------------------|----------------------------------------------------------------------|
+| **Stub**      | Returns pre-configured (canned) answers               | No in-memory logic; return static values only                        |
+| **Dummy**     | Fills required parameters that are never used         | Return minimal values (empty lists, `null`)                          |
+| **In-memory** | Implements logic in memory without external modules   | Use for lightweight simulations of repositories or services          |
+| **Faker**     | Generates realistic fake data via an external library | Use libraries like Faker.js or Go Faker                              |
+| **Mock**      | Records and verifies method calls                     | **Avoid when possible.** Use only when no other double type suffices |
 
 ## Builders
-The Builder Design Pattern is a creation design pattern that allows for the construction of complex objects step by step through a builder object.
-It separates the construction of a complex object from its representation and allows for the same construction process to create different representations.
-The builder pattern is a design pattern that allows for the step-by-step construction of complex objects using a builder object.
 
-We usually use this pattern to create the classes for the automated testing.
+The [Builder Design Pattern](https://refactoring.guru/design-patterns/builder) enables step-by-step construction of complex test objects. Builders separate object construction from representation, making test setup readable and reusable:
+
+```
+UserBuilder.new()
+    .withName("John Doe")
+    .withEmail("john@example.com")
+    .build()
+```
+
+Use builders to construct entities, DTOs, and other complex objects needed for automated testing.
 
 ## References
 
-* https://martinfowler.com/bliki/TestDouble.html
-* https://martinfowler.com/articles/mocksArentStubs.html
+- [Test Double -- Martin Fowler](https://martinfowler.com/bliki/TestDouble.html)
+- [Mocks Aren't Stubs -- Martin Fowler](https://martinfowler.com/articles/mocksArentStubs.html)
+- [Builder Pattern -- Refactoring Guru](https://refactoring.guru/design-patterns/builder)
+- [BDD -- Behavior-Driven Development](https://cucumber.io/docs/bdd/)
+- [Given-When-Then](https://martinfowler.com/bliki/GivenWhenThen.html)

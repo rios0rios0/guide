@@ -1,63 +1,60 @@
 # Merge Guide
 
-### Case 1
+> **TL;DR:** For dependent (chained) branches, merge from the outermost branch inward before merging into `main`. For independent branches, merge one at a time, rebasing each subsequent branch on the updated `main`.
+
+## Overview
+
+This guide covers the correct merge order for two common scenarios: dependent branches and independent branches. Following these procedures ensures a clean, linear commit history.
+
+## Case 1: Dependent Branches
+
+When branches are chained (e.g., `test/2` depends on `test/1`), merge from the **outermost** branch inward before merging into `main`.
+
 ![](.assets/case-1-commits-before.png)
 
-In this case, where we have a second (third, fourth or N branches), dependent on a first branch, we need to merge the last branch (in this case test 2), before merging the first into main (which would be tested 1 ).
+### Procedure
 
-The merge order for this case is:
+1. Merge `test/2` into `test/1`.
+2. Merge `test/1` into `main`.
 
-1 - > merge test/2 into test/1
-2 -> merge test/1 into main
+For deeper chains (N branches):
 
-This could have been repeated infinitely many times, like:
+1. Merge `test/N` into `test/N-1`.
+2. Merge `test/N-1` into `test/N-2`.
+3. Continue until `test/1`.
+4. Merge `test/1` into `main`.
 
-x -> thousands of branches
-
-1 - > merge test/4 into test/3
-
-2 - > merge test/3 into test/2
-
-3 - > merge test/2 into test/1
-
-4 -> merge test/1 into main
-
-Result:
+### Result
 
 ![](.assets/case-1-commits-result.png)
 
---------------------------------
-### Case 2
-In case we have 2 branches starting from main, the procedure must be done as follows:
+---
 
-1 - merge test 1 into main
+## Case 2: Independent Branches
 
-2 - rebase test 2 with main
+When multiple branches originate independently from `main`, merge them **one at a time**, rebasing each subsequent branch on the updated `main`.
 
-3 - merge test 2 into main
+### Procedure
 
-This way, there will be two independent triangles. It's crucial that you don't forget to update "main" locally after the first merge. The procedure can be repeated infinite times. For example:
+1. Merge `test/1` into `main`.
+2. **Update `main` locally** after the merge.
+3. Rebase `test/2` with the updated `main`.
+4. Merge `test/2` into `main`.
+5. Repeat for additional branches.
 
-1 - merge test 1 into main
+This produces independent "triangles" in the commit graph, keeping the history clean and traceable.
 
-2 - rebase test 2 with main
+### Handling Rebase Conflicts
 
-3 - merge test 2 into main
+If conflicts occur during the rebase:
 
-4 - rebase test 3 with main
-
-5 - merge test 3 into main
-
-N - ...... thousands of branches
-
-Note: if after updating the main and trying to rebase to the main of the 2nd branch this conflict occurs, go to the files indicated in your IDE and fix the conflicts.
-
-After that, give the commands
-
--   git rebase –-continue
--   git push –f
+1. Resolve the conflicts in your IDE.
+2. Stage the resolved files: `git add <resolved-file>`
+3. Continue the rebase: `git rebase --continue`
+4. Force-push: `git push -f`
 
 ![](.assets/case-2-commits-error.png)
 
-Then update your main and merge. The graph will look like this:
+Then update `main` locally and proceed with the merge. The resulting graph:
+
 ![](.assets/case-2-commits-result.png)

@@ -1,19 +1,43 @@
-## Context
-When we need to fork some project, we should follow some standards to be up-to-date with the world outside.
-Assuming that a fork is primarily made from an open-source project, it's common that the maintainers are often too busy and take too long to review and merge the PR's from the community.
-Even for tiny changes such as adding an icon on the theme.
+# Forking Technique
 
-To solve this kind of situation, we've done this standard to guide this.
-We intend to keep the compatibility of these and re-base all the changes of newer community versions.
+> **TL;DR:** Reserve `main` for the upstream community version and use `custom` as the working branch. Rebase `custom` onto updated `main` when upstream releases new versions. Tag fork releases with an incremental fourth digit (e.g., `1.0.0.1`).
 
-## Technique
-To keep it all organized, we've defined some patterns:
-* The `main` branch is reserved for the community version of the projects. Inside the forks, we are always working in the `custom` branch, which works as a `main` for us.
-* To keep our forks up to date with the base project and also apply our changes, we're using a strategy of always re-base the `main` (community) branch, and placing our customization on top of the newest version.
-* Our version tags are going to be an incremental number over the community version.
-For example, if the community is on version `1.0.0`, and we are synced with them, then our fork version would be `1.0.0.0`.
-If we release a new version of our fork, we increase to `1.0.0.1`. This last digit is incremental, and it resets with the community version, so, if the community goes for `1.0.1`, and we re-base the new version, we are on `1.0.1.1`.
+## Overview
+
+When forking an open-source project, it is common for upstream maintainers to take significant time reviewing and merging community contributions. This standard defines a forking strategy that maintains compatibility with upstream releases while preserving custom modifications.
+
+## Strategy
+
+### Branch Convention
+
+- The **`main`** branch mirrors the upstream community version. It is updated by rebasing on upstream releases.
+- The **`custom`** branch serves as the team's working branch (equivalent to `main` for internal purposes).
+
+### Synchronization
+
+To stay current with the upstream project:
+
+1. Update `main` by rebasing on the latest upstream release.
+2. Rebase `custom` onto the updated `main`, placing custom modifications on top of the newest version.
+
+### Versioning
+
+Fork versions use an **incremental fourth digit** appended to the upstream version:
+
+| Scenario                                  | Version   |
+|-------------------------------------------|-----------|
+| Upstream at `1.0.0`, fork synced          | `1.0.0.0` |
+| New fork release                          | `1.0.0.1` |
+| Upstream updates to `1.0.1`, fork rebased | `1.0.1.0` |
+| Next fork release                         | `1.0.1.1` |
+
+The fourth digit resets to `0` each time the fork is rebased on a new upstream version.
 
 ## Caveats
 
-* If, for some reason, your CI/CD or any other release control you have is not accepting more than 3 numbers on the SemVer (X.Y.Z = 3), use a dash to overcome it. For example: X.Y.Z-N, where N is the incremental number.
+If your CI/CD or release tooling does not support four-segment version numbers (`X.Y.Z.N`), use a dash separator instead: `X.Y.Z-N`.
+
+## References
+
+- [Semantic Versioning](https://semver.org/)
+- [Atlassian - Forking Workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/forking-workflow)

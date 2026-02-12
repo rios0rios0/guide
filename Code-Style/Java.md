@@ -1,13 +1,17 @@
-# Java
+# Java Conventions
 
-## Convention Names
+> **TL;DR:** Follow the `<Operation><Entity>` naming pattern for Controllers and Commands with an `execute` method. Use `listAllSuccessfully` / `listAllError` style for test method names. Use Liquibase with YAML, `snake_case`, mandatory rollbacks, and standardized constraint naming.
+
+## Overview
+
+This document defines Java-specific coding conventions. For the general baseline, refer to the [Code Style](../Code-Style.md) guide.
+
+## Naming Conventions
 
 ### Controllers
-When you're creating a new controller, the class name needs to follow the pattern: `<OPERATION><ENTITY>Controller.java` for the class name.
-For example, if you need to create a new controller to list all users, the class name will be `ListUsersController`.
-The method inside the class should be called `execute`. Inside the command class, it needs to set the callbacks for the possible results.
 
-**Example:**
+Class names follow the pattern `<Operation><Entity>Controller.java`. The primary method must be named `execute`.
+
 ```java
 public class ListUsersController {
     public void execute() {}
@@ -16,48 +20,54 @@ public class ListUsersController {
 
 ### Commands
 
-When you're creating a new command, the class name needs to follow the pattern: `<OPERATION><ENTITY>Command.java` for the class name.
-For example, if you need to create a new command to list all users, the class name will be `ListUsersCommand`.
-The method inside the class should be called `execute`. Inside the command class, it needs to set the callbacks for the possible results.
+Class names follow the pattern `<Operation><Entity>Command.java`. The primary method must be named `execute`. The command must define callbacks for all possible outcomes.
 
 ### Testing
 
 #### Integration Tests
 
-You should use the same name as the method that you are testing.
-If you are testing a service called `ListUsersService` and the method you're testing is `listAll`, your test methods should have this structure:
-- `listAllSuccessfully`
-- `listAllError`
-- `listAllAdditionalInformation`
+Test method names must mirror the scenario being tested. Use the tested method name as a prefix, followed by a descriptor:
+
+| Scenario             | Method Name                    |
+|----------------------|--------------------------------|
+| Successful listing   | `listAllSuccessfully`          |
+| Error during listing | `listAllError`                 |
+| Additional edge case | `listAllAdditionalInformation` |
 
 ### Seeds
-When you are creating a seed, respect this kind of standard: the name of the seed must be the name of the table.
-Remember: the seed is not a script. The seed is a data population to be inserted in a blank table. If you have more than one seed, use names like `user_01.sql`, `user_02.sql`, etc.
-The constants you are using need to be named according to the file name.
 
-### Liquibase
-We are using Liquibase to manage our database versioning. It leads us to follow some patterns to use the Liquibase engine:
+Seed files are used for populating blank tables with test data:
 
-- Always use `YAML` file with `a` instead of `YML`.
-- Always use single quotes instead of double quotes, except in cases where you need escaping.
-- Always use `snake_case` (lowercase separated by an underscore `_`).
-- Always write a rollback statement. Never commit a changelog without a rollback.
-- Always write a pre-conditions statement to check the existing state of the database before applying changes.
-- Boolean and Time columns must have meaningful names like `created_at`, `enabled`, `updated_at`, `activated` instead of `created`, `enable`, `updated`, `activated`.
+- The seed file name must match the **table name** (e.g., `user.sql`).
+- For multiple seeds targeting the same table, use numbered suffixes: `user_01.sql`, `user_02.sql`.
+- Constants must be named according to the file name.
 
-When you are creating a new table with columns, make sure that the constraints entry appears before the column name.
+## Liquibase
 
-**Use this:**
+All database versioning is managed through [Liquibase](https://www.liquibase.org/). Follow these mandatory conventions:
+
+| Rule                 | Description                                                                |
+|----------------------|----------------------------------------------------------------------------|
+| File format          | Always use `.yaml` (not `.yml`)                                            |
+| Quoting              | Always use single quotes                                                   |
+| Naming               | Always use `snake_case`                                                    |
+| Rollbacks            | Every changeset must include a rollback statement                          |
+| Pre-conditions       | Every changeset must include pre-conditions to validate the database state |
+| Boolean/Time columns | Use descriptive names: `created_at`, `enabled`, `updated_at`, `activated`  |
+
+### Column Definition Order
+
+Constraints must appear **before** the column name in column definitions:
+
 ```yaml
+# ✅ Correct
 - column:
     constraints:
         nullable: false
     name: 'email'
     type: 'VARCHAR(255)'
-```
 
-**Instead of this:**
-```yaml
+# ❌ Wrong
 - column:
     name: 'email'
     type: 'VARCHAR(255)'
@@ -65,46 +75,29 @@ When you are creating a new table with columns, make sure that the constraints e
         nullable: false
 ```
 
-### Constraint Names
+### Constraint Naming
 
-#### Unique (UIX, Unique Index)
+| Type                   | Pattern                                   | Example                               |
+|------------------------|-------------------------------------------|---------------------------------------|
+| Unique Index (UIX)     | `<table>_<column>_uix`                    | `user_name_uix`                       |
+| Foreign Key (FK)       | `<origin_table>_<destination_table>_fkey` | `user_user_contract_information_fkey` |
+| Primary Key (PK)       | `<table>_pkey`                            | `user_service_pkey`                   |
+| Materialized View (MV) | `<view>_uix`                              | `rich_user_ix`                        |
 
-Follow this standard: `<table_name>_<column_name>_uix`
-**Example:** `user_name_uix`
+### Database Versioning
 
-#### Foreign Key
+Follow [Semantic Versioning](https://semver.org/) for database changelogs:
 
-Follow this standard: `<origin_table_name>_<destination_table_name>_fkey`
-**Example:** `user_user_contract_information_fkey`
+| Change Type                | Version Update |
+|----------------------------|----------------|
+| New table                  | `X.Y+1.0`      |
+| Alter existing table       | `X.Y.Z+1`      |
+| Breaking structural change | `X+1.0.0`      |
 
-#### Primary Key
+Packages published for testing must use the `-SNAPSHOT` suffix (e.g., `3.0.0-SNAPSHOT`). Snapshot packages must **never** be used in production.
 
-Follow this standard: `<table_name>_pkey`
-**Example:** `user_service_pkey`
+### Complete Liquibase Example
 
-#### Materialized View
-
-For unique indexes, follow this standard: `<view_name>_uix`
-**Example:** `rich_user_ix`
-
-### Versioning
-Remember: you need ALWAYS to follow Semantic versioning. This leads us to adopt some standards:
-- If you are creating a NEW TABLE, do:
-  - `X = X`
-  - `Y = Y+1`
-  - `Z = 0`
-- If you are altering an EXISTING TABLE, do:
-  - `X = X`
-  - `Y = Y`
-  - `Z = Z+1`
-- If you are breaking the structure (like column names and relationships between tables), which requires application breaking changes, do:
-  - `X = X + 1`
-  - `Y = 0`
-  - `Z = 0`
-
-Packages published for testing purposes should have the `-SNAPSHOT` suffix (e.g., `3.0.0-SNAPSHOT`). Packages with the `-SNAPSHOT` suffix SHOULD NOT be used for purposes other than tests.
-
-**Example of a complete Liquibase file:**
 ```yaml
 databaseChangeLog:
   - changeSet:
@@ -146,3 +139,9 @@ databaseChangeLog:
         - dropTable:
             tableName: 'example'
 ```
+
+## References
+
+- [Liquibase Documentation](https://docs.liquibase.com/)
+- [Semantic Versioning](https://semver.org/)
+- [Java Code Conventions](https://www.oracle.com/java/technologies/javase/codeconventions-introduction.html)

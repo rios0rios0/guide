@@ -1,34 +1,28 @@
-Hey! Welcome aboard!
+# Onboarding
 
-This document is a starting guide for any Engineering team.
-It will walk you through all the processes needed to be ready to contribute to our projects. **Make sure you follow the sequence as per this document.**
+> **TL;DR:** New team members must obtain access to all required platforms, enable 2FA on every account, and configure their development environment using the [Tools & Setup](Cookbooks/Tools-&-Setup.md) guide.
 
-## Access Until Here
-You need to get access to the following from your manager:
-1. VCS (GitLab, GitHub, Bitbucket, Azure DevOps, etc.):
-   * Projects
-2. Communication Method (Slack, Microsoft Teams, etc.):
-   * Groups
-   * Channels
-   * Direct Messages
-3. Ticketing System (Jira, Trello, etc.):
-   * Projects
-   * Boards
-   * Tickets
-4. Internal Documentation (Confluence, Notion, etc.):
-   * Spaces
-   * Pages
-5. Password Vault (1Password, LastPass, etc.):
-   * Access to the team vault
-6. Informal Communication (WhatsApp, Telegram, etc.):
-   * Groups
-   * Direct Messages
+Welcome aboard! This document serves as a starting guide for any engineering team member. It walks you through every step needed to begin contributing to our projects.
 
-## Accounts Setup
-Please, **ALWAYS** enable Two-Factor Authorization (2FA) verification on **EVERY SINGLE** account.
+**Follow the sections below in order.**
 
-## Email Account
-(still in development ...)
+## 1. Platform Access
 
-## Tools & Setup
-Go to this page [here](Cookbooks/Tools-&-Setup.md).
+Request access to the following platforms from your manager:
+
+| Platform                                                | Resources                             |
+|---------------------------------------------------------|---------------------------------------|
+| **VCS** (GitHub, GitLab, Bitbucket, Azure DevOps, etc.) | Projects and repositories             |
+| **Communication** (Slack, Microsoft Teams, etc.)        | Groups, channels, and direct messages |
+| **Ticketing** (Jira, Trello, Azure Boards, etc.)        | Projects, boards, and tickets         |
+| **Documentation** (Confluence, Notion, etc.)            | Spaces and pages                      |
+| **Password Vault** (1Password, LastPass, etc.)          | Team vault access                     |
+| **Informal Communication** (WhatsApp, Telegram, etc.)   | Groups and direct messages            |
+
+## 2. Account Security
+
+**Enable Two-Factor Authentication (2FA) on every account.** This is a mandatory security requirement with no exceptions.
+
+## 3. Tools & Development Environment
+
+Follow the [Tools & Setup](Cookbooks/Tools-&-Setup.md) guide to configure your local development environment.
