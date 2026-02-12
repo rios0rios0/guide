@@ -1,30 +1,41 @@
-## Concepts
+# Frontend Design
 
-### Layers
-As a lightweight approach of the Clean Architecture, the Front End is currently divided into 5 layers:
+> **TL;DR:** The frontend follows a lightweight Clean Architecture with 5 layers: Domain, Service, Infrastructure, Presentation, and Main. Dependencies always point toward the Domain layer. The Main layer handles dependency injection.
 
-1. **Domain:** The most abstract layer, defines the Entities and Contracts for the other layers.
-2. **Service:**  This layer provides communication with APIs and external services.
-3. **Infrastructure:** This layer provides implementations of technology-specific interfaces.
-4. **Presentation:** This layer contains all the code that will draw the views.
-5. **Main Layer:** This is the “dirt” layer. It has the responsibility of instantiating the Providers and Services and handling all the Dependency Injections.
+## Layers
 
-A visual representation of each layer and its dependencies:
+As a lightweight adaptation of Clean Architecture, the frontend is divided into five layers:
+
+| Layer              | Responsibility                                                                         |
+|--------------------|----------------------------------------------------------------------------------------|
+| **Domain**         | The most abstract layer. Defines Entities and Contracts for all other layers.          |
+| **Service**        | Provides communication with APIs and external services.                                |
+| **Infrastructure** | Implements technology-specific interfaces.                                             |
+| **Presentation**   | Contains all view-rendering code (components, pages, hooks).                           |
+| **Main**           | The "wiring" layer. Instantiates Providers and Services, handles Dependency Injection. |
+
+## Architecture Diagrams
+
+### Layer Dependencies
 
 ![](.assets/frontend_architecture_1.png)
 
-Applying the architecture to the Feature Modules system:
+### Applied to Feature Modules
 
 ![](.assets/frontend_architecture_2.png)
 
-This way, the dependencies are always pointing to the Domain, which is the most abstract and stable layer.
+### Dependency Direction
+
+Dependencies always point toward the **Domain** layer, which is the most abstract and stable:
 
 ![](.assets/frontend_architecture_3.png)
 
-Obs. At the moment, there's no State Layer, since we're always handling state locally inside the components (Presentation). In the future, that would be necessary to update this structure adding support to it.
+## State Management
 
-## References:
+Currently, state is managed locally within Presentation components. A dedicated State Layer may be introduced in the future as requirements evolve.
 
-* [A different approach to frontend architecture](https://dev.to/huytaquoc/a-different-approach-to-frontend-architecture-38d4)
-* [Scalable Frontend #1 — Architecture Fundamentals | The Miners](https://blog.codeminer42.com/scalable-frontend-1-architecture-9b80a16b8ec7/)
-* [Clean architecture for the rest of us](https://pusher.com/tutorials/clean-architecture-introduction/)
+## References
+
+- [A Different Approach to Frontend Architecture](https://dev.to/huytaquoc/a-different-approach-to-frontend-architecture-38d4)
+- [Scalable Frontend #1 -- Architecture Fundamentals](https://blog.codeminer42.com/scalable-frontend-1-architecture-9b80a16b8ec7/)
+- [Clean Architecture for the Rest of Us](https://pusher.com/tutorials/clean-architecture-introduction/)

@@ -1,52 +1,50 @@
-## Database Sync: Copy PostgreSQL Databases Easily
+# Database Sync
 
-You can copy one or more PostgreSQL databases, whether it's from your development environment to local, production to development, or other scenarios, using the `Database-Sync` tool.
+> **TL;DR:** Use the `database-sync` tool to copy PostgreSQL databases between environments. Configure source/destination in `.env`, specify tables to exclude in `config.yaml`, and run with `pdm start`.
 
-Follow these steps to get started:
+## Overview
 
-### 1. Install Prerequisites
+The Database-Sync tool copies one or more PostgreSQL databases between environments (e.g., production to development, development to local).
 
-Ensure the following tools are installed before using the `Database-Sync` tool:
+## Prerequisites
 
-- **Docker**: Version 18.09 or higher. [How to Install Docker](https://docs.docker.com/install)
-- **Python**: Version 3.9 or higher. [Download Python](https://www.python.org/downloads/)
-- **PDM**: Version 2.11.2 or higher. [Install PDM](https://pdm-project.org/latest/#installation)
-- **pg_dump**: Version 15. [Install pg_dump](./INSTALL_PG_DUMP.md)
-- **psycopg2**: Version 2.9.9. [Install psycopg2](https://www.psycopg.org/docs/install.html)
+| Tool     | Minimum Version | Installation                                                  |
+|----------|-----------------|---------------------------------------------------------------|
+| Docker   | 18.09+          | [Install Docker](https://docs.docker.com/install)             |
+| Python   | 3.9+            | [Download Python](https://www.python.org/downloads/)          |
+| PDM      | 2.11.2+         | [Install PDM](https://pdm-project.org/latest/#installation)   |
+| pg_dump  | 15              | See `INSTALL_PG_DUMP.md` in the repository                    |
+| psycopg2 | 2.9.9           | [Install psycopg2](https://www.psycopg.org/docs/install.html) |
 
-### 2. Clone the Repository
+## Setup
 
-Clone the `database-sync` repository from GitHub:
+### 1. Clone the Repository
 
 ```bash
 git clone git@github.com:fnk0c/database-sync.git
 ```
 
-### 3. Install the Application
-
-Navigate to the cloned repository folder and install the required dependencies:
+### 2. Install Dependencies
 
 ```bash
+cd database-sync
 pdm install
 ```
 
-### 4. Set Up the .env File
+### 3. Configure Environment Variables
 
-- Copy the provided `.env.example` file and rename it to `.env`.
-- In this file, set up the required environment variables:
-  - Variables starting with **`PRODUCTION_`** are for the source database (the one you're copying data from).
-  - Variables starting with **`DEVELOPMENT_`** are for the destination database (the one receiving the data copy).
-- The **`SYNC_TARGETS`** variable is required to specify the name(s) of the database(s) you're copying.
-- The **`CONFIG_FILE_PATH=./config.yaml`** variable should remain as is, as the `config.yaml` file is already created in the repository.
+Copy `.env.example` to `.env` and configure:
 
-### 5. Configure the `config.yaml` File
+| Prefix             | Description                                      |
+|--------------------|--------------------------------------------------|
+| `PRODUCTION_*`     | Source database (the one being copied)           |
+| `DEVELOPMENT_*`    | Destination database (receiving the copy)        |
+| `SYNC_TARGETS`     | Database name(s) to synchronize                  |
+| `CONFIG_FILE_PATH` | Path to `config.yaml` (default: `./config.yaml`) |
 
-In `config.yaml`, you need to specify the following variables:
+### 4. Configure Table Exclusions
 
-- **database**: Is Required. Is the name of the database that you're copying, the same value that you're using in the `.env` for `SYNC_TARGETS` and 
-- **tables**: Is Required. If there are no tables to ignore, you need to insert (`""`).
-
-For example, if your database is named `store` and you want to exclude the `users` table (which contains sensitive data), your configuration should look like this:
+In `config.yaml`, specify tables to exclude from the sync (e.g., tables containing sensitive data):
 
 ```yaml
 ignore:
@@ -55,8 +53,9 @@ ignore:
       - "users"
 ```
 
-### 6. Run the Application
-Once you've installed all dependencies and configured the .env and config.yaml files, you can run the application using:
+If no tables should be excluded, use an empty string: `""`.
+
+### 5. Run the Sync
 
 ```bash
 pdm start

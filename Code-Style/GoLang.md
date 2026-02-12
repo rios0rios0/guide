@@ -1,153 +1,172 @@
-## Context
-The theory base is described in the page [Base](../Code-Style.md), but here it's very specific for GoLang.
+# Go Conventions
+
+> **TL;DR:** Use `snake_case` for file names, `self` as the method receiver name, and follow the strict naming patterns for Commands, Controllers, Repositories, and Mappers. Entities must be framework-agnostic. Use [Wire](https://github.com/google/wire) for dependency injection.
+
+## Overview
+
+This document defines Go-specific coding conventions. For the general baseline, refer to the [Code Style](../Code-Style.md) guide. The architectural layers referenced here are defined in the [Backend Design](../Life-Cycle/Architecture/Backend-Design.md) section.
 
 ## File Structure
+
 ```
-|__ main
-  |__ domain                (contracts)
-    |__ commands              only one exception that doesn't have contract and it's implementation
-    |__ entities
-    |__ repositories
-    |__ app.go
-    |__ main.go
-    |__ wire.go
-    |__ wire_gen.go
-  |__ infrastructure        (implementations)
-    |__ controllers
-      |__ mappers
-      |__ requests
-      |__ responses
-    |__ repositories        (orm) begin with tool prefix and return models from the database or the external tool
-      |__ mappers
-      |__ models
-|__ test
-  |__ domain
-  |__ infrastructure
+main/
+  domain/                   (contracts)
+    commands/                 business logic; the only layer without a contract
+    entities/
+    repositories/
+    app.go
+    main.go
+    wire.go
+    wire_gen.go
+  infrastructure/           (implementations)
+    controllers/
+      mappers/
+      requests/
+      responses/
+    repositories/             prefixed with the tool name; returns database models
+      mappers/
+      models/
+test/
+  domain/
+  infrastructure/
 ```
 
-## General Considerations
-1. For this language we're using [Snake Case](https://www.alura.com.br/artigos/convencoes-nomenclatura-camel-pascal-kebab-snake-case) as a convention.
-2. We usually use the word `self` to name the reference to the structure attached to the method in question. It words like `this` in other languages.
-3. We don't attach the method to the struct when it does not need to change the structure state.
-4. What is DTO pattern? Read [here](https://www.baeldung.com/java-dto-pattern) please.
+## General Conventions
+
+1. Use **snake_case** for all file names.
+2. Use `self` as the method receiver name (analogous to `this` in other languages).
+3. Only attach a method to a struct when the method **needs to mutate** the struct's state.
+4. For an introduction to the DTO pattern, refer to [this article](https://www.baeldung.com/java-dto-pattern).
 
 ## Entities
-They are the core of the application. The logic regarding the properties and fields, should be inside it.
-They need to be free of any framework and external tools. DON'T use any tag inside it.
+
+Entities are the core of the application. All business logic related to properties and fields belongs inside the entity.
+
+**Entities must be free of any framework or external tool dependencies.** Do not use tags (e.g., `json`, `gorm`) inside entity structs.
 
 ## Commands
-* **File Name:** `<operation>_<entity>_command`. Example: `list_users_command.go`
-* **Struct Name:** `<Operation><Entity>Command`. Example: `ListUsersCommand`
-* **Method Name:** `Execute`. Example: `func (self ListUsersCommand) Execute(listeners ListUsersCommandListeners)`
 
-1. **Note:** when the operation is related to multiple entities, the name is going to be in the plural.
-2. **Note:** the operation is the kind of "thing" you're doing. Like: `List`, `Get`, `Delete`, `Insert`, `Update`, `BatchDelete`, `BatchInsert`, `BatchUpdate`, `DeleteAll` and so on.
-3. **Note:** be careful with the **listeners**, they need to reflect all possible controllers answers.
+| Element     | Pattern                           | Example                                                                     |
+|-------------|-----------------------------------|-----------------------------------------------------------------------------|
+| File name   | `<operation>_<entity>_command.go` | `list_users_command.go`                                                     |
+| Struct name | `<Operation><Entity>Command`      | `ListUsersCommand`                                                          |
+| Method name | `Execute`                         | `func (self ListUsersCommand) Execute(listeners ListUsersCommandListeners)` |
+
+**Notes:**
+- Use plural entity names when the operation targets multiple entities.
+- Use the standard [operations vocabulary](../Code-Style.md#operations-vocabulary).
+- Listeners must reflect all possible controller responses.
 
 ## Controllers
-* **File Name:** `<operation>_<entity>_controller`. Example: `list_users_controller.go`
-* **Struct Name:** `<Operation><Entity>Controller`. Example: `ListUsersController`
-* **Method Name:** `Execute`. Example: `func (self ListUsersController) Execute()`
 
-1. **Note:** when the operation is related to multiple entities, the name is going to be in the plural.
-2. **Note:** the operation is the kind of "thing" you're doing. Like: `List`, `Get`, `Delete`, `Insert`, `Update`, `BatchDelete`, `BatchInsert`, `BatchUpdate`, `DeleteAll` and so on.
+| Element     | Pattern                              | Example                                     |
+|-------------|--------------------------------------|---------------------------------------------|
+| File name   | `<operation>_<entity>_controller.go` | `list_users_controller.go`                  |
+| Struct name | `<Operation><Entity>Controller`      | `ListUsersController`                       |
+| Method name | `Execute`                            | `func (self ListUsersController) Execute()` |
 
 ## Services
-We don't use this layer for this language.
+
+This layer is **not used** in Go projects.
 
 ## Repositories
-* **File Name (contract):** `<entity>_repository`. Example: `users_repository.go`
-* **Struct Name (contract):** `<Entity>Repository`. Example: `UsersRepository`
-* **File Name (implementation):** `<library>_<entity>_repository`. Example: `pgx_users_repository.go`
-* **Struct Name (implementation):** `<Library><Entity>Repository`. Example: `PgxUsersRepository`
 
-- **Method Names (contract):**
+### Contract (Domain Layer)
 
-  These methods are following a logical sequence: "find all", "find one", "filters", "save one", "save all", "delete" and "delete all".
-  ```go
-  // filter just 1 entity by some field
-  func (self UsersRepository) FindByTargetField(targetField any) entities.User
-  // filter many entities by some field
-  func (self UsersRepository) FindAllByTargetField(targetField any) []entities.User
+| Element        | Pattern                  | Example               |
+|----------------|--------------------------|-----------------------|
+| File name      | `<entity>_repository.go` | `users_repository.go` |
+| Interface name | `<Entity>Repository`     | `UsersRepository`     |
 
-  // filter with a boolean type (if an entity exists)
-  func (self UsersRepository) HasBooleanVerification(targetField any) bool
+### Implementation (Infrastructure Layer)
 
-  // save just 1 entity per time
-  func (self UsersRepository) Save(user entities.User)
-  // save many entities at the same time
-  func (self UsersRepository) SaveAll(users []entities.User)
+| Element     | Pattern                            | Example                   |
+|-------------|------------------------------------|---------------------------|
+| File name   | `<library>_<entity>_repository.go` | `pgx_users_repository.go` |
+| Struct name | `<Library><Entity>Repository`      | `PgxUsersRepository`      |
 
-  // delete just 1 entity by some field
-  func (self UsersRepository) DeleteByTargetField(targetField any)
-  ```
-- **Method Names (implementation):**
+### Method Naming
 
-  The same signatures before are applied, but we need to change the attached struct to be the implementation, so the change will be like this:
-  ```go
-  // this is the contract
-  func (self UsersRepository)
+Methods follow a logical sequence: find one, find all, filter, check existence, save one, save all, delete.
 
-  // this is the implementation
-  func (self PgxUsersRepository)
-  ```
+```go
+// Find a single entity by a specific field
+func (self UsersRepository) FindByTargetField(targetField any) entities.User
 
-1. **Note:** the `TargetField` could be: `Id`, `Name` and others.
-2. **Note:** the `BooleanVerification` could be: `UserInGroup`, `UserPermission` and others.
+// Find multiple entities by a specific field
+func (self UsersRepository) FindAllByTargetField(targetField any) []entities.User
+
+// Check existence (returns boolean)
+func (self UsersRepository) HasBooleanVerification(targetField any) bool
+
+// Persist a single entity
+func (self UsersRepository) Save(user entities.User)
+
+// Persist multiple entities
+func (self UsersRepository) SaveAll(users []entities.User)
+
+// Remove a single entity by a specific field
+func (self UsersRepository) DeleteByTargetField(targetField any)
+```
+
+**Notes:**
+- `TargetField` is a placeholder (e.g., `Id`, `Name`, `Email`).
+- `BooleanVerification` is a placeholder (e.g., `UserInGroup`, `UserPermission`).
+- Implementations use the same signatures but attach to the concrete struct (e.g., `PgxUsersRepository`).
 
 ## Mappers
-* **File Name:** `<entity>_mapper`. Example: `user_mapper.go`
-* **Struct Name:** `<Entity>Mapper`. Example: `UserMapper`
 
-- Inside `repositories` we can have:
-  * **File:** `user_mapper.go`
-  * **Struct:** `UserMapper`
-  * **Method Names:**
-    ```go
-    // mapping from some infrastructure DTO to an entity
-    func (self UserMapper) MapToEntity(infra any) entities.User
-    // mapping from many infrastructure DTOs to many entities
-    func (self UserMapper) MapToEntities(infra []any) []entities.User
+### Repository Mappers
 
-    // mapping from an entity to an external DTO
-    func (self UserMapper) MapToExternal(user entities.User) models.External
-    // mapping from many entities to many external DTOs
-    func (self UserMapper) MapToExternals(users []entities.User) []models.External
-    ```
+| Element     | Pattern              | Example          |
+|-------------|----------------------|------------------|
+| File name   | `<entity>_mapper.go` | `user_mapper.go` |
+| Struct name | `<Entity>Mapper`     | `UserMapper`     |
 
-1. **Note:** the `infra` field is usually an external DTO structure, like a database model or an API response.
-2. **Note:** the `MapToEntity` and `MapToEntities` method names are static and must be followed as a standard.
-3. **Note:** the `External` and `any` aren't static, and they need to be changed according to the library, API or technology used as the external source.
+```go
+// Infrastructure DTO -> Domain Entity
+func (self UserMapper) MapToEntity(infra any) entities.User
+func (self UserMapper) MapToEntities(infra []any) []entities.User
 
-- Inside `controllers` we'll have:
+// Domain Entity -> Infrastructure DTO
+func (self UserMapper) MapToExternal(user entities.User) models.External
+func (self UserMapper) MapToExternals(users []entities.User) []models.External
+```
 
-  In this case, the entity vary between the folders `request` and `responses`. For example effect, we can have both sides like the below.
-  * **File:** `insert_user_request_mapper.go` or `insert_user_response_mapper.go`
-  * **Struct:** `InsertUserRequestMapper` or `InsertUserResponseMapper`
-  * **Method Names:** respectively each case above
-  ```go
-    // mapping from the infrastructure request to an entity
-    func (self InsertUserRequestMapper) MapToEntity(request InsertUserRequest) entities.User
-    // mapping from many infrastructure requests to many entities
-    func (self InsertUserRequestMapper) MapToEntities(requests []InsertUserRequest) []entities.User
-    // THERE'S NO inverse case in this type of mapping
-  ```
-  ```go
-    // mapping from an entity to an external response
-    func (self InsertUserResponseMapper) MapToResponse(user entities.User) responses.InsertUserResponse
-    // mapping from many entities to many external responses
-    func (self InsertUserResponseMapper) MapToResponses(users []entities.User) []responses.InsertUserResponse
-    // THERE'S NO inverse case in this type of mapping
-    ```
+### Controller Mappers
 
-1. **Note:** the request and response are DTOs inside the infrastructure using the proper field names and external coupling code.
-2. **Note:** the `MapToResponse` and `MapToResponses` method names are static and must be followed as a standard.
-3. **Note:** DON'T use `json` tags outside the infrastructure layer, because they are strict to requests and responses.
+| Element              | Pattern                                   | Example                          |
+|----------------------|-------------------------------------------|----------------------------------|
+| File name (request)  | `<operation>_<entity>_request_mapper.go`  | `insert_user_request_mapper.go`  |
+| File name (response) | `<operation>_<entity>_response_mapper.go` | `insert_user_response_mapper.go` |
+
+```go
+// Request -> Entity (no inverse mapping)
+func (self InsertUserRequestMapper) MapToEntity(request InsertUserRequest) entities.User
+func (self InsertUserRequestMapper) MapToEntities(requests []InsertUserRequest) []entities.User
+
+// Entity -> Response (no inverse mapping)
+func (self InsertUserResponseMapper) MapToResponse(user entities.User) responses.InsertUserResponse
+func (self InsertUserResponseMapper) MapToResponses(users []entities.User) []responses.InsertUserResponse
+```
+
+**Important:** Do not use `json` tags outside the infrastructure layer. Tags are restricted to request and response DTOs.
 
 ## Models
-They are always inside the infrastructure layer, and they act like a DTO for the answers coming from the external world.
-They can be: database models, APIs answers, queue parameters, payloads and so on. They are like entities, but they aren't entities.
 
-To make sure that the models are different from the entities, we adopt the prefix naming standard.
-Each model is prefixed in the name by the external tool that is used to communicate with.
-Consider the following model struct names as examples: `AwsFile`, `ApiDocument`, `ApiPayload`, `PgxUser`.
+Models reside exclusively in the infrastructure layer and represent DTOs for external data sources (databases, APIs, queues, etc.). They resemble entities but are **not** entities.
+
+Each model is prefixed with the name of the external tool it communicates with:
+
+| Example       | Source             |
+|---------------|--------------------|
+| `AwsFile`     | AWS S3             |
+| `ApiDocument` | External API       |
+| `PgxUser`     | PostgreSQL via pgx |
+
+## References
+
+- [Effective Go](https://go.dev/doc/effective_go)
+- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- [Google Wire - Dependency Injection](https://github.com/google/wire)
+- [DTO Pattern](https://www.baeldung.com/java-dto-pattern)

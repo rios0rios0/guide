@@ -1,25 +1,27 @@
 # Standard Package Layout
-This page provides guidelines on where to place files that aren't the module's code. Python doesn't have an official standard for package repository layout, but there are some generally accepted conventions.
-Below are common directory/file names and their purposes. If unsure about naming a directory/file not listed here, consider referring to [Golang's project layout standard](https://github.com/golang-standards/project-layout). Directories end with a `/`.
 
-## Table of Contents
-- [`/[package_name]/`](#package_name)
-- [`/examples/`](#examples)
-- [`/tests/`](#tests)
-- [`/Dockerfile`](#dockerfile)
-- [`/MANIFEST.in`](#manifestin)
-- [`/pyproject.toml`](#pyprojecttoml)
-- [`/README.md`](#readmemd)
+> **TL;DR:** Follow the conventional directory structure: `/<package_name>/` for source code, `/tests/` for tests (pytest), `/examples/` for usage examples, `pyproject.toml` for metadata, and `Dockerfile` for containerization.
 
-## `/[package_name]/`
-The module's main code. Replace `[package_name]` with the name of the package, e.g., if the package name is `icarus`, name this directory `icarus`. Python file/directory names can't contain dashes (`-`), so `ion-cannon` should be `ion_cannon`.
+## Overview
 
-## `/examples/`
-Example codes demonstrating how to run the code or call the library.
+Python does not enforce an official package repository layout, but the community has established widely accepted conventions. This page describes the standard directory structure and the purpose of each file. For items not listed here, consider referencing the [Go project layout standard](https://github.com/golang-standards/project-layout) as a general guide.
 
-## `/tests/`
-External tests and test data. Consider using [pytest](https://docs.pytest.org/en/7.0.x/) to execute all tests with a single `pytest` command for detailed test results. Example content for `tests/test_api.py`:
+## Directory Structure
+
+### `/[package_name]/`
+
+The module's main source code. Replace `[package_name]` with the actual package name (e.g., `icarus`). Python names cannot contain dashes, so `ion-cannon` becomes `ion_cannon`.
+
+### `/examples/`
+
+Example scripts demonstrating how to use the library or run the application.
+
+### `/tests/`
+
+External tests and test data. Use [pytest](https://docs.pytest.org/) to execute all tests with a single command:
+
 ```python
+# tests/test_api.py
 import requests
 
 def test_api():
@@ -27,38 +29,43 @@ def test_api():
     assert response.status_code == 200
 ```
 
-Run all tests in the `tests` folder with `pytest`.
+Run all tests:
+```bash
+pytest
+```
 
-## `/Dockerfile`
-The project's Dockerfile. For multiple Dockerfiles (e.g., for different architectures), name them as follows:
-- `/Dockerfile.alpine`
-- `/Dockerfile.ubuntu`
-- `/Dockerfile.slim-debian`
+### `/Dockerfile`
 
-Use `docker build -f Dockerfile.alpine -t app:1.0.0-alpine` to specify which Dockerfile to build from.
+Container definition for the project. For multiple Dockerfiles targeting different base images:
 
-## `/MANIFEST.in`
-Specifies additional data to include in the sdist package. Example content:
+- `Dockerfile.alpine`
+- `Dockerfile.ubuntu`
+- `Dockerfile.slim-debian`
+
+Build a specific variant:
+```bash
+docker build -f Dockerfile.alpine -t app:1.0.0-alpine .
+```
+
+### `/MANIFEST.in`
+
+Specifies additional files to include in source distributions (sdist):
+
 ```text
 recursive-include models *
 include somedir/README.md
 ```
 
-## `/pyproject.toml`
-PEP 518 and PEP 621-compliant package metadata.
+### `/pyproject.toml`
 
-## `/README.md`
-The project's README file. It can be in Markdown (`README.md`), reStructuredText (`README.rst`), or plain text (`README` or `README.txt`).
-This file should describe the program's purpose and usage instructions.
-Example content:
-```markdown
-# Project Name
+PEP 518 and PEP 621-compliant package metadata. This is the single source of truth for project configuration.
 
-A brief description.
+### `/README.md`
 
-## Usage
-Install and use the program as follows:
-```bash
-pip install program
-python -m program
-```
+Project description and usage instructions. Acceptable formats: Markdown (`.md`), reStructuredText (`.rst`), or plain text.
+
+## References
+
+- [Python Packaging User Guide](https://packaging.python.org/)
+- [pytest Documentation](https://docs.pytest.org/)
+- [Dockerfile Best Practices](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
