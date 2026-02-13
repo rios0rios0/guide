@@ -9,8 +9,8 @@
 All file names must use `snake_case`.
 
 ```
-src/opensearch-dashboards/index_patterns/index_pattern.js    ✅ Correct
-src/opensearch-dashboards/IndexPatterns/IndexPattern.js       ❌ Wrong
+src/my_class.js    ✅ Correct
+src/myClass.js       ❌ Wrong
 ```
 
 ### Formatting and Linting

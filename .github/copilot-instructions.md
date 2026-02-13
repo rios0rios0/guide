@@ -96,8 +96,7 @@ Always follow the `.editorconfig` settings:
 │   ├── Git-Flow/         # Version control workflows
 │   └── Security/         # Security best practices
 ├── Cookbooks/            # 10 files: Practical setup guides
-│   ├── Tools-&-Setup/    # Development environment setup
-│   └── OpenSearch-Dashboards/ # Specialized tooling guides
+│   └── Tools-&-Setup/    # Development environment setup
 └── Agile-&-Culture/      # 1 file: PDCA methodology
 ```
 
@@ -116,7 +115,7 @@ find . -name "*.md"        # List all documentation files (41+)
 
 # Build system commands (run from .github/workflows/update-wiki/)
 go mod verify              # Verify dependencies (0.3s)
-go mod download            # Download dependencies (0.3s) 
+go mod download            # Download dependencies (0.3s)
 go build -o update-wiki ./... # Build binary (~1s)
 go test ./...              # Run tests (1s, no test files)
 go clean                   # Clean build artifacts (0.02s)
@@ -126,7 +125,7 @@ go clean                   # Clean build artifacts (0.02s)
 
 ### Critical Timing Expectations
 - **Go module operations**: 0.3 seconds typical, set 30+ second timeout
-- **Go build process**: 1 second typical, set 60+ second timeout  
+- **Go build process**: 1 second typical, set 60+ second timeout
 - **Full validation**: 1-2 seconds typical, set 30+ second timeout
 - **GitHub Actions workflow**: 2-3 minutes total, set 10+ minute timeout
 - **NEVER CANCEL ANY BUILD OPERATION** - Always wait for completion
@@ -141,7 +140,7 @@ go clean                   # Clean build artifacts (0.02s)
 ### Change Validation Workflow
 Always complete this checklist when making changes:
 1. ✅ Verify file structure with `ls` commands
-2. ✅ Run `go build` in update-wiki directory  
+2. ✅ Run `go build` in update-wiki directory
 3. ✅ Check markdown file count matches expected (~41 files)
 4. ✅ Manually verify key navigation links work
 5. ✅ Confirm .editorconfig compliance (2-space indents, LF endings)

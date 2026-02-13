@@ -38,9 +38,6 @@ And its objective is not to limit the development to a specific form, but to pro
     - [Database Sync](Cookbooks/Tools-&-Setup/Database-Sync.md)
   - [Forking Technique](Cookbooks/Forking-Technique.md)
   - [Historical Repository Cleaner](Cookbooks/Historical-Repository-Cleaner.md)
-  - [OpenSearch Dashboards](Cookbooks/OpenSearch-Dashboards.md)
-    - [Plugin Quickstart](Cookbooks/OpenSearch-Dashboards/Plugin-Quickstart.md)
-    - [Plugin Life Cycle](Cookbooks/OpenSearch-Dashboards/Plugin-Life-Cycle.md)
 
 ## References
 - [Vizir's StyleGuide](https://github.com/Vizir/styleguide)
