@@ -32,6 +32,3 @@
     - [Azure Functions Setup](Azure-Functions-Setup)
     - [Database Sync](Database-Sync)
   - [Forking Technique](Forking-Technique)
-  - [OpenSearch Dashboards](OpenSearch-Dashboards)
-    - [Plugin Quickstart](Plugin-Quickstart)
-    - [Plugin Life Cycle](Plugin-Life-Cycle)
