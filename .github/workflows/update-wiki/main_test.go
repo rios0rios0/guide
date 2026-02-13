@@ -2,6 +2,8 @@ package main
 
 import "testing"
 
+const testBaseURL = "https://raw.githubusercontent.com/wiki/rios0rios0/guide"
+
 func TestReplaceLinks(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -64,9 +66,9 @@ func TestReplaceLinks(t *testing.T) {
 			expected: "Refer to the [Backend Design](Backend-Design) section.",
 		},
 		{
-			name:     "image link not affected",
-			input:    "![diagram](.assets/flow-view.png)",
-			expected: "![diagram](.assets/flow-view.png)",
+			name:     "wiki image syntax not affected",
+			input:    "[[https://example.com/image.png]]",
+			expected: "[[https://example.com/image.png]]",
 		},
 	}
 
@@ -89,36 +91,50 @@ func TestReplaceLinks(t *testing.T) {
 func TestReplaceImages(t *testing.T) {
 	tests := []struct {
 		name     string
+		fileDir  string
 		input    string
 		expected string
 	}{
 		{
-			name:     "image already in .assets",
+			name:     "image in root directory",
+			fileDir:  ".",
 			input:    "![](.assets/flow-view.png)",
-			expected: "![](.assets/flow-view.png)",
+			expected: "[[" + testBaseURL + "/.assets/flow-view.png]]",
 		},
 		{
-			name:     "image with parent directory path",
+			name:     "image in nested directory",
+			fileDir:  "Life-Cycle/Architecture",
+			input:    "![](.assets/requests_flow.png)",
+			expected: "[[" + testBaseURL + "/Life-Cycle/Architecture/.assets/requests_flow.png]]",
+		},
+		{
+			name:     "image with parent directory traversal",
+			fileDir:  "Life-Cycle/Git-Flow",
 			input:    "![](../.assets/feature-branches.svg)",
-			expected: "![](.assets/feature-branches.svg)",
+			expected: "[[" + testBaseURL + "/Life-Cycle/.assets/feature-branches.svg]]",
 		},
 		{
 			name:     "image with alt text",
+			fileDir:  "Life-Cycle",
 			input:    "![Architecture](.assets/clean-architecture.png)",
-			expected: "![Architecture](.assets/clean-architecture.png)",
+			expected: "[[" + testBaseURL + "/Life-Cycle/.assets/clean-architecture.png|alt=Architecture]]",
 		},
 		{
-			name:     "image with deeply nested path",
-			input:    "![Flow](../../.assets/requests_flow.png)",
-			expected: "![Flow](.assets/requests_flow.png)",
+			name:    "multiple images on one line (table row)",
+			fileDir: "Life-Cycle",
+			input:   "| ![](.assets/not-clean.png) | ![](.assets/clean.png) |",
+			expected: "| [[" + testBaseURL + "/Life-Cycle/.assets/not-clean.png]]" +
+				" | [[" + testBaseURL + "/Life-Cycle/.assets/clean.png]] |",
 		},
 		{
-			name:     "multiple images on one line",
-			input:    "| ![A](../.assets/a.png) | ![B](../.assets/b.png) |",
-			expected: "| ![A](.assets/a.png) | ![B](.assets/b.png) |",
+			name:     "external image URL unchanged",
+			fileDir:  ".",
+			input:    "![logo](https://example.com/logo.png)",
+			expected: "![logo](https://example.com/logo.png)",
 		},
 		{
 			name:     "no image in line unchanged",
+			fileDir:  ".",
 			input:    "This is a regular paragraph.",
 			expected: "This is a regular paragraph.",
 		},
@@ -130,11 +146,11 @@ func TestReplaceImages(t *testing.T) {
 			input := tt.input
 
 			// when
-			result := replaceImages(input)
+			result := replaceImages(input, tt.fileDir, testBaseURL)
 
 			// then
 			if result != tt.expected {
-				t.Errorf("replaceImages(%q)\n  got:  %q\n  want: %q", input, result, tt.expected)
+				t.Errorf("replaceImages(%q, %q)\n  got:  %q\n  want: %q", input, tt.fileDir, result, tt.expected)
 			}
 		})
 	}
