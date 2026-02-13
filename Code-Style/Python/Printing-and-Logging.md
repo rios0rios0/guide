@@ -1,14 +1,14 @@
 # Printing and Logging
 
-> **TL;DR:** Prefer **Loguru** over the standard `logging` library for its simpler API, colorized output, and structured exception formatting. Use STDOUT for normal output and STDERR for warnings and errors.
+> **TL;DR:** Use **Loguru** for all application logging. Do not use the standard `logging` module or `print()` for logging in production code. Always import as `from loguru import logger`. Use STDOUT for normal output and STDERR for warnings and errors.
 
 ## Overview
 
-Programs frequently need to output messages for progress tracking, state reporting, and error diagnostics. This page covers the fundamentals of printing and logging in Python, from basic `print()` usage to production-grade logging with Loguru.
+Programs frequently need to output messages for progress tracking, state reporting, and error diagnostics. This page defines the team's logging standard for Python projects.
 
 ## Printing
 
-The `print()` function writes to STDOUT by default. In production code, ensure messages are directed to the appropriate output stream:
+The `print()` function writes to STDOUT by default. It is acceptable for simple scripts and CLI output, but **must not be used as a substitute for logging** in application code. In production, ensure messages are directed to the appropriate output stream:
 
 ```python
 import sys
@@ -33,46 +33,39 @@ Advanced formatting (refer to [the documentation](https://docs.python.org/3/tuto
 xxxxxxx10.12xxxxxxxx
 ```
 
-## Standard Library: `logging`
+## Loguru (Mandatory)
 
-Python's built-in [`logging`](https://docs.python.org/3/library/logging.html) module provides basic logging capabilities:
+**Use [Loguru](https://loguru.readthedocs.io/) for all application logging.** Do not use Python's built-in `logging` module. Loguru provides a simpler API, colorized output, structured exception formatting, and sensible defaults with minimal configuration.
 
-```python
-import logging
-logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
-logging.info("Application started")
+### Installation
+
+```bash
+pip install loguru
+# or via PDM
+pdm add loguru
 ```
 
-| Level    | Method               |
-|----------|----------------------|
-| DEBUG    | `logging.debug()`    |
-| INFO     | `logging.info()`     |
-| WARNING  | `logging.warning()`  |
-| ERROR    | `logging.error()`    |
-| CRITICAL | `logging.critical()` |
-
-For advanced usage, refer to the [logging HOWTO](https://docs.python.org/3/howto/logging.html).
-
-## Third-Party Library: Loguru (Recommended)
-
-[Loguru](https://loguru.readthedocs.io/) is the recommended logging library for all projects. It provides a richer feature set with minimal configuration:
+### Usage
 
 ```python
 from loguru import logger
-logger.info("Application started")
+
+logger.info("application started")
+logger.warning("disk usage above threshold")
+logger.error("failed to connect to database")
 ```
 
 ### Log Levels
 
-| Level    | Severity | Method              |
-|----------|----------|---------------------|
-| TRACE    | 5        | `logger.trace()`    |
-| DEBUG    | 10       | `logger.debug()`    |
-| INFO     | 20       | `logger.info()`     |
-| SUCCESS  | 25       | `logger.success()`  |
-| WARNING  | 30       | `logger.warning()`  |
-| ERROR    | 40       | `logger.error()`    |
-| CRITICAL | 50       | `logger.critical()` |
+| Level    | Severity | Method              | When to Use                                               |
+|----------|----------|---------------------|-----------------------------------------------------------|
+| TRACE    | 5        | `logger.trace()`    | Very fine-grained diagnostic information                  |
+| DEBUG    | 10       | `logger.debug()`    | Diagnostic information useful during development          |
+| INFO     | 20       | `logger.info()`     | General operational events (application started, request processed) |
+| SUCCESS  | 25       | `logger.success()`  | Successful completion of a significant operation          |
+| WARNING  | 30       | `logger.warning()`  | Potential issues that do not prevent operation             |
+| ERROR    | 40       | `logger.error()`    | Errors that prevent a specific operation but not the application |
+| CRITICAL | 50       | `logger.critical()` | Critical errors that require immediate attention          |
 
 ### Custom Format
 
@@ -93,10 +86,52 @@ logger.add(sys.stderr, colorize=True, format=LOGURU_FORMAT)
 
 ### Exception Formatting
 
-Loguru's `logger.exception()` produces colorized, structured exception output with variable values labeled inline, making debugging significantly faster.
+Loguru's `logger.exception()` produces colorized, structured exception output with variable values labeled inline, making debugging significantly faster:
+
+```python
+try:
+    risky_operation()
+except Exception:
+    logger.exception("operation failed with unexpected error")
+```
+
+## Prohibited Patterns
+
+The following patterns must **not** be used for application logging:
+
+```python
+# Wrong -- standard library logging module
+import logging
+logging.info("something happened")
+logging.getLogger(__name__).warning("issue detected")
+
+# Wrong -- print for application logging
+print("Processing request...")
+
+# Wrong -- f-string logging without Loguru
+print(f"Error: {error_message}")
+```
+
+**Correct equivalent:**
+
+```python
+from loguru import logger
+
+logger.info("something happened")
+logger.warning("issue detected")
+logger.info("processing request")
+logger.error(f"error: {error_message}")
+```
+
+## Why Not the Standard `logging` Module?
+
+The standard `logging` module is part of Python's standard library and provides basic functionality. However, it requires significant boilerplate to configure properly (formatters, handlers, log levels per module), its default output is unstructured, and it lacks features like colorized output and automatic exception variable labeling. Loguru provides all of these out of the box with a single import.
+
+For reference, the standard library supports five levels: DEBUG, INFO, WARNING, ERROR, and CRITICAL. Full details are in the [logging HOWTO](https://docs.python.org/3/howto/logging.html). However, **this is provided for awareness only -- always use Loguru in our projects.**
 
 ## References
 
-- [Python `logging` Documentation](https://docs.python.org/3/library/logging.html)
 - [Loguru Documentation](https://loguru.readthedocs.io/)
+- [Loguru GitHub Repository](https://github.com/Delgan/loguru)
+- [Python `logging` Documentation](https://docs.python.org/3/library/logging.html) (reference only)
 - [Python String Formatting](https://docs.python.org/3/tutorial/inputoutput.html)

@@ -19,3 +19,4 @@ This document provides a high-level view of the development life cycle adopted b
 - [Testing](Life-Cycle/Tests.md) -- Test standards, doubles, and builders
 - [CI/CD](Life-Cycle/CI-&-CD.md) -- Pipeline stages and best practices
 - [Security](Life-Cycle/Security.md) -- OWASP-based security practices
+- [Documentation & Change Control](Life-Cycle/Documentation-&-Change-Control.md) -- Changelog, README, and AI instruction maintenance
