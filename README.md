@@ -1,8 +1,15 @@
-## Context
-This is a guide to developing software the way we do.
-And its objective is not to limit the development to a specific form, but to provide a common basis so that the synergy is better and starts with learning from past contexts.
+<h1 align="center">Guide</h1>
+<p align="center">
+    <a href="https://github.com/rios0rios0/guide/releases/latest">
+        <img src="https://img.shields.io/github/release/rios0rios0/guide.svg?style=for-the-badge&logo=github" alt="Latest Release"/></a>
+    <a href="https://github.com/rios0rios0/guide/blob/main/LICENSE">
+        <img src="https://img.shields.io/github/license/rios0rios0/guide.svg?style=for-the-badge&logo=github" alt="License"/></a>
+</p>
+
+A comprehensive software development guide covering agile culture, architecture, code style, testing, CI/CD, and team onboarding. Its objective is not to limit the development to a specific form, but to provide a common basis so that the synergy is better and starts with learning from past contexts.
 
 ## Summary
+
 <!-- in GitHub Wiki each file name (page name) is an anchor. Make sure you have no duplicates -->
 - [Home](Home.md)
 - [Onboarding](Onboarding.md)
@@ -42,5 +49,14 @@ And its objective is not to limit the development to a specific form, but to pro
   - [Historical Repository Cleaner](Cookbooks/Historical-Repository-Cleaner.md)
 
 ## References
+
 - [Vizir's StyleGuide](https://github.com/Vizir/styleguide)
 - [Awesome OSS Alternatives](https://github.com/VolhaBakanouskaya/awesome-oss-alternatives-public)
+
+## Contributing
+
+Contributions are welcome. Please open an issue or submit a pull request for improvements or new topics.
+
+## License
+
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
