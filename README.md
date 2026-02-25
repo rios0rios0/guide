@@ -4,6 +4,12 @@
         <img src="https://img.shields.io/github/release/rios0rios0/guide.svg?style=for-the-badge&logo=github" alt="Latest Release"/></a>
     <a href="https://github.com/rios0rios0/guide/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/rios0rios0/guide.svg?style=for-the-badge&logo=github" alt="License"/></a>
+    <a href="https://github.com/rios0rios0/guide/actions/workflows/update-wiki.yml">
+        <img src="https://img.shields.io/github/actions/workflow/status/rios0rios0/guide/update-wiki.yml?branch=main&style=for-the-badge&logo=github" alt="Build Status"/></a>
+    <a href="https://sonarcloud.io/summary/overall?id=rios0rios0_guide">
+        <img src="https://img.shields.io/sonar/coverage/rios0rios0_guide?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge&logo=sonarqubecloud" alt="Coverage"/></a>
+    <a href="https://sonarcloud.io/summary/overall?id=rios0rios0_guide">
+        <img src="https://img.shields.io/sonar/quality_gate/rios0rios0_guide?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge&logo=sonarqubecloud" alt="Quality Gate"/></a>
 </p>
 
 A comprehensive software development guide covering agile culture, architecture, code style, testing, CI/CD, and team onboarding. Its objective is not to limit the development to a specific form, but to provide a common basis so that the synergy is better and starts with learning from past contexts.
