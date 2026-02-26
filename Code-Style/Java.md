@@ -1,46 +1,17 @@
-# Java Conventions
+# Java
 
-> **TL;DR:** Follow the `<Operation><Entity>` naming pattern for Controllers and Commands with an `execute` method. Use `listAllSuccessfully` / `listAllError` style for test method names. Use Liquibase with YAML, `snake_case`, mandatory rollbacks, and standardized constraint naming.
+> **TL;DR:** Use [Spring Boot](https://spring.io/projects/spring-boot) as the application framework, [Google Java Format](https://github.com/google/google-java-format) (via [Spotless](https://github.com/diffplug/spotless)) for formatting, [Checkstyle](https://checkstyle.sourceforge.io/) + [PMD](https://pmd.github.io/) for linting, [MapStruct](https://mapstruct.org/) for object mapping, [SLF4J](https://www.slf4j.org/) with [Logback](https://logback.qos.ch/) for logging, [JUnit 5](https://junit.org/junit5/) + [Mockito](https://site.mockito.org/) for testing, and [Gradle](https://gradle.org/) for builds.
 
 ## Overview
 
-This document defines Java-specific coding conventions. For the general baseline, refer to the [Code Style](../Code-Style.md) guide.
+This series of pages outlines Java-specific conventions, with detailed explanations of recommended approaches and the reasoning behind them. For the general baseline, refer to the [Code Style](../Code-Style.md) guide. See the sub-pages for specific topics:
 
-## Naming Conventions
-
-### Controllers
-
-Class names follow the pattern `<Operation><Entity>Controller.java`. The primary method must be named `execute`.
-
-```java
-public class ListUsersController {
-    public void execute() {}
-}
-```
-
-### Commands
-
-Class names follow the pattern `<Operation><Entity>Command.java`. The primary method must be named `execute`. The command must define callbacks for all possible outcomes.
-
-### Testing
-
-#### Integration Tests
-
-Test method names must mirror the scenario being tested. Use the tested method name as a prefix, followed by a descriptor:
-
-| Scenario             | Method Name                    |
-|----------------------|--------------------------------|
-| Successful listing   | `listAllSuccessfully`          |
-| Error during listing | `listAllError`                 |
-| Additional edge case | `listAllAdditionalInformation` |
-
-### Seeds
-
-Seed files are used for populating blank tables with test data:
-
-- The seed file name must match the **table name** (e.g., `user.sql`).
-- For multiple seeds targeting the same table, use numbered suffixes: `user_01.sql`, `user_02.sql`.
-- Constants must be named according to the file name.
+- [Conventions](Java/Java-Conventions.md)
+- [Formatting and Linting](Java/Java-Formatting-and-Linting.md)
+- [Type System](Java/Java-Type-System.md)
+- [Logging](Java/Java-Logging.md)
+- [Testing](Java/Java-Testing.md)
+- [Project Structure](Java/Java-Project-Structure.md)
 
 ## Liquibase
 
@@ -60,14 +31,14 @@ All database versioning is managed through [Liquibase](https://www.liquibase.org
 Constraints must appear **before** the column name in column definitions:
 
 ```yaml
-# ✅ Correct
+# Correct
 - column:
     constraints:
         nullable: false
     name: 'email'
     type: 'VARCHAR(255)'
 
-# ❌ Wrong
+# Wrong
 - column:
     name: 'email'
     type: 'VARCHAR(255)'
@@ -140,8 +111,20 @@ databaseChangeLog:
             tableName: 'example'
 ```
 
+## Java Design Principles
+
+The following principles guide Java development across all projects:
+
+- **Program to interfaces, not implementations.** Depend on abstractions (interfaces) rather than concrete classes. This enables testability and loose coupling.
+- **Favor composition over inheritance.** Build complex behavior by composing objects rather than through deep class hierarchies.
+- **Immutability by default.** Use `final` fields, records, and immutable collections wherever possible. Mutable state should be the exception, not the rule.
+- **Fail fast.** Validate inputs early and throw meaningful exceptions rather than propagating invalid state through the system.
+- **Convention over configuration.** Leverage Spring Boot's auto-configuration and opinionated defaults rather than writing boilerplate.
+
 ## References
 
+- [Spring Boot Reference](https://docs.spring.io/spring-boot/reference/)
+- [Effective Java -- Joshua Bloch](https://www.oreilly.com/library/view/effective-java/9780134686097/)
 - [Liquibase Documentation](https://docs.liquibase.com/)
 - [Semantic Versioning](https://semver.org/)
-- [Java Code Conventions](https://www.oracle.com/java/technologies/javase/codeconventions-introduction.html)
+- [Java Language Specification](https://docs.oracle.com/javase/specs/)
