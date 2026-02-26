@@ -44,16 +44,16 @@ test/
 
 ### Key Directories
 
-| Directory                              | Purpose                                                      |
-|----------------------------------------|--------------------------------------------------------------|
-| `cmd/<app>/`                           | Application entry point and DI injection functions           |
-| `internal/domain/commands/`            | Business logic implementations                               |
-| `internal/domain/entities/`            | Framework-agnostic domain entities                           |
-| `internal/domain/repositories/`        | Repository interface contracts                               |
-| `internal/infrastructure/controllers/` | HTTP controllers (request/response handling)                 |
-| `internal/infrastructure/repositories/`| Repository implementations with library-specific code        |
-| `test/domain/builders/`               | Builder pattern implementations for constructing test data   |
-| `test/domain/doubles/`                | Test doubles (stubs, dummies, fakers, in-memory)             |
+| Directory                               | Purpose                                                    |
+|-----------------------------------------|------------------------------------------------------------|
+| `cmd/<app>/`                            | Application entry point and DI injection functions         |
+| `internal/domain/commands/`             | Business logic implementations                             |
+| `internal/domain/entities/`             | Framework-agnostic domain entities                         |
+| `internal/domain/repositories/`         | Repository interface contracts                             |
+| `internal/infrastructure/controllers/`  | HTTP controllers (request/response handling)               |
+| `internal/infrastructure/repositories/` | Repository implementations with library-specific code      |
+| `test/domain/builders/`                 | Builder pattern implementations for constructing test data |
+| `test/domain/doubles/`                  | Test doubles (stubs, dummies, fakers, in-memory)           |
 
 ## Package Manager: Go Modules
 
@@ -141,13 +141,13 @@ ENTRYPOINT ["/bin/app"]
 
 ## Key Configuration Files
 
-| File             | Purpose                                              |
-|------------------|------------------------------------------------------|
-| `go.mod`         | Module path and dependency declarations              |
-| `go.sum`         | Dependency checksums (auto-generated, must be committed) |
-| `.golangci.yml`  | golangci-lint configuration                          |
-| `container.go`   | Dig provider registration (one per architectural layer) |
-| `.editorconfig`  | Editor standardization                               |
+| File            | Purpose                                                  |
+|-----------------|----------------------------------------------------------|
+| `go.mod`        | Module path and dependency declarations                  |
+| `go.sum`        | Dependency checksums (auto-generated, must be committed) |
+| `.golangci.yml` | golangci-lint configuration                              |
+| `container.go`  | Dig provider registration (one per architectural layer)  |
+| `.editorconfig` | Editor standardization                                   |
 
 ## References
 

@@ -106,18 +106,18 @@ src/test/resources/
 
 ### Key Directories
 
-| Directory | Purpose |
-|-----------|---------|
-| `global/` | Cross-cutting concerns (error handling, shared helpers) |
-| `<module>/domain/commands/` | Business logic implementations (CQRS write side) |
-| `<module>/domain/entities/` | Framework-agnostic domain entities and events |
-| `<module>/domain/services/` | Service contracts (interfaces) |
-| `<module>/infrastructure/controllers/` | HTTP controllers (CQRS read side + write endpoints) |
-| `<module>/infrastructure/listeners/` | Kafka/queue message listeners |
-| `<module>/infrastructure/repositories/` | Repository implementations with JPA/QueryDSL |
-| `<module>/infrastructure/services/` | Service implementations with infrastructure tools |
-| `src/main/resources/db/changelog/` | Liquibase database migration scripts |
-| `src/main/resources/app/quality/` | Code quality tool configurations |
+| Directory                               | Purpose                                                 |
+|-----------------------------------------|---------------------------------------------------------|
+| `global/`                               | Cross-cutting concerns (error handling, shared helpers) |
+| `<module>/domain/commands/`             | Business logic implementations (CQRS write side)        |
+| `<module>/domain/entities/`             | Framework-agnostic domain entities and events           |
+| `<module>/domain/services/`             | Service contracts (interfaces)                          |
+| `<module>/infrastructure/controllers/`  | HTTP controllers (CQRS read side + write endpoints)     |
+| `<module>/infrastructure/listeners/`    | Kafka/queue message listeners                           |
+| `<module>/infrastructure/repositories/` | Repository implementations with JPA/QueryDSL            |
+| `<module>/infrastructure/services/`     | Service implementations with infrastructure tools       |
+| `src/main/resources/db/changelog/`      | Liquibase database migration scripts                    |
+| `src/main/resources/app/quality/`       | Code quality tool configurations                        |
 
 ## Package Manager: Gradle
 
@@ -239,16 +239,16 @@ ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 
 ## Key Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `build.gradle` | Build configuration, plugins, dependencies, and quality tool setup |
-| `settings.gradle` | Project name and multi-module settings |
-| `gradle.properties` | Gradle build properties (JVM args, versions) |
-| `application.yaml` | Spring Boot configuration (profiles, datasource, kafka, logging) |
-| `lombok.config` | Lombok behavior configuration |
-| `compose.yaml` | Docker Compose for production |
-| `compose.dev.yaml` | Docker Compose for local development |
-| `.editorconfig` | Editor standardization |
+| File                | Purpose                                                            |
+|---------------------|--------------------------------------------------------------------|
+| `build.gradle`      | Build configuration, plugins, dependencies, and quality tool setup |
+| `settings.gradle`   | Project name and multi-module settings                             |
+| `gradle.properties` | Gradle build properties (JVM args, versions)                       |
+| `application.yaml`  | Spring Boot configuration (profiles, datasource, kafka, logging)   |
+| `lombok.config`     | Lombok behavior configuration                                      |
+| `compose.yaml`      | Docker Compose for production                                      |
+| `compose.dev.yaml`  | Docker Compose for local development                               |
+| `.editorconfig`     | Editor standardization                                             |
 
 ## References
 

@@ -81,13 +81,13 @@ gradle checkstyleTest
 
 ### Key Rules Enforced
 
-| Rule | Description |
-|------|-------------|
-| `IndentationCheck` | Enforces consistent indentation (2 spaces) |
-| `LineLength` | Maximum line length (100 characters) |
-| `NeedBraces` | All control structures must use braces |
-| `JavadocMethod` | Public methods require Javadoc (configurable) |
-| `UnusedImports` | No unused imports allowed |
+| Rule               | Description                                   |
+|--------------------|-----------------------------------------------|
+| `IndentationCheck` | Enforces consistent indentation (2 spaces)    |
+| `LineLength`       | Maximum line length (100 characters)          |
+| `NeedBraces`       | All control structures must use braces        |
+| `JavadocMethod`    | Public methods require Javadoc (configurable) |
+| `UnusedImports`    | No unused imports allowed                     |
 
 ## Static Analysis: PMD
 

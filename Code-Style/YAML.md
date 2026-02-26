@@ -32,10 +32,10 @@ deployment.yml
 
 Some tools enforce a specific filename that uses `.yml` and do not accept alternatives. In these rare cases, the tool's requirement takes precedence:
 
-| Tool | Required Filename | Reason |
-|------|-------------------|--------|
-| Azure DevOps | `azure-pipelines.yml` | Only recognizes this exact filename |
-| Docker Compose (legacy) | `docker-compose.yml` | Older versions required this name (modern versions accept `.yaml`) |
+| Tool                    | Required Filename     | Reason                                                             |
+|-------------------------|-----------------------|--------------------------------------------------------------------|
+| Azure DevOps            | `azure-pipelines.yml` | Only recognizes this exact filename                                |
+| Docker Compose (legacy) | `docker-compose.yml`  | Older versions required this name (modern versions accept `.yaml`) |
 
 If a tool accepts both extensions, always use `.yaml`.
 
@@ -92,15 +92,15 @@ timeout: '30.5'
 
 ### Summary Table
 
-| Value Type | Quoting Style | Example |
-|-----------|--------------|---------|
-| Plain string | Single quotes | `name: 'my-app'` |
-| String with variables | Double quotes | `url: "${API_HOST}/v1"` |
+| Value Type                   | Quoting Style | Example                   |
+|------------------------------|---------------|---------------------------|
+| Plain string                 | Single quotes | `name: 'my-app'`          |
+| String with variables        | Double quotes | `url: "${API_HOST}/v1"`   |
 | String with escape sequences | Double quotes | `message: "line1\nline2"` |
-| Boolean | No quotes | `enabled: true` |
-| Number (integer) | No quotes | `replicas: 3` |
-| Number (float) | No quotes | `ratio: 0.75` |
-| Null | No quotes | `value: null` |
+| Boolean                      | No quotes     | `enabled: true`           |
+| Number (integer)             | No quotes     | `replicas: 3`             |
+| Number (float)               | No quotes     | `ratio: 0.75`             |
+| Null                         | No quotes     | `value: null`             |
 
 ## YAML in Markdown Code Blocks
 
@@ -136,14 +136,14 @@ This includes YAML examples in:
 
 These conventions apply to **all** YAML files across the organization:
 
-| Domain | Examples |
-|--------|---------|
-| **CI/CD pipelines** | GitHub Actions workflows, GitLab CI, Azure DevOps pipelines |
-| **Kubernetes** | Deployments, Services, ConfigMaps, Ingresses, Helm values |
-| **Infrastructure-as-Code** | Docker Compose, Ansible playbooks, CloudFormation templates |
-| **Application configuration** | Spring Boot `application.yaml`, service configs |
-| **Tooling** | `.golangci.yaml`, `.hadolint.yaml`, `autoupdate.yaml` |
-| **Documentation** | YAML code blocks inside Markdown files |
+| Domain                        | Examples                                                    |
+|-------------------------------|-------------------------------------------------------------|
+| **CI/CD pipelines**           | GitHub Actions workflows, GitLab CI, Azure DevOps pipelines |
+| **Kubernetes**                | Deployments, Services, ConfigMaps, Ingresses, Helm values   |
+| **Infrastructure-as-Code**    | Docker Compose, Ansible playbooks, CloudFormation templates |
+| **Application configuration** | Spring Boot `application.yaml`, service configs             |
+| **Tooling**                   | `.golangci.yaml`, `.hadolint.yaml`, `autoupdate.yaml`       |
+| **Documentation**             | YAML code blocks inside Markdown files                      |
 
 ## References
 

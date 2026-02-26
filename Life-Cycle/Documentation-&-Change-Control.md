@@ -14,9 +14,15 @@ Every project must contain at minimum:
 
 | File                                  | Purpose                                                      | Update Frequency                                             |
 |---------------------------------------|--------------------------------------------------------------|--------------------------------------------------------------|
-| **`CHANGELOG.md`**                    | Records all notable changes, organized by version            | **Every change** (always)                                    |
 | **`README.md`**                       | Describes the project, its usage, setup, and architecture    | When behavior, configuration, CLI, or setup changes          |
+| **`CONTRIBUTING.md`**                 | Guides contributors on prerequisites, workflow, and standards | When prerequisites, workflow, or project structure changes    |
+| **`CHANGELOG.md`**                    | Records all notable changes, organized by version            | **Every change** (always)                                    |
 | **`.github/copilot-instructions.md`** | AI assistant context for the project structure and workflows | When architecture, commands, or development workflow changes |
+
+**Templates are available for standardized project setup:**
+
+- [README Template](Documentation-&-Change-Control/README-Template.md) -- copy and customize for new projects
+- [CONTRIBUTING Template](Documentation-&-Change-Control/CONTRIBUTING-Template.md) -- copy and customize for new projects
 
 ## Changelog Standard
 

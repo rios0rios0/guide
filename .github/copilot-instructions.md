@@ -14,7 +14,7 @@ Always reference these instructions first and fallback to search or bash command
   go build -o update-wiki ./...
   ```
   - Build time: ~1 second. NEVER CANCEL. Set timeout to 30+ seconds for safety.
-- Run basic validation: `find . -name "*.md" | wc -l` (should show 41+ markdown files)
+- Run basic validation: `find . -name "*.md" | wc -l` (should show 41+ Markdown files)
 
 ### Core Build Process
 The repository uses a Go-based build system that syncs documentation to GitHub Wiki:
@@ -132,7 +132,7 @@ go clean                   # Clean build artifacts (0.02s)
 
 ### Repository Characteristics
 - **Type**: Documentation repository (not traditional software)
-- **Primary content**: 41+ markdown files across 22+ directories
+- **Primary content**: 41+ Markdown files across 22+ directories
 - **Build output**: GitHub Wiki synchronization
 - **No traditional tests**: Content validation via structure checks
 - **Dependencies**: Go 1.23.4+ for build system only
@@ -141,9 +141,9 @@ go clean                   # Clean build artifacts (0.02s)
 Always complete this checklist when making changes:
 1. ✅ Verify file structure with `ls` commands
 2. ✅ Run `go build` in update-wiki directory
-3. ✅ Check markdown file count matches expected (~41 files)
+3. ✅ Check Markdown file count matches expected (~41 files)
 4. ✅ Manually verify key navigation links work
 5. ✅ Confirm .editorconfig compliance (2-space indents, LF endings)
-6. ✅ Test that modified files render correctly as markdown
+6. ✅ Test that modified files render correctly as Markdown
 
 The repository is optimized for documentation maintenance and automated wiki synchronization rather than traditional software development workflows.

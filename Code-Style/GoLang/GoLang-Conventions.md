@@ -156,14 +156,14 @@ Use [Uber Dig](https://github.com/uber-go/dig) for runtime dependency injection 
 
 Each architectural layer must have a `container.go` file that registers its own providers. A top-level orchestrator calls each layer's registration function in dependency order.
 
-| File                                          | Purpose                                      |
-|-----------------------------------------------|----------------------------------------------|
-| `cmd/<app>/dig.go`                            | Creates the container and invokes root types |
-| `internal/container.go`                       | Orchestrates registration across all layers  |
-| `internal/domain/entities/container.go`       | Registers entity providers (or no-op)        |
-| `internal/domain/commands/container.go`       | Registers command providers (or no-op)       |
-| `internal/infrastructure/controllers/container.go` | Registers controller providers          |
-| `internal/infrastructure/repositories/container.go` | Registers repository providers         |
+| File                                                | Purpose                                      |
+|-----------------------------------------------------|----------------------------------------------|
+| `cmd/<app>/dig.go`                                  | Creates the container and invokes root types |
+| `internal/container.go`                             | Orchestrates registration across all layers  |
+| `internal/domain/entities/container.go`             | Registers entity providers (or no-op)        |
+| `internal/domain/commands/container.go`             | Registers command providers (or no-op)       |
+| `internal/infrastructure/controllers/container.go`  | Registers controller providers               |
+| `internal/infrastructure/repositories/container.go` | Registers repository providers               |
 
 ### Orchestrator Pattern
 
