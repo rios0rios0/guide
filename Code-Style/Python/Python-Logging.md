@@ -1,39 +1,12 @@
-# Printing and Logging
+# Python Logging
 
-> **TL;DR:** Use **Loguru** for all application logging. Do not use the standard `logging` module or `print()` for logging in production code. Always import as `from loguru import logger`. Use STDOUT for normal output and STDERR for warnings and errors.
+> **TL;DR:** Use **[Loguru](https://loguru.readthedocs.io/)** for all application logging. Do not use the standard `logging` module or `print()` for logging in production code. Always import as `from loguru import logger`. Use STDOUT for normal output and STDERR for warnings and errors.
 
 ## Overview
 
-Programs frequently need to output messages for progress tracking, state reporting, and error diagnostics. This page defines the team's logging standard for Python projects.
+Programs frequently need to output messages for progress tracking, state reporting, and error diagnostics. This page defines the mandatory logging library and patterns for all Python projects.
 
-## Printing
-
-The `print()` function writes to STDOUT by default. It is acceptable for simple scripts and CLI output, but **must not be used as a substitute for logging** in application code. In production, ensure messages are directed to the appropriate output stream:
-
-```python
-import sys
-print("Fetching data from Redis")
-print("Error: Could not connect to Redis", file=sys.stderr)
-```
-
-### String Formatting
-
-Use f-strings (preferred) or `.format()` for variable interpolation:
-
-```python
-number = 42
-print(f"The number is: {number}")
-print("The number is: {}".format(number))
-```
-
-Advanced formatting (refer to [the documentation](https://docs.python.org/3/tutorial/inputoutput.html) for full details):
-
-```python
->>> print(f"{10.12345:x^20.2f}")
-xxxxxxx10.12xxxxxxxx
-```
-
-## Loguru (Mandatory)
+## Mandatory Library: Loguru
 
 **Use [Loguru](https://loguru.readthedocs.io/) for all application logging.** Do not use Python's built-in `logging` module. Loguru provides a simpler API, colorized output, structured exception formatting, and sensible defaults with minimal configuration.
 
@@ -43,6 +16,12 @@ xxxxxxx10.12xxxxxxxx
 pip install loguru
 # or via PDM
 pdm add loguru
+```
+
+### Import Convention
+
+```python
+from loguru import logger
 ```
 
 ### Usage
@@ -55,7 +34,7 @@ logger.warning("disk usage above threshold")
 logger.error("failed to connect to database")
 ```
 
-### Log Levels
+## Log Levels
 
 | Level    | Severity | Method              | When to Use                                               |
 |----------|----------|---------------------|-----------------------------------------------------------|
@@ -66,6 +45,8 @@ logger.error("failed to connect to database")
 | WARNING  | 30       | `logger.warning()`  | Potential issues that do not prevent operation             |
 | ERROR    | 40       | `logger.error()`    | Errors that prevent a specific operation but not the application |
 | CRITICAL | 50       | `logger.critical()` | Critical errors that require immediate attention          |
+
+## Structured Logging
 
 ### Custom Format
 
@@ -93,6 +74,26 @@ try:
     risky_operation()
 except Exception:
     logger.exception("operation failed with unexpected error")
+```
+
+## Printing
+
+The `print()` function writes to STDOUT by default. It is acceptable for simple scripts and CLI output, but **must not be used as a substitute for logging** in application code. In production, ensure messages are directed to the appropriate output stream:
+
+```python
+import sys
+print("Fetching data from Redis")
+print("Error: Could not connect to Redis", file=sys.stderr)
+```
+
+### String Formatting
+
+Use f-strings (preferred) or `.format()` for variable interpolation:
+
+```python
+number = 42
+print(f"The number is: {number}")
+print("The number is: {}".format(number))
 ```
 
 ## Prohibited Patterns

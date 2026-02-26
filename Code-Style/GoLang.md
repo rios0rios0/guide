@@ -1,249 +1,33 @@
-# Go Conventions
+# Go
 
-> **TL;DR:** Use `snake_case` for file names, `self` as the method receiver name, and follow the strict naming patterns for Commands, Controllers, Repositories, and Mappers. Entities must be framework-agnostic. Use [Wire](https://github.com/google/wire) for dependency injection.
+> **TL;DR:** Use `snake_case` for file names, `self` as the method receiver, [Wire](https://github.com/google/wire) for dependency injection, [golangci-lint](https://golangci-lint.run/) for linting, [Logrus](https://github.com/sirupsen/logrus) for logging, and [testify](https://github.com/stretchr/testify) for testing. Entities must be framework-agnostic.
 
 ## Overview
 
-This document defines Go-specific coding conventions. For the general baseline, refer to the [Code Style](../Code-Style.md) guide. The architectural layers referenced here are defined in the [Backend Design](../Life-Cycle/Architecture/Backend-Design.md) section.
+This series of pages outlines Go-specific conventions, with detailed explanations of recommended approaches and the reasoning behind them. For the general baseline, refer to the [Code Style](../Code-Style.md) guide. See the sub-pages for specific topics:
 
-## File Structure
+- [Conventions](GoLang/GoLang-Conventions.md)
+- [Formatting and Linting](GoLang/GoLang-Formatting-and-Linting.md)
+- [Type System](GoLang/GoLang-Type-System.md)
+- [Logging](GoLang/GoLang-Logging.md)
+- [Testing](GoLang/GoLang-Testing.md)
+- [Project Structure](GoLang/GoLang-Project-Structure.md)
 
-```
-main/
-  domain/                   (contracts)
-    commands/                 business logic; the only layer without a contract
-    entities/
-    repositories/
-    app.go
-    main.go
-    wire.go
-    wire_gen.go
-  infrastructure/           (implementations)
-    controllers/
-      mappers/
-      requests/
-      responses/
-    repositories/             prefixed with the tool name; returns database models
-      mappers/
-      models/
-test/
-  domain/
-  infrastructure/
-```
+## Go Proverbs
 
-## General Conventions
+The [Go Proverbs](https://go-proverbs.github.io/) capture the language's design philosophy:
 
-1. Use **snake_case** for all file names.
-2. Use `self` as the method receiver name (analogous to `this` in other languages).
-3. Only attach a method to a struct when the method **needs to mutate** the struct's state.
-4. For an introduction to the DTO pattern, refer to [this article](https://www.baeldung.com/java-dto-pattern).
-
-## Entities
-
-Entities are the core of the application. All business logic related to properties and fields belongs inside the entity.
-
-**Entities must be free of any framework or external tool dependencies.** Do not use tags (e.g., `json`, `gorm`) inside entity structs.
-
-## Commands
-
-| Element     | Pattern                           | Example                                                                     |
-|-------------|-----------------------------------|-----------------------------------------------------------------------------|
-| File name   | `<operation>_<entity>_command.go` | `list_users_command.go`                                                     |
-| Struct name | `<Operation><Entity>Command`      | `ListUsersCommand`                                                          |
-| Method name | `Execute`                         | `func (self ListUsersCommand) Execute(listeners ListUsersCommandListeners)` |
-
-**Notes:**
-- Use plural entity names when the operation targets multiple entities.
-- Use the standard [operations vocabulary](../Code-Style.md#operations-vocabulary).
-- Listeners must reflect all possible controller responses.
-
-## Controllers
-
-| Element     | Pattern                              | Example                                     |
-|-------------|--------------------------------------|---------------------------------------------|
-| File name   | `<operation>_<entity>_controller.go` | `list_users_controller.go`                  |
-| Struct name | `<Operation><Entity>Controller`      | `ListUsersController`                       |
-| Method name | `Execute`                            | `func (self ListUsersController) Execute()` |
-
-## Services
-
-This layer is **not used** in Go projects.
-
-## Repositories
-
-### Contract (Domain Layer)
-
-| Element        | Pattern                  | Example               |
-|----------------|--------------------------|-----------------------|
-| File name      | `<entity>_repository.go` | `users_repository.go` |
-| Interface name | `<Entity>Repository`     | `UsersRepository`     |
-
-### Implementation (Infrastructure Layer)
-
-| Element     | Pattern                            | Example                   |
-|-------------|------------------------------------|---------------------------|
-| File name   | `<library>_<entity>_repository.go` | `pgx_users_repository.go` |
-| Struct name | `<Library><Entity>Repository`      | `PgxUsersRepository`      |
-
-### Method Naming
-
-Methods follow a logical sequence: find one, find all, filter, check existence, save one, save all, delete.
-
-```go
-// Find a single entity by a specific field
-func (self UsersRepository) FindByTargetField(targetField any) entities.User
-
-// Find multiple entities by a specific field
-func (self UsersRepository) FindAllByTargetField(targetField any) []entities.User
-
-// Check existence (returns boolean)
-func (self UsersRepository) HasBooleanVerification(targetField any) bool
-
-// Persist a single entity
-func (self UsersRepository) Save(user entities.User)
-
-// Persist multiple entities
-func (self UsersRepository) SaveAll(users []entities.User)
-
-// Remove a single entity by a specific field
-func (self UsersRepository) DeleteByTargetField(targetField any)
-```
-
-**Notes:**
-- `TargetField` is a placeholder (e.g., `Id`, `Name`, `Email`).
-- `BooleanVerification` is a placeholder (e.g., `UserInGroup`, `UserPermission`).
-- Implementations use the same signatures but attach to the concrete struct (e.g., `PgxUsersRepository`).
-
-## Mappers
-
-### Repository Mappers
-
-| Element     | Pattern              | Example          |
-|-------------|----------------------|------------------|
-| File name   | `<entity>_mapper.go` | `user_mapper.go` |
-| Struct name | `<Entity>Mapper`     | `UserMapper`     |
-
-```go
-// Infrastructure DTO -> Domain Entity
-func (self UserMapper) MapToEntity(infra any) entities.User
-func (self UserMapper) MapToEntities(infra []any) []entities.User
-
-// Domain Entity -> Infrastructure DTO
-func (self UserMapper) MapToExternal(user entities.User) models.External
-func (self UserMapper) MapToExternals(users []entities.User) []models.External
-```
-
-### Controller Mappers
-
-| Element              | Pattern                                   | Example                          |
-|----------------------|-------------------------------------------|----------------------------------|
-| File name (request)  | `<operation>_<entity>_request_mapper.go`  | `insert_user_request_mapper.go`  |
-| File name (response) | `<operation>_<entity>_response_mapper.go` | `insert_user_response_mapper.go` |
-
-```go
-// Request -> Entity (no inverse mapping)
-func (self InsertUserRequestMapper) MapToEntity(request InsertUserRequest) entities.User
-func (self InsertUserRequestMapper) MapToEntities(requests []InsertUserRequest) []entities.User
-
-// Entity -> Response (no inverse mapping)
-func (self InsertUserResponseMapper) MapToResponse(user entities.User) responses.InsertUserResponse
-func (self InsertUserResponseMapper) MapToResponses(users []entities.User) []responses.InsertUserResponse
-```
-
-**Important:** Do not use `json` tags outside the infrastructure layer. Tags are restricted to request and response DTOs.
-
-## Models
-
-Models reside exclusively in the infrastructure layer and represent DTOs for external data sources (databases, APIs, queues, etc.). They resemble entities but are **not** entities.
-
-Each model is prefixed with the name of the external tool it communicates with:
-
-| Example       | Source             |
-|---------------|--------------------|
-| `AwsFile`     | AWS S3             |
-| `ApiDocument` | External API       |
-| `PgxUser`     | PostgreSQL via pgx |
-
-## Logging
-
-**Use [Logrus](https://github.com/sirupsen/logrus) for all logging.** Do not use Go's standard `log` package or `fmt.Println` for application logging. Logrus provides structured logging, consistent log levels, JSON output support, and field-based contextual logging -- all of which are essential for production observability.
-
-### Installation
-
-```bash
-go get github.com/sirupsen/logrus
-```
-
-**Important:** Always use the lowercase import path `github.com/sirupsen/logrus` (not the uppercase variant).
-
-### Usage
-
-```go
-import logger "github.com/sirupsen/logrus"
-
-func main() {
-    logger.Info("application started")
-    logger.WithFields(logger.Fields{
-        "user_id": 42,
-        "action":  "login",
-    }).Info("user authenticated")
-}
-```
-
-### Import Alias
-
-Always import Logrus with the alias `logger` to keep usage concise and consistent across the codebase:
-
-```go
-import logger "github.com/sirupsen/logrus"
-```
-
-### Log Levels
-
-| Level | Method           | When to Use                                                         |
-|-------|------------------|---------------------------------------------------------------------|
-| Trace | `logger.Trace()` | Very fine-grained diagnostic information                            |
-| Debug | `logger.Debug()` | Diagnostic information useful during development                    |
-| Info  | `logger.Info()`  | General operational events (application started, request processed) |
-| Warn  | `logger.Warn()`  | Potential issues that do not prevent operation                      |
-| Error | `logger.Error()` | Errors that prevent a specific operation but not the application    |
-| Fatal | `logger.Fatal()` | Critical errors that require immediate application shutdown         |
-| Panic | `logger.Panic()` | Critical errors that should panic after logging                     |
-
-### Structured Logging
-
-Always use `WithFields` to attach contextual data to log entries rather than interpolating values into the message string:
-
-```go
-// Correct -- structured fields
-logger.WithFields(logger.Fields{
-    "request_id": requestID,
-    "status":     statusCode,
-}).Info("request completed")
-
-// Wrong -- string interpolation
-logger.Infof("request %s completed with status %d", requestID, statusCode)
-```
-
-### Prohibited Patterns
-
-```go
-// Wrong -- standard library logger
-import "log"
-log.Println("something happened")
-
-// Wrong -- fmt for application logging
-fmt.Println("something happened")
-
-// Wrong -- uppercase import path
-import "github.com/Sirupsen/logrus"
-```
+- Don't communicate by sharing memory, share memory by communicating.
+- Concurrency is not parallelism.
+- The bigger the interface, the weaker the abstraction.
+- Make the zero value useful.
+- A little copying is better than a little dependency.
+- Clear is better than clever.
+- Errors are values.
+- Don't just check errors, handle them gracefully.
 
 ## References
 
 - [Effective Go](https://go.dev/doc/effective_go)
+- [Go Proverbs](https://go-proverbs.github.io/)
 - [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
-- [Google Wire - Dependency Injection](https://github.com/google/wire)
-- [DTO Pattern](https://www.baeldung.com/java-dto-pattern)
-- [Logrus - Structured Logger for Go](https://github.com/sirupsen/logrus)
-- [Logrus Logging Guide](https://betterstack.com/community/guides/logging/logrus/)

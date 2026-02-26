@@ -1,10 +1,14 @@
-# Typing and Type Hints (PEP 484)
+# Python Type System
 
 > **TL;DR:** Add type hints to all function parameters, return types, and non-obvious variables. Type hints enable static analysis, catch bugs before runtime, and make code self-documenting.
 
 ## Overview
 
 Python is dynamically typed, which means type errors often surface only at runtime -- or worse, in production. [PEP 484](https://peps.python.org/pep-0484/) introduced type hints, allowing developers to declare expected types for variables and function signatures. Modern linters and IDEs interpret these annotations to warn about type mismatches during development, significantly reducing debugging time.
+
+## Type Annotation Requirements
+
+**All function parameters and return types must have type hints.** Variables should be annotated when the type is not obvious from the assignment.
 
 ### Why Type Hints Matter
 
@@ -73,7 +77,9 @@ some_queue: queue.Queue[int] = queue.Queue()
 some_queue.put(item)
 ```
 
-## The `typing` Module
+## Key Type Patterns
+
+### The `typing` Module
 
 The `typing` module supports advanced type constructs such as `Union`, `Optional`, `Type`, and generics:
 
@@ -93,12 +99,29 @@ def func(param: Union[Type[ClassA], Type[ClassB]]) -> None:
     ...
 ```
 
+### Python 3.10+ Union Syntax
+
 For Python 3.10+, use the built-in `|` operator instead of `Union`:
 
 ```python
 def func(param: type[ClassA | ClassB]) -> None:
     ...
 ```
+
+## Prohibited Patterns
+
+```python
+# Wrong -- missing type hints on function signatures
+def process(data):
+    return data.transform()
+
+# Wrong -- using Any as a catch-all
+from typing import Any
+def process(data: Any) -> Any:
+    return data.transform()
+```
+
+Define proper types or use `Protocol` for structural typing instead.
 
 ## References
 
