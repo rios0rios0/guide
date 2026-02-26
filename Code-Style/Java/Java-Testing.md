@@ -279,13 +279,13 @@ class JpaItemsRepositoryTest {
 
 Follow the [Martin Fowler taxonomy](https://martinfowler.com/articles/mocksArentStubs.html) for test doubles:
 
-| Type | Purpose | Example |
-|------|---------|---------|
-| **Stub** | Returns canned answers, no logic | `SendItemServiceStub` |
-| **Dummy** | Minimal implementation, ready-made answers | `DummyItemService` |
-| **In-Memory** | In-memory logic without external modules | `InMemoryItemsRepository` |
-| **Faker** | External library generating realistic data | `ItemEventBuilder` (using Java Faker) |
-| **Mock** | Mimics and verifies method calls | Mockito `mock()` -- **avoid when possible** |
+| Type          | Purpose                                    | Example                                     |
+|---------------|--------------------------------------------|---------------------------------------------|
+| **Stub**      | Returns canned answers, no logic           | `SendItemServiceStub`                       |
+| **Dummy**     | Minimal implementation, ready-made answers | `DummyItemService`                          |
+| **In-Memory** | In-memory logic without external modules   | `InMemoryItemsRepository`                   |
+| **Faker**     | External library generating realistic data | `ItemEventBuilder` (using Java Faker)       |
+| **Mock**      | Mimics and verifies method calls           | Mockito `mock()` -- **avoid when possible** |
 
 ### Stub Example
 

@@ -33,6 +33,8 @@ A comprehensive software development guide covering agile culture, architecture,
   - [CI & CD](Life-Cycle/CI-&-CD.md)
   - [Security](Life-Cycle/Security.md)
   - [Documentation & Change Control](Life-Cycle/Documentation-&-Change-Control.md)
+    - [README Template](Life-Cycle/Documentation-&-Change-Control/README-Template.md)
+    - [CONTRIBUTING Template](Life-Cycle/Documentation-&-Change-Control/CONTRIBUTING-Template.md)
 - [Code Style](Code-Style.md)
   - [GoLang](Code-Style/GoLang.md)
     - [GoLang Testing](Code-Style/GoLang/GoLang-Testing.md)

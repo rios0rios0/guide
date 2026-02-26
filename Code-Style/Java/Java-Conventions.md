@@ -56,11 +56,11 @@ public record ItemEvent(
 
 ## Commands
 
-| Element     | Pattern                            | Example                          |
-|-------------|------------------------------------|----------------------------------|
-| File name   | `<Operation><Entity>Command.java`  | `InsertItemCommand.java`         |
-| Class name  | `<Operation><Entity>Command`       | `InsertItemCommand`              |
-| Method name | `execute`                          | `public void execute(...)` |
+| Element     | Pattern                           | Example                    |
+|-------------|-----------------------------------|----------------------------|
+| File name   | `<Operation><Entity>Command.java` | `InsertItemCommand.java`   |
+| Class name  | `<Operation><Entity>Command`      | `InsertItemCommand`        |
+| Method name | `execute`                         | `public void execute(...)` |
 
 **Notes:**
 - Use plural entity names when the operation targets multiple entities.
@@ -88,11 +88,11 @@ public class InsertItemCommand {
 
 ## Controllers
 
-| Element     | Pattern                               | Example                             |
-|-------------|---------------------------------------|-------------------------------------|
-| File name   | `<Operation><Entity>Controller.java`  | `ListItemsController.java`         |
-| Class name  | `<Operation><Entity>Controller`       | `ListItemsController`              |
-| Method name | `execute`                             | `public ResponseEntity<?> execute(...)` |
+| Element     | Pattern                              | Example                                 |
+|-------------|--------------------------------------|-----------------------------------------|
+| File name   | `<Operation><Entity>Controller.java` | `ListItemsController.java`              |
+| Class name  | `<Operation><Entity>Controller`      | `ListItemsController`                   |
+| Method name | `execute`                            | `public ResponseEntity<?> execute(...)` |
 
 ```java
 @RestController
@@ -123,10 +123,10 @@ The Services layer provides an abstraction between Commands and Repositories. Th
 
 ### Contract (Domain Layer)
 
-| Element        | Pattern                             | Example              |
-|----------------|-------------------------------------|----------------------|
-| File name      | `<Operation><Entity>Service.java`   | `SendItemService.java` |
-| Interface name | `<Operation><Entity>Service`        | `SendItemService`    |
+| Element        | Pattern                           | Example                |
+|----------------|-----------------------------------|------------------------|
+| File name      | `<Operation><Entity>Service.java` | `SendItemService.java` |
+| Interface name | `<Operation><Entity>Service`      | `SendItemService`      |
 
 ```java
 public interface SendItemService {
@@ -136,10 +136,10 @@ public interface SendItemService {
 
 ### Implementation (Infrastructure Layer)
 
-| Element     | Pattern                                 | Example                  |
-|-------------|-----------------------------------------|--------------------------|
-| File name   | `Jpa<Operation><Entity>Service.java`    | `JpaSendItemService.java` |
-| Class name  | `Jpa<Operation><Entity>Service`         | `JpaSendItemService`     |
+| Element    | Pattern                              | Example                   |
+|------------|--------------------------------------|---------------------------|
+| File name  | `Jpa<Operation><Entity>Service.java` | `JpaSendItemService.java` |
+| Class name | `Jpa<Operation><Entity>Service`      | `JpaSendItemService`      |
 
 ```java
 @Service
@@ -162,10 +162,10 @@ public class JpaSendItemService implements SendItemService {
 
 ### Contract (Domain Layer)
 
-| Element        | Pattern                    | Example               |
-|----------------|----------------------------|-----------------------|
+| Element        | Pattern                   | Example                |
+|----------------|---------------------------|------------------------|
 | File name      | `<Entity>Repository.java` | `ItemsRepository.java` |
-| Interface name | `<Entity>Repository`       | `ItemsRepository`     |
+| Interface name | `<Entity>Repository`      | `ItemsRepository`      |
 
 ```java
 public interface ItemsRepository {
@@ -176,10 +176,10 @@ public interface ItemsRepository {
 
 ### Implementation (Infrastructure Layer)
 
-| Element     | Pattern                             | Example                    |
-|-------------|-------------------------------------|----------------------------|
-| File name   | `Jpa<Entity>Repository.java`       | `JpaItemsRepository.java` |
-| Class name  | `Jpa<Entity>Repository`            | `JpaItemsRepository`      |
+| Element    | Pattern                      | Example                   |
+|------------|------------------------------|---------------------------|
+| File name  | `Jpa<Entity>Repository.java` | `JpaItemsRepository.java` |
+| Class name | `Jpa<Entity>Repository`      | `JpaItemsRepository`      |
 
 For Spring Data JPA repositories:
 
@@ -193,10 +193,10 @@ public interface JpaItemsRepository
 
 For complex queries that go beyond Spring Data JPA:
 
-| Element     | Pattern                                 | Example                          |
-|-------------|-----------------------------------------|----------------------------------|
-| File name   | `QueryDsl<Entity>Repository.java`      | `QueryDslItemsRepository.java`  |
-| Class name  | `QueryDsl<Entity>Repository`            | `QueryDslItemsRepository`       |
+| Element    | Pattern                           | Example                        |
+|------------|-----------------------------------|--------------------------------|
+| File name  | `QueryDsl<Entity>Repository.java` | `QueryDslItemsRepository.java` |
+| Class name | `QueryDsl<Entity>Repository`      | `QueryDslItemsRepository`      |
 
 ## Mappers
 
@@ -204,10 +204,10 @@ Use [MapStruct](https://mapstruct.org/) for all object mapping. Mappers isolate 
 
 ### Repository Mappers
 
-| Element     | Pattern              | Example          |
-|-------------|----------------------|------------------|
-| File name   | `<Entity>Mapper.java` | `ItemMapper.java` |
-| Interface   | `<Entity>Mapper`     | `ItemMapper`     |
+| Element   | Pattern               | Example           |
+|-----------|-----------------------|-------------------|
+| File name | `<Entity>Mapper.java` | `ItemMapper.java` |
+| Interface | `<Entity>Mapper`      | `ItemMapper`      |
 
 ```java
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -247,10 +247,10 @@ Models reside exclusively in the infrastructure layer and represent JPA entities
 
 Each model is prefixed with `Jpa`:
 
-| Element     | Pattern          | Example      |
-|-------------|------------------|--------------|
-| File name   | `Jpa<Entity>.java` | `JpaItem.java` |
-| Class name  | `Jpa<Entity>`    | `JpaItem`    |
+| Element    | Pattern            | Example        |
+|------------|--------------------|----------------|
+| File name  | `Jpa<Entity>.java` | `JpaItem.java` |
+| Class name | `Jpa<Entity>`      | `JpaItem`      |
 
 ```java
 @Entity

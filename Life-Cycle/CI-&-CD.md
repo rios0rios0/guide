@@ -53,13 +53,13 @@ All reports are generated in the `build/reports/` directory.
 
 Each tool supports project-level configuration for suppressing false positives:
 
-| Tool | Configuration File |
-|------|-------------------|
-| CodeQL | `.codeql-false-positives` |
-| Semgrep | `.semgrepignore`, `.semgrepexcluderules` |
-| Trivy | `.trivyignore` |
-| Hadolint | `.hadolint.yaml` |
-| Gitleaks | `.gitleaks.toml` |
+| Tool     | Configuration File                       |
+|----------|------------------------------------------|
+| CodeQL   | `.codeql-false-positives`                |
+| Semgrep  | `.semgrepignore`, `.semgrepexcluderules` |
+| Trivy    | `.trivyignore`                           |
+| Hadolint | `.hadolint.yaml`                         |
+| Gitleaks | `.gitleaks.toml`                         |
 
 ## Pre-Commit Hooks
 

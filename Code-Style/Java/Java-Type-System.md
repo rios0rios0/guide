@@ -128,22 +128,22 @@ public class Item {
 
 Use Lombok to reduce boilerplate while maintaining clarity:
 
-| Annotation | Purpose |
-|------------|---------|
-| `@Getter` / `@Setter` | Generate accessors |
-| `@NoArgsConstructor` | JPA requirement for entity classes |
+| Annotation                 | Purpose                                                          |
+|----------------------------|------------------------------------------------------------------|
+| `@Getter` / `@Setter`      | Generate accessors                                               |
+| `@NoArgsConstructor`       | JPA requirement for entity classes                               |
 | `@RequiredArgsConstructor` | Constructor injection (generates constructor for `final` fields) |
-| `@SuperBuilder` | Fluent builder pattern with inheritance support |
-| `@Slf4j` | Generate SLF4J logger field |
+| `@SuperBuilder`            | Fluent builder pattern with inheritance support                  |
+| `@Slf4j`                   | Generate SLF4J logger field                                      |
 
 ### Spring
 
-| Annotation | Layer | Purpose |
-|------------|-------|---------|
-| `@Component` | Domain | Commands, listeners |
-| `@RestController` | Infrastructure | HTTP controllers |
-| `@Service` | Infrastructure | Service implementations |
-| `@Repository` | Infrastructure | Repository implementations |
+| Annotation        | Layer          | Purpose                    |
+|-------------------|----------------|----------------------------|
+| `@Component`      | Domain         | Commands, listeners        |
+| `@RestController` | Infrastructure | HTTP controllers           |
+| `@Service`        | Infrastructure | Service implementations    |
+| `@Repository`     | Infrastructure | Repository implementations |
 
 ## Sealed Classes (Java 17+)
 

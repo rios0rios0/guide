@@ -48,12 +48,12 @@ public class InsertItemCommand {
 
 ## Log Levels
 
-| Level | Method | When to Use |
-|-------|--------|-------------|
-| TRACE | `log.trace()` | Very fine-grained diagnostic information (method entry/exit, loop iterations) |
-| DEBUG | `log.debug()` | Diagnostic information useful during development (variable values, flow decisions) |
-| INFO  | `log.info()`  | General operational events (application started, request processed, message sent) |
-| WARN  | `log.warn()`  | Potential issues that do not prevent operation (deprecated API usage, retry attempts) |
+| Level | Method        | When to Use                                                                                      |
+|-------|---------------|--------------------------------------------------------------------------------------------------|
+| TRACE | `log.trace()` | Very fine-grained diagnostic information (method entry/exit, loop iterations)                    |
+| DEBUG | `log.debug()` | Diagnostic information useful during development (variable values, flow decisions)               |
+| INFO  | `log.info()`  | General operational events (application started, request processed, message sent)                |
+| WARN  | `log.warn()`  | Potential issues that do not prevent operation (deprecated API usage, retry attempts)            |
 | ERROR | `log.error()` | Errors that prevent a specific operation but not the application (failed request, invalid input) |
 
 **Note:** Unlike some logging frameworks, SLF4J does not have a `FATAL` level. Use `ERROR` for critical errors and handle application shutdown via Spring's shutdown hooks.
