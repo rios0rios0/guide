@@ -1,18 +1,17 @@
 # Python
 
-> **TL;DR:** Follow the Zen of Python -- prioritize readability, simplicity, and explicitness. Use Black for formatting, isort for imports, Flake8 for linting, type hints on all functions, Loguru for logging, and PDM for packaging.
+> **TL;DR:** Follow the Zen of Python -- prioritize readability, simplicity, and explicitness. Use [Black](https://black.readthedocs.io/) for formatting, [isort](https://pycqa.github.io/isort/) for imports, [Flake8](https://flake8.pycqa.org/) for linting, type hints on all functions, [Loguru](https://loguru.readthedocs.io/) for logging, [pytest](https://docs.pytest.org/) for testing, and [PDM](https://pdm-project.org/) for packaging.
 
 ## Overview
 
-This series of pages outlines best practices for Python development, with detailed explanations of recommended approaches and the reasoning behind them. See the sub-pages for specific topics:
+This series of pages outlines best practices for Python development, with detailed explanations of recommended approaches and the reasoning behind them. For the general baseline, refer to the [Code Style](../Code-Style.md) guide. See the sub-pages for specific topics:
 
-- [Styling and Formatting (PEP 8)](Python/Styling-and-Formatting-(PEP-8).md)
-- [Typing and Type Hints (PEP 484)](Python/Typing-and-Type-Hints-(PEP-484).md)
-- [Printing and Logging](Python/Printing-and-Logging.md)
-- [Packaging](Python/Packaging.md)
-- [Package Metadata Formats](Python/Package-Metadata-Formats.md)
-- [Standard Package Layout](Python/Standard-Package-Layout.md)
-- [Tips and Tricks](Python/Tips-and-Tricks.md)
+- [Conventions](Python/Python-Conventions.md)
+- [Formatting and Linting](Python/Python-Formatting-and-Linting.md)
+- [Type System](Python/Python-Type-System.md)
+- [Logging](Python/Python-Logging.md)
+- [Testing](Python/Python-Testing.md)
+- [Project Structure](Python/Python-Project-Structure.md)
 
 ## The Zen of Python
 
