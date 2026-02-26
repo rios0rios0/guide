@@ -1,6 +1,6 @@
 # Go Conventions
 
-> **TL;DR:** Use `snake_case` for file names, `self` as the method receiver name, and follow the strict naming patterns for Commands, Controllers, Repositories, and Mappers. Entities must be framework-agnostic. Use [Wire](https://github.com/google/wire) for dependency injection.
+> **TL;DR:** Use `snake_case` for file names, `self` as the method receiver name, and follow the strict naming patterns for Commands, Controllers, Repositories, and Mappers. Entities must be framework-agnostic. Use [Dig](https://github.com/uber-go/dig) for dependency injection.
 
 ## Overview
 
@@ -150,11 +150,145 @@ Each model is prefixed with the name of the external tool it communicates with:
 
 ## Dependency Injection
 
-Use [Google Wire](https://github.com/google/wire) for compile-time dependency injection. Wire generates code at build time, avoiding the runtime overhead and complexity of reflection-based DI containers.
+Use [Uber Dig](https://github.com/uber-go/dig) for runtime dependency injection via constructor injection. Dig resolves dependencies automatically by matching types from registered provider functions, requiring no code generation or manual wiring.
+
+### Container File Convention
+
+Each architectural layer must have a `container.go` file that registers its own providers. A top-level orchestrator calls each layer's registration function in dependency order.
+
+| File                                          | Purpose                                      |
+|-----------------------------------------------|----------------------------------------------|
+| `cmd/<app>/dig.go`                            | Creates the container and invokes root types |
+| `internal/container.go`                       | Orchestrates registration across all layers  |
+| `internal/domain/entities/container.go`       | Registers entity providers (or no-op)        |
+| `internal/domain/commands/container.go`       | Registers command providers (or no-op)       |
+| `internal/infrastructure/controllers/container.go` | Registers controller providers          |
+| `internal/infrastructure/repositories/container.go` | Registers repository providers         |
+
+### Orchestrator Pattern
+
+The top-level orchestrator registers providers in bottom-up dependency order:
+
+```go
+package internal
+
+import "go.uber.org/dig"
+
+func RegisterProviders(container *dig.Container) error {
+    if err := repositories.RegisterProviders(container); err != nil {
+        return err
+    }
+    if err := entities.RegisterProviders(container); err != nil {
+        return err
+    }
+    if err := commands.RegisterProviders(container); err != nil {
+        return err
+    }
+    if err := controllers.RegisterProviders(container); err != nil {
+        return err
+    }
+    if err := container.Provide(NewAppInternal); err != nil {
+        return err
+    }
+    return nil
+}
+```
+
+### Layer Registration
+
+Each layer registers its constructors. Dig resolves dependencies by matching constructor parameter types to previously registered providers:
+
+```go
+package controllers
+
+import "go.uber.org/dig"
+
+func RegisterProviders(container *dig.Container) error {
+    if err := container.Provide(NewListUsersController); err != nil {
+        return err
+    }
+    if err := container.Provide(NewDeleteUserController); err != nil {
+        return err
+    }
+    return nil
+}
+```
+
+For layers with no providers, maintain the function as a no-op for architectural consistency:
+
+```go
+package commands
+
+import "go.uber.org/dig"
+
+func RegisterProviders(_ *dig.Container) error {
+    return nil
+}
+```
+
+### Injection Functions
+
+Create injection functions in `cmd/<app>/dig.go` that build the container and invoke the desired root type:
+
+```go
+package main
+
+import (
+    "go.uber.org/dig"
+    "myapp/internal"
+    "myapp/internal/infrastructure/controllers"
+)
+
+func injectController() *controllers.ListUsersController {
+    container := dig.New()
+    if err := internal.RegisterProviders(container); err != nil {
+        panic(err)
+    }
+
+    var controller *controllers.ListUsersController
+    if err := container.Invoke(func(c *controllers.ListUsersController) {
+        controller = c
+    }); err != nil {
+        panic(err)
+    }
+    return controller
+}
+```
+
+### Anonymous Providers for Complex Initialization
+
+When a provider requires post-construction setup (e.g., registering adapters), use an anonymous function:
+
+```go
+if err := container.Provide(func() *ServiceRegistry {
+    registry := NewServiceRegistry()
+    registry.Register("github", github.NewAdapter())
+    registry.Register("gitlab", gitlab.NewAdapter())
+    return registry
+}); err != nil {
+    return err
+}
+```
+
+### Type Aggregation
+
+Collect multiple concrete types into a slice for bulk injection:
+
+```go
+func NewControllers(
+    listController *ListUsersController,
+    deleteController *DeleteUserController,
+) *[]entities.Controller {
+    return &[]entities.Controller{
+        listController,
+        deleteController,
+    }
+}
+```
 
 ## References
 
 - [Effective Go](https://go.dev/doc/effective_go)
 - [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
-- [Google Wire - Dependency Injection](https://github.com/google/wire)
+- [Uber Dig - Dependency Injection](https://github.com/uber-go/dig)
 - [DTO Pattern](https://www.baeldung.com/java-dto-pattern)

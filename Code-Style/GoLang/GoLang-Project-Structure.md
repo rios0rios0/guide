@@ -9,21 +9,26 @@ This page defines the standard directory layout and dependency management practi
 ## Directory Structure
 
 ```
-main/
+cmd/
+  <app>/
+    main.go                   application entry point
+    dig.go                    DI container creation and injection functions
+internal/
+  container.go              top-level DI provider orchestrator
   domain/                   (contracts)
-    commands/                 business logic; the only layer without a contract
+    commands/
+      container.go            DI registration for commands (or no-op)
     entities/
+      container.go            DI registration for entities (or no-op)
     repositories/
-    app.go
-    main.go
-    wire.go
-    wire_gen.go
   infrastructure/           (implementations)
     controllers/
+      container.go            DI registration for controllers
       mappers/
       requests/
       responses/
     repositories/             prefixed with the tool name; returns database models
+      container.go            DI registration for repositories
       mappers/
       models/
 test/
@@ -39,15 +44,16 @@ test/
 
 ### Key Directories
 
-| Directory                          | Purpose                                                      |
-|------------------------------------|--------------------------------------------------------------|
-| `main/domain/commands/`            | Business logic implementations                               |
-| `main/domain/entities/`            | Framework-agnostic domain entities                           |
-| `main/domain/repositories/`        | Repository interface contracts                               |
-| `main/infrastructure/controllers/` | HTTP controllers (request/response handling)                 |
-| `main/infrastructure/repositories/`| Repository implementations with library-specific code        |
-| `test/domain/builders/`            | Builder pattern implementations for constructing test data   |
-| `test/domain/doubles/`             | Test doubles (stubs, dummies, fakers, in-memory)             |
+| Directory                              | Purpose                                                      |
+|----------------------------------------|--------------------------------------------------------------|
+| `cmd/<app>/`                           | Application entry point and DI injection functions           |
+| `internal/domain/commands/`            | Business logic implementations                               |
+| `internal/domain/entities/`            | Framework-agnostic domain entities                           |
+| `internal/domain/repositories/`        | Repository interface contracts                               |
+| `internal/infrastructure/controllers/` | HTTP controllers (request/response handling)                 |
+| `internal/infrastructure/repositories/`| Repository implementations with library-specific code        |
+| `test/domain/builders/`               | Builder pattern implementations for constructing test data   |
+| `test/domain/doubles/`                | Test doubles (stubs, dummies, fakers, in-memory)             |
 
 ## Package Manager: Go Modules
 
@@ -86,7 +92,7 @@ require (
     github.com/gorilla/mux v1.8.1
     github.com/sirupsen/logrus v1.9.3
     github.com/stretchr/testify v1.9.0
-    github.com/google/wire v0.6.0
+    go.uber.org/dig v1.18.0
 )
 ```
 
@@ -140,8 +146,7 @@ ENTRYPOINT ["/bin/app"]
 | `go.mod`         | Module path and dependency declarations              |
 | `go.sum`         | Dependency checksums (auto-generated, must be committed) |
 | `.golangci.yml`  | golangci-lint configuration                          |
-| `wire.go`        | Wire dependency injection declarations               |
-| `wire_gen.go`    | Wire-generated DI code (auto-generated, must be committed) |
+| `container.go`   | Dig provider registration (one per architectural layer) |
 | `.editorconfig`  | Editor standardization                               |
 
 ## References
