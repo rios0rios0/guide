@@ -2,6 +2,16 @@
 
 > **TL;DR:** Separate code into `domain` (contracts) and `infrastructure` (implementations). The five principal actors are Entities, Controllers, Commands, Services, and Repositories. Use Mappers to isolate layers and Dependency Injection to wire them together.
 
+## Architectural Foundations
+
+The backend architecture draws from three complementary patterns. All language-specific examples in the [Code Style](../../Code-Style.md) guides follow these patterns:
+
+- **[Hexagonal Architecture (Ports & Adapters)](https://alistaiccockburn.com/Hexagonal+architecture):** The `domain`/`infrastructure` split maps directly to the hexagonal model. The domain layer defines **ports** (interfaces for repositories, services) that represent what the application needs. The infrastructure layer provides **adapters** (implementations) that connect the application to databases, HTTP, message queues, and other external systems. Dependencies always point inward -- infrastructure depends on domain, never the reverse.
+
+- **[Domain-Driven Design (DDD)](https://www.domainlanguage.com/ddd/):** Entities encapsulate business logic and are free of framework dependencies. Repositories abstract persistence behind domain-defined contracts. Commands orchestrate domain operations. The ubiquitous language of the business domain drives naming conventions across all layers.
+
+- **[CQRS (Command Query Responsibility Segregation)](https://martinfowler.com/bliki/CQRS.html):** Write operations flow through Commands (which mutate state), while read operations flow through Controllers that query repositories directly or via services. This separation enables independent optimization of reads and writes.
+
 ## Concepts
 
 ### Rule Types
@@ -88,6 +98,8 @@ Shows how DI wires contracts to their implementations at runtime:
 
 ## References
 
+- [Hexagonal Architecture -- Alistair Cockburn](https://alistaiccockburn.com/Hexagonal+architecture)
+- [Domain-Driven Design Reference -- Eric Evans](https://www.domainlanguage.com/ddd/reference/)
 - [CQRS -- Martin Fowler](https://martinfowler.com/bliki/CQRS.html)
 - [Mocks Aren't Stubs -- Martin Fowler](https://martinfowler.com/articles/mocksArentStubs.html)
 - [Clean Architecture -- Robert C. Martin](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)

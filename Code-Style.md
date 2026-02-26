@@ -6,7 +6,7 @@
 
 This document establishes the baseline coding standards for file creation, function naming, and variable naming across all projects. If a language-specific guide exists (see the sub-pages for Go, JavaScript, Java, and Python), its conventions take precedence over this document.
 
-The architectural layers referenced throughout are defined in the [Backend Design](Life-Cycle/Architecture/Backend-Design.md) section.
+The architectural layers referenced throughout are defined in the [Backend Design](Life-Cycle/Architecture/Backend-Design.md) section. All language-specific examples follow **Hexagonal Architecture (Ports & Adapters)** with **Domain-Driven Design (DDD)** and **CQRS** -- see [Backend Design](Life-Cycle/Architecture/Backend-Design.md) for details.
 
 ## File Structure
 
