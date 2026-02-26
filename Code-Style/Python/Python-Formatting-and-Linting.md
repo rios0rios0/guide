@@ -1,4 +1,4 @@
-# Styling and Formatting (PEP 8)
+# Python Formatting and Linting
 
 > **TL;DR:** Use **Black** for code formatting, **isort** for import sorting, and **Flake8** for linting. This combination ensures consistent, readable code across all Python projects.
 
@@ -39,7 +39,7 @@ records = get_records(
 )
 ```
 
-### isort
+### Import Ordering: isort
 
 isort organizes imports into three sections (standard library, third-party, and application-specific), sorts them lexicographically and case-insensitively, and supports Black-compatible formatting:
 
