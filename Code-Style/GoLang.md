@@ -1,6 +1,6 @@
 # Go
 
-> **TL;DR:** Use `snake_case` for file names, `self` as the method receiver, [Dig](https://github.com/uber-go/dig) for dependency injection, [golangci-lint](https://golangci-lint.run/) for linting, [Logrus](https://github.com/sirupsen/logrus) for logging, and [testify](https://github.com/stretchr/testify) for testing. Entities must be framework-agnostic.
+> **TL;DR:** Use `snake_case` for file names, a short abbreviation of the type as the method receiver (e.g., `c` for `Client`), [Dig](https://github.com/uber-go/dig) for dependency injection, [golangci-lint](https://golangci-lint.run/) for linting, [Logrus](https://github.com/sirupsen/logrus) for logging, and [testify](https://github.com/stretchr/testify) for testing. Entities must be framework-agnostic.
 
 ## Overview
 
