@@ -1,6 +1,6 @@
 # Go Conventions
 
-> **TL;DR:** Use `snake_case` for file names, `self` as the method receiver name, and follow the strict naming patterns for Commands, Controllers, Repositories, and Mappers. Entities must be framework-agnostic. Use [Dig](https://github.com/uber-go/dig) for dependency injection.
+> **TL;DR:** Use `snake_case` for file names, a short abbreviation of the type as the method receiver name (e.g., `c` for `Command`), and follow the strict naming patterns for Commands, Controllers, Repositories, and Mappers. Entities must be framework-agnostic. Use [Dig](https://github.com/uber-go/dig) for dependency injection.
 
 ## Overview
 
@@ -18,7 +18,7 @@ ListUsersCommand.go       # Wrong
 
 ## General Conventions
 
-1. Use `self` as the method receiver name (analogous to `this` in other languages).
+1. Use a **one or two letter abbreviation** of the type name as the method receiver (e.g., `c` for `Command`, `r` for `Repository`, `m` for `Mapper`). Do not use generic names like `self`, `this`, or `me` -- this follows the [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments#receiver-names) convention and is enforced by revive's `receiver-naming` rule. The receiver name must be **consistent** across all methods of the same type.
 2. Only attach a method to a struct when the method **needs to mutate** the struct's state.
 3. For an introduction to the DTO pattern, refer to [this article](https://www.baeldung.com/java-dto-pattern).
 
@@ -34,7 +34,7 @@ Entities are the core of the application. All business logic related to properti
 |-------------|-----------------------------------|-----------------------------------------------------------------------------|
 | File name   | `<operation>_<entity>_command.go` | `list_users_command.go`                                                     |
 | Struct name | `<Operation><Entity>Command`      | `ListUsersCommand`                                                          |
-| Method name | `Execute`                         | `func (self ListUsersCommand) Execute(listeners ListUsersCommandListeners)` |
+| Method name | `Execute`                         | `func (c ListUsersCommand) Execute(listeners ListUsersCommandListeners)` |
 
 **Notes:**
 - Use plural entity names when the operation targets multiple entities.
@@ -47,7 +47,7 @@ Entities are the core of the application. All business logic related to properti
 |-------------|--------------------------------------|---------------------------------------------|
 | File name   | `<operation>_<entity>_controller.go` | `list_users_controller.go`                  |
 | Struct name | `<Operation><Entity>Controller`      | `ListUsersController`                       |
-| Method name | `Execute`                            | `func (self ListUsersController) Execute()` |
+| Method name | `Execute`                            | `func (c ListUsersController) Execute()` |
 
 ## Services
 
@@ -75,22 +75,22 @@ Methods follow a logical sequence: find one, find all, filter, check existence, 
 
 ```go
 // Find a single entity by a specific field
-func (self UsersRepository) FindByTargetField(targetField any) entities.User
+func (r UsersRepository) FindByTargetField(targetField any) entities.User
 
 // Find multiple entities by a specific field
-func (self UsersRepository) FindAllByTargetField(targetField any) []entities.User
+func (r UsersRepository) FindAllByTargetField(targetField any) []entities.User
 
 // Check existence (returns boolean)
-func (self UsersRepository) HasBooleanVerification(targetField any) bool
+func (r UsersRepository) HasBooleanVerification(targetField any) bool
 
 // Persist a single entity
-func (self UsersRepository) Save(user entities.User)
+func (r UsersRepository) Save(user entities.User)
 
 // Persist multiple entities
-func (self UsersRepository) SaveAll(users []entities.User)
+func (r UsersRepository) SaveAll(users []entities.User)
 
 // Remove a single entity by a specific field
-func (self UsersRepository) DeleteByTargetField(targetField any)
+func (r UsersRepository) DeleteByTargetField(targetField any)
 ```
 
 **Notes:**
@@ -109,12 +109,12 @@ func (self UsersRepository) DeleteByTargetField(targetField any)
 
 ```go
 // Infrastructure DTO -> Domain Entity
-func (self UserMapper) MapToEntity(infra any) entities.User
-func (self UserMapper) MapToEntities(infra []any) []entities.User
+func (m UserMapper) MapToEntity(infra any) entities.User
+func (m UserMapper) MapToEntities(infra []any) []entities.User
 
 // Domain Entity -> Infrastructure DTO
-func (self UserMapper) MapToExternal(user entities.User) models.External
-func (self UserMapper) MapToExternals(users []entities.User) []models.External
+func (m UserMapper) MapToExternal(user entities.User) models.External
+func (m UserMapper) MapToExternals(users []entities.User) []models.External
 ```
 
 ### Controller Mappers
@@ -126,12 +126,12 @@ func (self UserMapper) MapToExternals(users []entities.User) []models.External
 
 ```go
 // Request -> Entity (no inverse mapping)
-func (self InsertUserRequestMapper) MapToEntity(request InsertUserRequest) entities.User
-func (self InsertUserRequestMapper) MapToEntities(requests []InsertUserRequest) []entities.User
+func (m InsertUserRequestMapper) MapToEntity(request InsertUserRequest) entities.User
+func (m InsertUserRequestMapper) MapToEntities(requests []InsertUserRequest) []entities.User
 
 // Entity -> Response (no inverse mapping)
-func (self InsertUserResponseMapper) MapToResponse(user entities.User) responses.InsertUserResponse
-func (self InsertUserResponseMapper) MapToResponses(users []entities.User) []responses.InsertUserResponse
+func (m InsertUserResponseMapper) MapToResponse(user entities.User) responses.InsertUserResponse
+func (m InsertUserResponseMapper) MapToResponses(users []entities.User) []responses.InsertUserResponse
 ```
 
 **Important:** Do not use `json` tags outside the infrastructure layer. Tags are restricted to request and response DTOs.
@@ -143,8 +143,7 @@ Models reside exclusively in the infrastructure layer and represent DTOs for ext
 Each model is prefixed with the name of the external tool it communicates with:
 
 | Example       | Source             |
-|---------------|--------------------|
-| `AwsFile`     | AWS S3             |
+|---------------|--------------------|n| `AwsFile`     | AWS S3             |
 | `ApiDocument` | External API       |
 | `PgxUser`     | PostgreSQL via pgx |
 
