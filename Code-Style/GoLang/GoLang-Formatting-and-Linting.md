@@ -107,6 +107,7 @@ linters-settings:
     rules:
       - name: unexported-return
         disabled: true
+      - name: receiver-naming
 
 issues:
   exclude-use-default: false
