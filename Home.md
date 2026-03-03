@@ -20,6 +20,9 @@ And its objective is not to limit the development to a specific form, but to pro
   - [Documentation & Change Control](Life-Cycle/Documentation-&-Change-Control.md)
     - [README Template](Life-Cycle/Documentation-&-Change-Control/README-Template.md)
     - [CONTRIBUTING Template](Life-Cycle/Documentation-&-Change-Control/CONTRIBUTING-Template.md)
+    - [CLAUDE.md Template](Life-Cycle/Documentation-&-Change-Control/CLAUDE-Template.md)
+    - [Cursorrules Template](Life-Cycle/Documentation-&-Change-Control/Cursorrules-Template.md)
+    - [AGENTS.md Template](Life-Cycle/Documentation-&-Change-Control/AGENTS-Template.md)
 - [Code Style](Code-Style.md)
   - [Language Guide Template](Code-Style/Language-Guide-Template.md)
   - [GoLang](Code-Style/GoLang.md)
@@ -54,6 +57,7 @@ And its objective is not to limit the development to a specific form, but to pro
     - [Database Sync](Cookbooks/Tools-&-Setup/Database-Sync.md)
   - [Forking Technique](Cookbooks/Forking-Technique.md)
   - [Historical Repository Cleaner](Cookbooks/Historical-Repository-Cleaner.md)
+  - [Mapper Design Pattern](Cookbooks/Mapper-Design-Pattern.md)
 
 ## References
 - [Vizir's StyleGuide](https://github.com/Vizir/styleguide)
