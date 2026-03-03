@@ -64,6 +64,7 @@ A comprehensive software development guide covering agile culture, architecture,
     - [Database Sync](Cookbooks/Tools-&-Setup/Database-Sync.md)
   - [Forking Technique](Cookbooks/Forking-Technique.md)
   - [Historical Repository Cleaner](Cookbooks/Historical-Repository-Cleaner.md)
+  - [Mapper Design Pattern](Cookbooks/Mapper-Design-Pattern.md)
 
 ## References
 
