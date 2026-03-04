@@ -54,6 +54,7 @@ And its objective is not to limit the development to a specific form, but to pro
     - [Database Sync](Cookbooks/Tools-&-Setup/Database-Sync.md)
   - [Forking Technique](Cookbooks/Forking-Technique.md)
   - [Historical Repository Cleaner](Cookbooks/Historical-Repository-Cleaner.md)
+  - [Mapper Design Pattern](Cookbooks/Mapper-Design-Pattern.md)
 
 ## References
 - [Vizir's StyleGuide](https://github.com/Vizir/styleguide)
