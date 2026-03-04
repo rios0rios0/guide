@@ -10,3 +10,4 @@ The Cookbooks section provides hands-on recipes and how-to guides that complemen
 - [Forking Technique](Cookbooks/Forking-Technique.md) -- Managing forks of open-source projects
 - [Historical Repository Cleaner](Cookbooks/Historical-Repository-Cleaner.md) -- Removing secrets from Git history
 - [Mapper Design Pattern](Cookbooks/Mapper-Design-Pattern.md) -- Replacing switch/case with lookup maps
+- [Bulk Operations](Cookbooks/Bulk-Operations.md) -- Applying changes across multiple repositories

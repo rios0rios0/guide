@@ -10,6 +10,7 @@ on:
       - 'Life-Cycle/**'
       - 'Cookbooks/Mapper-Design-Pattern.md'
       - 'Cookbooks/Forking-Technique.md'
+      - 'Cookbooks/Bulk-Operations.md'
       - '.github/workflows/generate-ai-rules/**'
       - '.github/workflows/generate-ai-rules.yaml'
   workflow_dispatch:

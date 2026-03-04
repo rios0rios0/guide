@@ -70,6 +70,7 @@ A comprehensive software development guide covering agile culture, architecture,
   - [Forking Technique](Cookbooks/Forking-Technique.md)
   - [Historical Repository Cleaner](Cookbooks/Historical-Repository-Cleaner.md)
   - [Mapper Design Pattern](Cookbooks/Mapper-Design-Pattern.md)
+  - [Bulk Operations](Cookbooks/Bulk-Operations.md)
 
 ## References
 
