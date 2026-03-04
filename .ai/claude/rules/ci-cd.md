@@ -31,7 +31,7 @@ make test    # Run the full test suite
 make sast    # Run the complete SAST security suite
 ```
 
-**Never invoke linters, test runners, or security tools directly.** Always use the Makefile targets to ensure consistency with CI.
+**Never call tool binaries (e.g., `golangci-lint`, `pytest`, `eslint`, `semgrep`) directly.** Always use the Makefile targets (`make lint`, `make test`, `make sast`), which invoke the [pipelines repository](https://github.com/rios0rios0/pipelines) scripts to load the correct configuration before running each tool.
 
 ## SAST Toolchain
 
