@@ -44,7 +44,7 @@ func processGroup(sourceDir string, group RuleGroup) (string, error) {
 	return mergeContents(parts), nil
 }
 
-// writeAllRules writes rule files for all three AI assistants.
+// writeAllRules writes rule files for all AI assistants (Claude, Cursor, and Codex).
 func writeAllRules(outputDir string, groups []RuleGroup, contents []string) {
 	for i, group := range groups {
 		if contents[i] == "" {
@@ -60,6 +60,10 @@ func writeAllRules(outputDir string, groups []RuleGroup, contents []string) {
 
 	if err := writeCodex(outputDir, groups, contents); err != nil {
 		logger.Errorf("writing Codex AGENTS.md: %v", err)
+	}
+
+	if err := writeCodexRules(outputDir); err != nil {
+		logger.Errorf("writing Codex rules: %v", err)
 	}
 
 	logger.Infof("generated rules for %d groups", len(groups))

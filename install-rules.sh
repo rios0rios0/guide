@@ -5,10 +5,10 @@
 #   ./install-rules.sh [target-dir]
 #
 # If target-dir is provided, rules are installed at project level:
-#   <target>/.claude/rules/  <target>/.cursor/rules/  <target>/AGENTS.md
+#   <target>/.claude/rules/  <target>/.cursor/rules/  <target>/AGENTS.md  <target>/.codex/rules/
 #
 # If omitted, rules are installed globally:
-#   ~/.claude/rules/  ~/.cursor/rules/  ~/AGENTS.md
+#   ~/.claude/rules/  ~/.cursor/rules/  ~/AGENTS.md  ~/.codex/rules/
 
 set -e
 
@@ -69,20 +69,25 @@ echo ""
 # Claude Code rules (.claude/rules/*.md)
 echo "Claude Code rules:"
 for name in $RULE_NAMES; do
-  download_file "${BASE_URL}/.claude/rules/${name}.md" "${TARGET_DIR}/.claude/rules/${name}.md"
+  download_file "${BASE_URL}/.ai/claude/rules/${name}.md" "${TARGET_DIR}/.claude/rules/${name}.md"
 done
 echo ""
 
 # Cursor rules (.cursor/rules/*.mdc)
 echo "Cursor rules:"
 for name in $RULE_NAMES; do
-  download_file "${BASE_URL}/.cursor/rules/${name}.mdc" "${TARGET_DIR}/.cursor/rules/${name}.mdc"
+  download_file "${BASE_URL}/.ai/cursor/rules/${name}.mdc" "${TARGET_DIR}/.cursor/rules/${name}.mdc"
 done
 echo ""
 
 # Codex AGENTS.md
+echo "Codex instructions:"
+download_file "${BASE_URL}/.ai/codex/AGENTS.md" "${TARGET_DIR}/AGENTS.md"
+echo ""
+
+# Codex rules (.codex/rules/default.rules)
 echo "Codex rules:"
-download_file "${BASE_URL}/AGENTS.md" "${TARGET_DIR}/AGENTS.md"
+download_file "${BASE_URL}/.ai/codex/rules/default.rules" "${TARGET_DIR}/.codex/rules/default.rules"
 echo ""
 
 echo "Done."

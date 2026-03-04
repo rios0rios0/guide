@@ -111,32 +111,40 @@ func TestEndToEnd(t *testing.T) {
 	// when
 	writeAllRules(outputDir, groups, contents)
 
-	// then - verify Claude rules
-	claudeCodeStyle := filepath.Join(outputDir, ".claude", "rules", "code-style.md")
+	// then - verify Claude rules under .ai/claude/rules/
+	claudeCodeStyle := filepath.Join(outputDir, ".ai", "claude", "rules", "code-style.md")
 	assertFileExists(t, claudeCodeStyle)
 	assertFileContains(t, claudeCodeStyle, "Naming conventions")
 	assertFileNotContains(t, claudeCodeStyle, "---\npaths:")
 
-	claudeGitFlow := filepath.Join(outputDir, ".claude", "rules", "git-flow.md")
+	claudeGitFlow := filepath.Join(outputDir, ".ai", "claude", "rules", "git-flow.md")
 	assertFileExists(t, claudeGitFlow)
 	assertFileContains(t, claudeGitFlow, "feature branches")
 	assertFileContains(t, claudeGitFlow, "Rebase before merge")
 	assertFileNotContains(t, claudeGitFlow, "## References")
 
-	// then - verify Cursor rules
-	cursorCodeStyle := filepath.Join(outputDir, ".cursor", "rules", "code-style.mdc")
+	// then - verify Cursor rules under .ai/cursor/rules/
+	cursorCodeStyle := filepath.Join(outputDir, ".ai", "cursor", "rules", "code-style.mdc")
 	assertFileExists(t, cursorCodeStyle)
 	assertFileContains(t, cursorCodeStyle, "alwaysApply: true")
 
-	cursorGitFlow := filepath.Join(outputDir, ".cursor", "rules", "git-flow.mdc")
+	cursorGitFlow := filepath.Join(outputDir, ".ai", "cursor", "rules", "git-flow.mdc")
 	assertFileExists(t, cursorGitFlow)
 	assertFileContains(t, cursorGitFlow, "alwaysApply: true")
 
-	// then - verify Codex AGENTS.md
-	agentsFile := filepath.Join(outputDir, "AGENTS.md")
+	// then - verify Codex AGENTS.md under .ai/codex/
+	agentsFile := filepath.Join(outputDir, ".ai", "codex", "AGENTS.md")
 	assertFileExists(t, agentsFile)
 	assertFileContains(t, agentsFile, "Naming conventions")
 	assertFileContains(t, agentsFile, "feature branches")
+
+	// then - verify Codex rules under .ai/codex/rules/
+	codexRulesFile := filepath.Join(outputDir, ".ai", "codex", "rules", "default.rules")
+	assertFileExists(t, codexRulesFile)
+	assertFileContains(t, codexRulesFile, "prefix_rule(")
+	assertFileContains(t, codexRulesFile, "golangci-lint")
+	assertFileContains(t, codexRulesFile, "forbidden")
+	assertFileContains(t, codexRulesFile, "prompt")
 }
 
 func writeTestFile(t *testing.T, baseDir, relPath, content string) {
