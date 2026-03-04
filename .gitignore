@@ -1,5 +1,6 @@
 # Compiled binaries
 .github/workflows/update-wiki/update-wiki
+.github/workflows/generate-ai-rules/generate-ai-rules
 
 # Build artifacts
 /tmp/

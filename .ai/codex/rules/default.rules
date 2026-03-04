@@ -1,0 +1,105 @@
+# Codex command execution policies
+# Generated from the development guide — do not edit manually.
+# See: https://developers.openai.com/codex/rules/
+
+prefix_rule(
+    pattern = ["make", "lint"],
+    decision = "allow",
+    justification = "Linting through Makefile is the approved approach",
+)
+
+prefix_rule(
+    pattern = ["make", "test"],
+    decision = "allow",
+    justification = "Testing through Makefile is the approved approach",
+)
+
+prefix_rule(
+    pattern = ["make", "sast"],
+    decision = "allow",
+    justification = "SAST through Makefile is the approved approach",
+)
+
+prefix_rule(
+    pattern = ["golangci-lint"],
+    decision = "forbidden",
+    justification = "Use `make lint` instead of running golangci-lint directly",
+)
+
+prefix_rule(
+    pattern = ["pytest"],
+    decision = "forbidden",
+    justification = "Use `make test` instead of running pytest directly",
+)
+
+prefix_rule(
+    pattern = ["black"],
+    decision = "forbidden",
+    justification = "Use `make lint` instead of running black directly",
+)
+
+prefix_rule(
+    pattern = ["ruff"],
+    decision = "forbidden",
+    justification = "Use `make lint` instead of running ruff directly",
+)
+
+prefix_rule(
+    pattern = ["eslint"],
+    decision = "forbidden",
+    justification = "Use `make lint` instead of running eslint directly",
+)
+
+prefix_rule(
+    pattern = ["prettier"],
+    decision = "forbidden",
+    justification = "Use `make lint` instead of running prettier directly",
+)
+
+prefix_rule(
+    pattern = ["jest"],
+    decision = "forbidden",
+    justification = "Use `make test` instead of running jest directly",
+)
+
+prefix_rule(
+    pattern = ["checkstyle"],
+    decision = "forbidden",
+    justification = "Use `make lint` instead of running checkstyle directly",
+)
+
+prefix_rule(
+    pattern = ["semgrep"],
+    decision = "forbidden",
+    justification = "Use `make sast` instead of running semgrep directly",
+)
+
+prefix_rule(
+    pattern = ["trivy"],
+    decision = "forbidden",
+    justification = "Use `make sast` instead of running trivy directly",
+)
+
+prefix_rule(
+    pattern = ["gitleaks"],
+    decision = "forbidden",
+    justification = "Use `make sast` instead of running gitleaks directly",
+)
+
+prefix_rule(
+    pattern = ["hadolint"],
+    decision = "forbidden",
+    justification = "Use `make sast` instead of running hadolint directly",
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force"],
+    decision = "prompt",
+    justification = "Force pushing rewrites remote history. Confirm this is intentional.",
+)
+
+prefix_rule(
+    pattern = ["git", "push", "-f"],
+    decision = "prompt",
+    justification = "Force pushing rewrites remote history. Confirm this is intentional.",
+)

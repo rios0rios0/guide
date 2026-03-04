@@ -1,0 +1,1648 @@
+---
+description: "Java language coding standards and conventions"
+globs: "**/*.java"
+alwaysApply: false
+---
+
+# Java
+
+> **TL;DR:** Use [Spring Boot](https://spring.io/projects/spring-boot) as the application framework, [Google Java Format](https://github.com/google/google-java-format) (via [Spotless](https://github.com/diffplug/spotless)) for formatting, [Checkstyle](https://checkstyle.sourceforge.io/) + [PMD](https://pmd.github.io/) for linting, [MapStruct](https://mapstruct.org/) for object mapping, [SLF4J](https://www.slf4j.org/) with [Logback](https://logback.qos.ch/) for logging, [JUnit 5](https://junit.org/junit5/) + [Mockito](https://site.mockito.org/) for testing, and [Gradle](https://gradle.org/) for builds.
+
+## Overview
+
+This series of pages outlines Java-specific conventions, with detailed explanations of recommended approaches and the reasoning behind them. For the general baseline, refer to the Code Style guide. See the sub-pages for specific topics:
+
+## Liquibase
+
+All database versioning is managed through [Liquibase](https://www.liquibase.org/). Follow these mandatory conventions:
+
+| Rule                 | Description                                                                |
+|----------------------|----------------------------------------------------------------------------|
+| File format          | Always use `.yaml` (not `.yml`)                                            |
+| Quoting              | Always use single quotes                                                   |
+| Naming               | Always use `snake_case`                                                    |
+| Rollbacks            | Every changeset must include a rollback statement                          |
+| Pre-conditions       | Every changeset must include pre-conditions to validate the database state |
+| Boolean/Time columns | Use descriptive names: `created_at`, `enabled`, `updated_at`, `activated`  |
+
+### Column Definition Order
+
+Constraints must appear **before** the column name in column definitions:
+
+```yaml
+# Correct
+- column:
+    constraints:
+        nullable: false
+    name: 'email'
+    type: 'VARCHAR(255)'
+
+# Wrong
+- column:
+    name: 'email'
+    type: 'VARCHAR(255)'
+    constraints:
+        nullable: false
+```
+
+### Constraint Naming
+
+| Type                   | Pattern                                   | Example                               |
+|------------------------|-------------------------------------------|---------------------------------------|
+| Unique Index (UIX)     | `<table>_<column>_uix`                    | `user_name_uix`                       |
+| Foreign Key (FK)       | `<origin_table>_<destination_table>_fkey` | `user_user_contract_information_fkey` |
+| Primary Key (PK)       | `<table>_pkey`                            | `user_service_pkey`                   |
+| Materialized View (MV) | `<view>_uix`                              | `rich_user_ix`                        |
+
+### Database Versioning
+
+Follow [Semantic Versioning](https://semver.org/) for database changelogs:
+
+| Change Type                | Version Update |
+|----------------------------|----------------|
+| New table                  | `X.Y+1.0`      |
+| Alter existing table       | `X.Y.Z+1`      |
+| Breaking structural change | `X+1.0.0`      |
+
+Packages published for testing must use the `-SNAPSHOT` suffix (e.g., `3.0.0-SNAPSHOT`). Snapshot packages must **never** be used in production.
+
+### Complete Liquibase Example
+
+```yaml
+databaseChangeLog:
+  - changeSet:
+      id: '00-create-table-example'
+      author: 'author.name'
+      context: 'prod, test'
+      preConditions:
+        - not:
+            tableExists:
+              tableName: 'example'
+      changes:
+        - createTable:
+            tableName: 'example'
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: 'example_pkey'
+                  name: 'id'
+                  type: 'BIGINT'
+              - column:
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: 'example_name_uix'
+                  name: 'name'
+                  type: 'VARCHAR(50)'
+              - column:
+                  name: 'active'
+                  type: 'BOOLEAN'
+              - column:
+                  constraints:
+                    nullable: false
+                  name: 'created_at'
+                  type: 'TIMESTAMP'
+      rollback:
+        - dropTable:
+            tableName: 'example'
+```
+
+## Java Design Principles
+
+The following principles guide Java development across all projects:
+
+- **Program to interfaces, not implementations.** Depend on abstractions (interfaces) rather than concrete classes. This enables testability and loose coupling.
+- **Favor composition over inheritance.** Build complex behavior by composing objects rather than through deep class hierarchies.
+- **Immutability by default.** Use `final` fields, records, and immutable collections wherever possible. Mutable state should be the exception, not the rule.
+- **Fail fast.** Validate inputs early and throw meaningful exceptions rather than propagating invalid state through the system.
+- **Convention over configuration.** Leverage Spring Boot's auto-configuration and opinionated defaults rather than writing boilerplate.
+
+---
+
+# Java Conventions
+
+> **TL;DR:** Use `PascalCase` for class names and follow the strict `<Operation><Entity>` naming patterns for Commands, Controllers, Services, Repositories, and Mappers. Entities must be framework-agnostic. Use Spring constructor injection for dependency injection and [MapStruct](https://mapstruct.org/) for object mapping.
+
+## Overview
+
+This document defines Java-specific naming conventions and component patterns. For the general baseline, refer to the Code Style guide. The architectural layers referenced here are defined in the Backend Design section.
+
+## File Naming
+
+Java enforces that the file name matches the public class name:
+
+```
+ListItemsCommand.java       # Correct -- matches class ListItemsCommand
+list_items_command.java      # Wrong -- Java uses PascalCase file names
+```
+
+## General Conventions
+
+1. Use **constructor injection** for all dependencies -- never use field injection (`@Autowired` on fields).
+2. Mark injected fields as `final` to enforce immutability.
+3. Use [Lombok](https://projectlombok.org/) to reduce boilerplate (`@Getter`, `@Setter`, `@NoArgsConstructor`, `@RequiredArgsConstructor`, `@SuperBuilder`).
+4. Use Java **records** for immutable DTOs, domain events, and value objects.
+5. Use `@Component` for commands and listeners, `@RestController` for controllers, `@Repository` for repository implementations, and `@Service` for infrastructure service implementations.
+6. For an introduction to the DTO pattern, refer to [this article](https://www.baeldung.com/java-dto-pattern).
+
+## Entities
+
+Entities are the core of the application. All business logic related to properties and fields belongs inside the entity.
+
+**Entities must be free of any persistence or framework annotations.** Do not use `@Entity`, `@Table`, `@Column`, or any Jakarta/JPA annotations inside domain entities. Persistence concerns belong in infrastructure models.
+
+```java
+public final class Item<A> {
+    private final ItemCode code;
+    private final ItemSeverity severity;
+    private Boolean isCountable;
+    private Long amountAffected;
+    private List<A> affected;
+
+    public Boolean hasData() {
+        return amountAffected > 0 || !isCountable;
+    }
+}
+```
+
+Use Java records for simple domain events and value objects:
+
+```java
+public record ItemEvent(
+        Long organizationId,
+        String referenceGuid,
+        ItemCode code,
+        ItemCategory category) {}
+```
+
+## Commands
+
+| Element     | Pattern                           | Example                    |
+|-------------|-----------------------------------|----------------------------|
+| File name   | `<Operation><Entity>Command.java` | `InsertItemCommand.java`   |
+| Class name  | `<Operation><Entity>Command`      | `InsertItemCommand`        |
+| Method name | `execute`                         | `public void execute(...)` |
+
+**Notes:**
+- Use plural entity names when the operation targets multiple entities.
+- Use the standard [operations vocabulary](../../Code-Style.md#operations-vocabulary).
+- Commands must define a `Listeners` record for all possible outcomes (callback pattern).
+
+```java
+@Component
+@RequiredArgsConstructor
+public class InsertItemCommand {
+    private final SendItemService service;
+
+    public void execute(final ItemEvent event, final Listeners listeners) {
+        try {
+            service.send(event);
+            listeners.onSuccess().run();
+        } catch (Exception e) {
+            listeners.onError().accept(e);
+        }
+    }
+
+    public record Listeners(Runnable onSuccess, Consumer<Exception> onError) {}
+}
+```
+
+## Controllers
+
+| Element     | Pattern                              | Example                                 |
+|-------------|--------------------------------------|-----------------------------------------|
+| File name   | `<Operation><Entity>Controller.java` | `ListItemsController.java`              |
+| Class name  | `<Operation><Entity>Controller`      | `ListItemsController`                   |
+| Method name | `execute`                            | `public ResponseEntity<?> execute(...)` |
+
+```java
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("${api.v1-prefix}")
+public class InsertItemController {
+    private final InsertItemCommand command;
+
+    @PostMapping("/items")
+    public ResponseEntity<?> execute(
+            @RequestHeader("organization-id") final Long organizationId,
+            @Valid @RequestBody final InsertItemRequest request) {
+        final var entity = InsertItemRequestMapper.INSTANCE.mapToEntity(organizationId, request);
+        final var ref = new AtomicReference<ResponseEntity<?>>();
+
+        final var listeners = new InsertItemCommand.Listeners(
+                () -> ref.set(ResponseEntity.status(HttpStatus.CREATED).build()),
+                (error) -> ref.set(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build()));
+        command.execute(entity, listeners);
+        return ref.get();
+    }
+}
+```
+
+## Services
+
+The Services layer provides an abstraction between Commands and Repositories. The **domain layer** defines the service contract (interface), and the **infrastructure layer** provides the implementation.
+
+### Contract (Domain Layer)
+
+| Element        | Pattern                           | Example                |
+|----------------|-----------------------------------|------------------------|
+| File name      | `<Operation><Entity>Service.java` | `SendItemService.java` |
+| Interface name | `<Operation><Entity>Service`      | `SendItemService`      |
+
+```java
+public interface SendItemService {
+    void send(ItemEvent event);
+}
+```
+
+### Implementation (Infrastructure Layer)
+
+| Element    | Pattern                              | Example                   |
+|------------|--------------------------------------|---------------------------|
+| File name  | `Jpa<Operation><Entity>Service.java` | `JpaSendItemService.java` |
+| Class name | `Jpa<Operation><Entity>Service`      | `JpaSendItemService`      |
+
+```java
+@Service
+@RequiredArgsConstructor
+public class JpaSendItemService implements SendItemService {
+    private final ItemsRepository repository;
+    private final ItemMapper mapper;
+
+    @Override
+    public void send(final ItemEvent event) {
+        final var model = mapper.toModel(event);
+        repository.save(model);
+    }
+}
+```
+
+**Note:** The `Jpa` prefix indicates the infrastructure tool used. If using a different technology (e.g., REST client, gRPC), use the corresponding prefix (e.g., `RestSendItemService`, `GrpcSendItemService`).
+
+## Repositories
+
+### Contract (Domain Layer)
+
+| Element        | Pattern                   | Example                |
+|----------------|---------------------------|------------------------|
+| File name      | `<Entity>Repository.java` | `ItemsRepository.java` |
+| Interface name | `<Entity>Repository`      | `ItemsRepository`      |
+
+```java
+public interface ItemsRepository {
+    Boolean hasItems(Long categoryId);
+    Page<JpaItem> findAllByCategoryId(Long categoryId, Pageable pageable);
+}
+```
+
+### Implementation (Infrastructure Layer)
+
+| Element    | Pattern                      | Example                   |
+|------------|------------------------------|---------------------------|
+| File name  | `Jpa<Entity>Repository.java` | `JpaItemsRepository.java` |
+| Class name | `Jpa<Entity>Repository`      | `JpaItemsRepository`      |
+
+For Spring Data JPA repositories:
+
+```java
+@Repository
+public interface JpaItemsRepository
+        extends JpaRepository<JpaItem, Long>, ItemsRepository {}
+```
+
+### QueryDSL Repositories
+
+For complex queries that go beyond Spring Data JPA:
+
+| Element    | Pattern                           | Example                        |
+|------------|-----------------------------------|--------------------------------|
+| File name  | `QueryDsl<Entity>Repository.java` | `QueryDslItemsRepository.java` |
+| Class name | `QueryDsl<Entity>Repository`      | `QueryDslItemsRepository`      |
+
+## Mappers
+
+Use [MapStruct](https://mapstruct.org/) for all object mapping. Mappers isolate layers from each other and prevent hard coupling to frameworks.
+
+### Repository Mappers
+
+| Element   | Pattern               | Example           |
+|-----------|-----------------------|-------------------|
+| File name | `<Entity>Mapper.java` | `ItemMapper.java` |
+| Interface | `<Entity>Mapper`      | `ItemMapper`      |
+
+```java
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface ItemMapper {
+    ItemMapper INSTANCE = Mappers.getMapper(ItemMapper.class);
+
+    Item toEntity(JpaItem model);
+    JpaItem toModel(Item entity);
+}
+```
+
+### Controller Mappers
+
+| Element              | Pattern                                        | Example                           |
+|----------------------|------------------------------------------------|-----------------------------------|
+| File name (request)  | `<Operation><Entity>RequestMapper.java`        | `InsertItemRequestMapper.java`    |
+| File name (response) | `<Operation><Entity>ResponseMapper.java`       | `InsertItemResponseMapper.java`   |
+
+```java
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface InsertItemRequestMapper {
+    InsertItemRequestMapper INSTANCE = Mappers.getMapper(InsertItemRequestMapper.class);
+
+    default ItemEvent mapToEntity(final Long organizationId, final InsertItemRequest request) {
+        return new ItemEvent(
+                organizationId,
+                request.referenceGuid(),
+                request.code(),
+                request.category());
+    }
+}
+```
+
+## Models
+
+Models reside exclusively in the infrastructure layer and represent JPA entities for database persistence. They resemble domain entities but are **not** domain entities.
+
+Each model is prefixed with `Jpa`:
+
+| Element    | Pattern            | Example        |
+|------------|--------------------|----------------|
+| File name  | `Jpa<Entity>.java` | `JpaItem.java` |
+| Class name | `Jpa<Entity>`      | `JpaItem`      |
+
+```java
+@Entity
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+@Table(name = "item")
+public class JpaItem {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
+
+    @CreationTimestamp
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private JpaCategory category;
+}
+```
+
+## Listeners
+
+Listeners handle asynchronous messages from queues (e.g., Kafka). They act as infrastructure-layer entry points, similar to controllers but for message-driven operations.
+
+| Element     | Pattern                            | Example                      |
+|-------------|------------------------------------|------------------------------|
+| File name   | `Process<Entity>Listener.java`     | `ProcessItemListener.java`   |
+| Class name  | `Process<Entity>Listener`          | `ProcessItemListener`        |
+
+```java
+@Component
+@RequiredArgsConstructor
+public class ProcessItemListener {
+    private final InsertItemCommand command;
+
+    @KafkaListener(
+            topics = "items-topic",
+            groupId = "${queue.items.groupId}")
+    @RetryableTopic(attempts = "1")
+    public void queueListener(
+            @Payload final ItemMessage message,
+            final Acknowledgment acknowledgment) {
+        acknowledgment.acknowledge();
+        final var event = message.toDomain();
+        command.execute(event, listeners);
+    }
+}
+```
+
+### Messages
+
+| Element     | Pattern                  | Example            |
+|-------------|--------------------------|--------------------|
+| File name   | `<Entity>Message.java`   | `ItemMessage.java` |
+| Class name  | `<Entity>Message`        | `ItemMessage`      |
+
+```java
+public record ItemMessage(
+        @JsonProperty("organization_id") Long organizationId,
+        @JsonProperty("reference_guid") String referenceGuid,
+        @JsonProperty("code") String code) {
+
+    public ItemEvent toDomain() {
+        return new ItemEvent(organizationId, referenceGuid, ItemCode.valueOf(code), null);
+    }
+}
+```
+
+## Dependency Injection
+
+Use **Spring constructor injection** for all dependency wiring. Lombok's `@RequiredArgsConstructor` generates the constructor automatically from `final` fields.
+
+```java
+// Correct -- constructor injection via Lombok
+@Component
+@RequiredArgsConstructor
+public class InsertItemCommand {
+    private final SendItemService service;
+    private final ItemsRepository repository;
+}
+
+// Wrong -- field injection
+@Component
+public class InsertItemCommand {
+    @Autowired
+    private SendItemService service;
+}
+```
+
+Constructor injection ensures:
+- Dependencies are explicit and visible.
+- Objects are fully initialized upon creation.
+- Fields can be declared `final`, enforcing immutability.
+- Unit tests can inject dependencies without Spring context.
+
+---
+
+# Java Formatting and Linting
+
+> **TL;DR:** Use **[Google Java Format](https://github.com/google/google-java-format)** (via the [Spotless](https://github.com/diffplug/spotless) Gradle plugin) for code formatting, **[Checkstyle](https://checkstyle.sourceforge.io/)** for style enforcement, and **[PMD](https://pmd.github.io/)** for static code analysis. These tools are non-negotiable and must be integrated into every project's CI pipeline.
+
+## Overview
+
+Java's ecosystem does not include a built-in formatter like Go, so the team standardizes on Google Java Format. Combined with Checkstyle for style rules and PMD for bug detection, this toolchain ensures consistent, high-quality code across all projects.
+
+## Formatter: Google Java Format (via Spotless)
+
+[Google Java Format](https://github.com/google/google-java-format) produces a single canonical formatting for any Java source file. It is applied via the [Spotless](https://github.com/diffplug/spotless) Gradle plugin, which also handles import ordering and license header enforcement.
+
+### Gradle Configuration
+
+```groovy
+plugins {
+    id 'com.diffplug.spotless' version '6.25.0'
+}
+
+spotless {
+    java {
+        googleJavaFormat('1.22.0')
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+```
+
+### Usage
+
+```bash
+# Auto-format all Java files
+gradle spotlessApply
+
+# Check formatting without modifying files (CI mode)
+gradle spotlessCheck
+```
+
+**Do not use alternative formatters.** Google Java Format is the team standard and all Java code must be formatted with it.
+
+## Import Ordering
+
+Spotless handles import ordering automatically when using Google Java Format. The standard grouping is:
+
+1. `com.*` -- third-party packages
+2. `java.*` -- standard library
+3. `javax.*` / `jakarta.*` -- extension libraries
+4. Static imports (last)
+
+Each group is separated by a blank line. Unused imports are removed automatically.
+
+## Linter: Checkstyle
+
+[Checkstyle](https://checkstyle.sourceforge.io/) enforces coding standards and style rules. The project uses the Google ruleset as a baseline with project-specific customizations.
+
+### Gradle Configuration
+
+```groovy
+plugins {
+    id 'checkstyle'
+}
+
+checkstyle {
+    toolVersion = '10.12.1'
+    configFile = file('src/main/resources/app/quality/checkstyle-google-ruleset.xml')
+    maxWarnings = 0
+    maxErrors = 0
+}
+```
+
+### Usage
+
+```bash
+# Run Checkstyle on main sources
+gradle checkstyleMain
+
+# Run Checkstyle on test sources
+gradle checkstyleTest
+```
+
+### Key Rules Enforced
+
+| Rule               | Description                                   |
+|--------------------|-----------------------------------------------|
+| `IndentationCheck` | Enforces consistent indentation (2 spaces)    |
+| `LineLength`       | Maximum line length (100 characters)          |
+| `NeedBraces`       | All control structures must use braces        |
+| `JavadocMethod`    | Public methods require Javadoc (configurable) |
+| `UnusedImports`    | No unused imports allowed                     |
+
+## Static Analysis: PMD
+
+[PMD](https://pmd.github.io/) detects potential bugs, dead code, suboptimal code, and overly complicated expressions.
+
+### Gradle Configuration
+
+```groovy
+plugins {
+    id 'pmd'
+}
+
+pmd {
+    toolVersion = '7.1.0'
+    ruleSetFiles = files('src/main/resources/app/quality/pmd-custom-ruleset.xml')
+    consoleOutput = true
+}
+```
+
+### Usage
+
+```bash
+# Run PMD analysis
+gradle pmdMain
+gradle pmdTest
+```
+
+## Security Analysis: SpotBugs
+
+[SpotBugs](https://spotbugs.github.io/) detects potential security vulnerabilities and bug patterns in compiled bytecode.
+
+### Gradle Configuration
+
+```groovy
+plugins {
+    id 'com.github.spotbugs' version '6.0.22'
+}
+
+spotbugs {
+    toolVersion = '4.8.4'
+    excludeFilter = file('src/main/resources/app/security/spotbugs-security-exclude.xml')
+}
+```
+
+### Usage
+
+```bash
+# Run SpotBugs on main sources
+gradle spotbugsMain
+
+# Run SpotBugs on test sources
+gradle spotbugsTest
+```
+
+## Editor Configuration
+
+### IntelliJ IDEA
+
+1. Install the [google-java-format plugin](https://plugins.jetbrains.com/plugin/8527-google-java-format).
+2. Enable it in **Settings > google-java-format Settings > Enable google-java-format**.
+3. Enable **Settings > Editor > General > Auto Import > Optimize imports on the fly**.
+4. Install the [Checkstyle-IDEA plugin](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) and point it to the project's ruleset.
+
+### Visual Studio Code
+
+Install the [Language Support for Java](https://marketplace.visualstudio.com/items?itemName=redhat.java) extension and add the following settings:
+
+```json
+{
+    "java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml",
+    "java.format.enabled": true,
+    "editor.formatOnSave": true,
+    "[java]": {
+        "editor.defaultFormatter": "redhat.java"
+    }
+}
+```
+
+---
+
+# Java Type System
+
+> **TL;DR:** Java is statically typed -- the compiler enforces type safety at build time. Use **records** for immutable data, **generics** with bounded type parameters for reusable abstractions, and **sealed classes** (Java 17+) for restricted type hierarchies. Never use raw types or `Object` as a catch-all parameter.
+
+## Overview
+
+Java's type system is static and checked at compile time. Combined with generics, records, and sealed types, it provides strong guarantees about program correctness. This page focuses on the patterns and principles that maximize type safety and code clarity in Java projects.
+
+## Records
+
+Use Java records (Java 16+) for immutable data carriers: DTOs, domain events, value objects, and listener contracts.
+
+```java
+// Correct -- immutable domain event
+public record ItemEvent(
+        Long organizationId,
+        String referenceGuid,
+        ItemCode code,
+        ItemCategory category) {}
+
+// Correct -- request DTO with validation
+public record InsertItemRequest(
+        @NotNull @Size(min = 1, max = 255) String name,
+        @NotNull ItemCode code) {}
+
+// Correct -- listener callbacks as a record
+public record Listeners(Runnable onSuccess, Consumer<Exception> onError) {}
+```
+
+Records automatically provide:
+- `final` fields with constructor, getters, `equals()`, `hashCode()`, and `toString()`
+- Immutability by design
+- Compact and readable declarations
+
+## Generics
+
+Use generics to create type-safe, reusable abstractions. Always use bounded type parameters when the generic type must satisfy constraints.
+
+### When to Use
+
+```java
+// Correct -- generic entity that works with different related types
+public final class Item<A> {
+    private final ItemCode code;
+    private final ItemSeverity severity;
+    private List<A> affected;
+
+    public Boolean hasData() {
+        return !affected.isEmpty();
+    }
+}
+
+// Correct -- generic repository interface
+public interface QueryDslItemsRepository<T> extends ItemsRepository {
+    Page<T> findAllWithFilters(Map<String, Object> filters, Pageable pageable);
+}
+```
+
+### When Not to Use
+
+```java
+// Unnecessary -- only works with one type
+public class ItemProcessor<T extends Item<?>> {
+    public void process(T item) { ... }
+}
+
+// Better -- use the concrete type directly
+public class ItemProcessor {
+    public void process(Item<?> item) { ... }
+}
+```
+
+### Bounded Type Parameters
+
+Use bounded type parameters to constrain generic types:
+
+```java
+// Upper bound -- T must be Comparable
+public static <T extends Comparable<T>> T max(List<T> items) {
+    return items.stream().max(Comparator.naturalOrder()).orElseThrow();
+}
+
+// Multiple bounds
+public static <T extends Serializable & Comparable<T>> void sort(List<T> items) {
+    Collections.sort(items);
+}
+```
+
+## Annotations
+
+### Jakarta Validation
+
+Use Jakarta Bean Validation annotations on request DTOs to validate input at the system boundary:
+
+```java
+public record InsertItemRequest(
+        @NotNull @Size(min = 1, max = 255) String name,
+        @NotNull ItemCode code,
+        @Min(0) Long amount) {}
+```
+
+### JPA/Persistence
+
+JPA annotations belong **only** on infrastructure models (`Jpa*` classes), never on domain entities:
+
+```java
+// Correct -- annotations on infrastructure model
+@Entity
+@Table(name = "item")
+public class JpaItem {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private JpaCategory category;
+}
+
+// Wrong -- annotations on domain entity
+public class Item {
+    @Id
+    private Long id;  // Domain entities must be framework-free
+}
+```
+
+### Lombok
+
+Use Lombok to reduce boilerplate while maintaining clarity:
+
+| Annotation                 | Purpose                                                          |
+|----------------------------|------------------------------------------------------------------|
+| `@Getter` / `@Setter`      | Generate accessors                                               |
+| `@NoArgsConstructor`       | JPA requirement for entity classes                               |
+| `@RequiredArgsConstructor` | Constructor injection (generates constructor for `final` fields) |
+| `@SuperBuilder`            | Fluent builder pattern with inheritance support                  |
+| `@Slf4j`                   | Generate SLF4J logger field                                      |
+
+### Spring
+
+| Annotation        | Layer          | Purpose                    |
+|-------------------|----------------|----------------------------|
+| `@Component`      | Domain         | Commands, listeners        |
+| `@RestController` | Infrastructure | HTTP controllers           |
+| `@Service`        | Infrastructure | Service implementations    |
+| `@Repository`     | Infrastructure | Repository implementations |
+
+## Sealed Classes (Java 17+)
+
+Use sealed classes and interfaces to restrict type hierarchies:
+
+```java
+// Only the listed classes can extend ItemResult
+public sealed interface ItemResult
+        permits ItemResult.Success, ItemResult.NotFound, ItemResult.Error {
+
+    record Success(Item item) implements ItemResult {}
+    record NotFound(Long id) implements ItemResult {}
+    record Error(Exception cause) implements ItemResult {}
+}
+```
+
+Sealed types work well with `switch` expressions (Java 21+ pattern matching):
+
+```java
+return switch (result) {
+    case ItemResult.Success s -> ResponseEntity.ok(s.item());
+    case ItemResult.NotFound n -> ResponseEntity.notFound().build();
+    case ItemResult.Error e -> ResponseEntity.internalServerError().build();
+};
+```
+
+## Prohibited Patterns
+
+```java
+// Wrong -- raw type (loses type safety)
+List items = new ArrayList();
+
+// Wrong -- Object as catch-all parameter
+public void process(Object data) { ... }
+
+// Wrong -- unchecked cast without type guard
+Item item = (Item) someObject;
+
+// Wrong -- using Optional as a field or parameter
+public class ItemHolder {
+    private Optional<Item> item;  // Optional is for return types only
+}
+```
+
+---
+
+# Java Logging
+
+> **TL;DR:** Use **[SLF4J](https://www.slf4j.org/)** with **[Logback](https://logback.qos.ch/)** (the Spring Boot default) for all logging. Use Lombok's `@Slf4j` annotation to generate the logger field. Use `{}` placeholders for structured logging instead of string concatenation. Never use `System.out.println` or `java.util.logging`.
+
+## Overview
+
+Consistent, structured logging is essential for production observability. This page defines the mandatory logging library and patterns for all Java projects.
+
+## Mandatory Library: SLF4J with Logback
+
+**Use [SLF4J](https://www.slf4j.org/) with [Logback](https://logback.qos.ch/) for all logging.** This is the default logging framework in Spring Boot. SLF4J provides the API (facade), and Logback provides the implementation -- together they offer structured logging, configurable levels, and JSON output for production environments.
+
+### Installation
+
+Spring Boot includes SLF4J and Logback by default. No additional dependencies are required:
+
+```groovy
+// Already included via spring-boot-starter
+implementation 'org.springframework.boot:spring-boot-starter'
+```
+
+### Import Convention
+
+Use Lombok's `@Slf4j` annotation to generate the logger field automatically:
+
+```java
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Component
+public class InsertItemCommand {
+    public void execute(final ItemEvent event) {
+        log.info("Processing item event for organization: {}", event.organizationId());
+    }
+}
+```
+
+When Lombok is not available, create the logger manually:
+
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class InsertItemCommand {
+    private static final Logger log = LoggerFactory.getLogger(InsertItemCommand.class);
+}
+```
+
+## Log Levels
+
+| Level | Method        | When to Use                                                                                      |
+|-------|---------------|--------------------------------------------------------------------------------------------------|
+| TRACE | `log.trace()` | Very fine-grained diagnostic information (method entry/exit, loop iterations)                    |
+| DEBUG | `log.debug()` | Diagnostic information useful during development (variable values, flow decisions)               |
+| INFO  | `log.info()`  | General operational events (application started, request processed, message sent)                |
+| WARN  | `log.warn()`  | Potential issues that do not prevent operation (deprecated API usage, retry attempts)            |
+| ERROR | `log.error()` | Errors that prevent a specific operation but not the application (failed request, invalid input) |
+
+**Note:** Unlike some logging frameworks, SLF4J does not have a `FATAL` level. Use `ERROR` for critical errors and handle application shutdown via Spring's shutdown hooks.
+
+## Structured Logging
+
+Always use `{}` placeholders to attach contextual data to log entries rather than concatenating values into the message string:
+
+```java
+// Correct -- placeholder substitution
+log.info("Message sent successfully to topic: {}", topicName);
+log.error("Error sending message {} to topic: {}", messageId, topicName, throwable);
+
+// Wrong -- string concatenation
+log.info("Message sent successfully to topic: " + topicName);
+
+// Wrong -- String.format
+log.info(String.format("Message sent to topic: %s", topicName));
+```
+
+### Exception Logging
+
+When logging exceptions, pass the throwable as the **last argument** -- SLF4J automatically appends the stack trace:
+
+```java
+try {
+    service.send(event);
+} catch (Exception e) {
+    // Correct -- throwable as last argument, stack trace printed automatically
+    log.error("Failed to send item event for organization: {}", event.organizationId(), e);
+}
+```
+
+### Structured Fields (MDC)
+
+Use the Mapped Diagnostic Context (MDC) for contextual fields that span multiple log entries:
+
+```java
+import org.slf4j.MDC;
+
+MDC.put("organizationId", String.valueOf(organizationId));
+MDC.put("requestId", requestId);
+try {
+    log.info("Processing request");
+    // ... business logic ...
+    log.info("Request completed");
+} finally {
+    MDC.clear();
+}
+```
+
+## Configuration
+
+Configure logging in `application.yaml`:
+
+```yaml
+logging:
+  level:
+    root: 'warn'
+    com.example.myapp: 'info'
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} %5p %.20logger{39} : %m%n%wEx'
+```
+
+## Prohibited Patterns
+
+```java
+// Wrong -- System.out for application logging
+System.out.println("Something happened");
+System.err.println("Error occurred");
+
+// Wrong -- java.util.logging
+import java.util.logging.Logger;
+Logger.getLogger("MyClass").info("message");
+
+// Wrong -- string concatenation in log messages
+log.info("Processing item " + item.getId() + " for org " + orgId);
+
+// Wrong -- unnecessary isEnabled check with placeholder syntax
+if (log.isDebugEnabled()) {
+    log.debug("Processing item: {}", item.getId());  // SLF4J already skips evaluation
+}
+```
+
+**Note:** The `isEnabled` guard is only necessary when the argument computation itself is expensive (e.g., serializing a large object). For simple field access, SLF4J's lazy evaluation via `{}` placeholders is sufficient.
+
+---
+
+# Java Testing
+
+> **TL;DR:** Use **[JUnit 5](https://junit.org/junit5/)** as the testing framework with **[Mockito](https://site.mockito.org/)** for mocking and **[Java Faker](https://github.com/DiUS/java-faker)** for test data generation. Tag tests with `@Tag("unit")` or `@Tag("integration")`. All tests must follow the BDD pattern with `// given`, `// when`, `// then` comment blocks. Use `@DisplayName` for human-readable test descriptions. Unit tests run in **parallel**. Integration tests use **Spring Boot test slices** with setup/teardown and are NOT parallel.
+
+## Overview
+
+JUnit 5 discovers test files automatically via classpath scanning. This document defines the conventions for organizing and writing tests across all Java projects.
+
+## File Structure
+
+```
+src/test/java/.../
+  <module>/
+    domain/
+      builders/                         test data builders
+      commands/
+        InsertItemCommandTest.java      command unit tests
+    infrastructure/
+      builders/                         JPA entity builders
+      controllers/
+        InsertItemControllerTest.java   controller unit tests
+      repositories/
+        JpaItemsRepositoryTest.java     repository integration tests
+      services/
+        JpaSendItemServiceTest.java     service unit tests
+      listeners/
+        ProcessItemListenerTest.java    listener tests
+      doubles/
+        SendItemServiceStub.java        stubs
+        DummyItemService.java           dummies
+        InMemoryItemsRepository.java    in-memory implementations
+
+src/test/resources/
+  db/                                   test database migrations
+  http/                                 HTTP test data (REST requests)
+  queue/                                message test data
+```
+
+## General Conventions
+
+1. **Test tagging is mandatory.** Every test class must have `@Tag("unit")` or `@Tag("integration")`.
+2. **BDD structure.** Every test must use `// given`, `// when`, `// then` comment blocks to separate preconditions, actions, and assertions.
+3. **Display names.** Use `@DisplayName` on every test method to provide a human-readable description of the scenario.
+4. **Testing framework.** Use [JUnit 5](https://junit.org/junit5/) with [Mockito](https://site.mockito.org/) for mocking and [AssertJ](https://assertj.github.io/doc/) or JUnit assertions for verification.
+5. **File naming.** Test classes use the `Test` suffix (e.g., `InsertItemCommandTest.java`).
+6. **File placement.** Test classes mirror the source structure under `src/test/java/`.
+7. **Parallel unit tests.** Unit tests are configured for parallel class-level execution via JUnit properties.
+8. **Sequential integration tests.** Integration tests share database state and must NOT run in parallel.
+
+## Unit Tests (Parallel with @Tag)
+
+Unit tests must be lightweight, fast, and isolated. They are configured for **parallel execution** at the class level.
+
+### Command Tests
+
+```java
+@Tag("unit")
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+class InsertItemCommandTest {
+
+    @Test
+    @DisplayName("should call onSuccess when the item is inserted")
+    void shouldCallOnSuccess() {
+        // given
+        final var event = new ItemEventBuilder().build();
+        final var service = new SendItemServiceStub().withOnSuccess();
+        final var command = new InsertItemCommand(service);
+        final var onSuccess = mock(Runnable.class);
+
+        // when
+        final var listeners = new InsertItemCommand.Listeners(
+                onSuccess,
+                (e) -> fail("onError should not be called"));
+        command.execute(event, listeners);
+
+        // then
+        verify(onSuccess, times(1)).run();
+    }
+
+    @Test
+    @DisplayName("should call onError when the service throws an exception")
+    void shouldCallOnError() {
+        // given
+        final var event = new ItemEventBuilder().build();
+        final var service = new SendItemServiceStub().withOnError(new RuntimeException("test"));
+        final var command = new InsertItemCommand(service);
+        final var errorRef = new AtomicReference<Exception>();
+
+        // when
+        final var listeners = new InsertItemCommand.Listeners(
+                () -> fail("onSuccess should not be called"),
+                errorRef::set);
+        command.execute(event, listeners);
+
+        // then
+        assertNotNull(errorRef.get());
+        assertEquals("test", errorRef.get().getMessage());
+    }
+}
+```
+
+**Key points:**
+- `@Tag("unit")` marks the class for unit test execution.
+- `@NoArgsConstructor(access = AccessLevel.PRIVATE)` prevents instantiation outside JUnit.
+- Each test is self-contained -- it creates its own doubles, command, and listeners.
+- The Listeners pattern reflects all possible outcomes: `onSuccess`, `onError`.
+
+### Controller Tests
+
+```java
+@Tag("unit")
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+class ListItemsControllerTest {
+
+    @Test
+    @DisplayName("should respond 200 (OK) when items are listed successfully")
+    void shouldRespondOk() {
+        // given
+        final var command = new ListItemsCommandStub().withOnSuccess();
+        final var controller = new ListItemsController(command);
+
+        // when
+        final var response = controller.execute(1L, PageRequest.of(0, 10));
+
+        // then
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
+    }
+
+    @Test
+    @DisplayName("should respond 500 (Internal Server Error) when command fails")
+    void shouldRespondInternalServerError() {
+        // given
+        final var command = new ListItemsCommandStub().withOnError();
+        final var controller = new ListItemsController(command);
+
+        // when
+        final var response = controller.execute(1L, PageRequest.of(0, 10));
+
+        // then
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getStatusCode().value());
+    }
+}
+```
+
+## Service Tests
+
+```java
+@Tag("unit")
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+class JpaSendItemServiceTest {
+
+    @Test
+    @DisplayName("should save the mapped item when event is valid")
+    void shouldSaveItem() {
+        // given
+        final var event = new ItemEventBuilder().build();
+        final var repository = new InMemoryItemsRepository();
+        final var mapper = ItemMapper.INSTANCE;
+        final var service = new JpaSendItemService(repository, mapper);
+
+        // when
+        service.send(event);
+
+        // then
+        assertEquals(1, repository.count());
+    }
+
+    @Test
+    @DisplayName("should throw when repository fails to save")
+    void shouldThrowWhenRepositoryFails() {
+        // given
+        final var event = new ItemEventBuilder().build();
+        final var repository = new InMemoryItemsRepository().withOnError(new RuntimeException("db error"));
+        final var mapper = ItemMapper.INSTANCE;
+        final var service = new JpaSendItemService(repository, mapper);
+
+        // when & then
+        assertThrows(RuntimeException.class, () -> service.send(event));
+    }
+}
+```
+
+## Integration Tests (Spring Boot + TestContainers)
+
+Integration tests verify the full stack (database, HTTP, messaging) using real infrastructure. They are **NOT parallel** due to shared mutable state.
+
+### Repository Tests
+
+```java
+@Tag("integration")
+@SpringBootTest
+@ActiveProfiles("test")
+class JpaItemsRepositoryTest {
+
+    @Autowired
+    private JpaItemsRepository repository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void setUp() {
+        // Seed test data
+        jdbcTemplate.execute("INSERT INTO item (id, name, created_at) VALUES (1, 'test-item', NOW())");
+    }
+
+    @AfterEach
+    void tearDown() {
+        jdbcTemplate.execute("DELETE FROM item");
+    }
+
+    @Test
+    @DisplayName("should find item by ID successfully")
+    void shouldFindById() {
+        // given
+        final var itemId = 1L;
+
+        // when
+        final var result = repository.findById(itemId);
+
+        // then
+        assertTrue(result.isPresent());
+        assertEquals("test-item", result.get().getName());
+    }
+
+    @Test
+    @DisplayName("should return empty when item does not exist")
+    void shouldReturnEmpty() {
+        // given
+        final var nonExistentId = 99999L;
+
+        // when
+        final var result = repository.findById(nonExistentId);
+
+        // then
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("should save a new item successfully")
+    void shouldSaveItem() {
+        // given
+        final var item = JpaItem.builder()
+                .name("new-item")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        // when
+        final var saved = repository.save(item);
+
+        // then
+        assertNotNull(saved.getId());
+        assertEquals("new-item", saved.getName());
+    }
+
+    @Test
+    @DisplayName("should delete an item successfully")
+    void shouldDeleteItem() {
+        // given
+        final var itemId = 1L;
+
+        // when
+        repository.deleteById(itemId);
+
+        // then
+        assertTrue(repository.findById(itemId).isEmpty());
+    }
+}
+```
+
+**Key points:**
+- `@Tag("integration")` marks the class for integration test execution.
+- `@SpringBootTest` loads the full application context.
+- `@ActiveProfiles("test")` activates the test profile (`application-test.yaml`).
+- `@BeforeEach` / `@AfterEach` manage test data lifecycle.
+- Tests are grouped by outcome: success, error, edge cases.
+
+## Test Doubles
+
+Follow the [Martin Fowler taxonomy](https://martinfowler.com/articles/mocksArentStubs.html) for test doubles:
+
+| Type          | Purpose                                    | Example                                     |
+|---------------|--------------------------------------------|---------------------------------------------|
+| **Stub**      | Returns canned answers, no logic           | `SendItemServiceStub`                       |
+| **Dummy**     | Minimal implementation, ready-made answers | `DummyItemService`                          |
+| **In-Memory** | In-memory logic without external modules   | `InMemoryItemsRepository`                   |
+| **Faker**     | External library generating realistic data | `ItemEventBuilder` (using Java Faker)       |
+| **Mock**      | Mimics and verifies method calls           | Mockito `mock()` -- **avoid when possible** |
+
+### Stub Example
+
+```java
+public class SendItemServiceStub implements SendItemService {
+    private Exception error;
+
+    public SendItemServiceStub withOnSuccess() {
+        this.error = null;
+        return this;
+    }
+
+    public SendItemServiceStub withOnError(final Exception error) {
+        this.error = error;
+        return this;
+    }
+
+    @Override
+    public void send(final ItemEvent event) {
+        if (error != null) {
+            throw new RuntimeException(error);
+        }
+    }
+}
+```
+
+### In-Memory Repository Example
+
+```java
+public class InMemoryItemsRepository implements ItemsRepository {
+    private final List<JpaItem> items = new ArrayList<>();
+    private Exception error;
+
+    public InMemoryItemsRepository withOnError(final Exception error) {
+        this.error = error;
+        return this;
+    }
+
+    public long count() {
+        return items.size();
+    }
+
+    @Override
+    public JpaItem save(final JpaItem item) {
+        if (error != null) {
+            throw new RuntimeException(error);
+        }
+        items.add(item);
+        return item;
+    }
+}
+```
+
+## Builders
+
+Use the Builder Design Pattern to construct complex test objects step by step. Builders keep test setup readable and reusable across test suites.
+
+```java
+@NoArgsConstructor
+public final class ItemEventBuilder {
+    private Long organizationId;
+    private String referenceGuid;
+    private ItemCode code;
+    private ItemCategory category;
+
+    public ItemEventBuilder withOrganizationId(final Long organizationId) {
+        this.organizationId = organizationId;
+        return this;
+    }
+
+    public ItemEventBuilder withCode(final ItemCode code) {
+        this.code = code;
+        return this;
+    }
+
+    public ItemEvent build() {
+        final var faker = new Faker();
+        return new ItemEvent(
+                organizationId != null ? organizationId : faker.number().randomNumber(),
+                referenceGuid != null ? referenceGuid : faker.internet().uuid(),
+                code != null ? code : ItemCode.values()[faker.number().numberBetween(0, ItemCode.values().length)],
+                category != null ? category : ItemCategory.DEFAULT);
+    }
+}
+```
+
+Usage in tests:
+
+```java
+// Default values (randomized via Faker)
+final var event = new ItemEventBuilder().build();
+
+// Custom values
+final var event = new ItemEventBuilder()
+        .withOrganizationId(42L)
+        .withCode(ItemCode.CRITICAL)
+        .build();
+```
+
+## Parallel Execution
+
+Configure parallel execution in `build.gradle`:
+
+```groovy
+test {
+    useJUnitPlatform()
+    systemProperty 'junit.jupiter.execution.parallel.enabled', 'true'
+    systemProperty 'junit.jupiter.execution.parallel.mode.classes.default', 'concurrent'
+}
+```
+
+This runs test **classes** concurrently while methods within the same class run in the same thread, preventing shared-state conflicts within a test class.
+
+## Seeds
+
+Seed files populate test databases with known data:
+
+- The seed file name must match the **table name** (e.g., `item.sql`).
+- For multiple seeds targeting the same table, use numbered suffixes: `item_01.sql`, `item_02.sql`.
+- Constants must be named according to the file name.
+
+---
+
+# Java Project Structure
+
+> **TL;DR:** Follow the domain/infrastructure layer separation within each business module. Use [Gradle](https://gradle.org/) for builds and dependency management. Place test files under `src/test/java/` mirroring the source structure. Use module-based organization for multi-domain applications.
+
+## Overview
+
+This page defines the standard directory layout and dependency management practices for all Java projects. The architecture follows the Backend Design specification, separating code into `domain` (contracts) and `infrastructure` (implementations) layers within each business module.
+
+## Directory Structure
+
+```
+src/main/java/.../
+  Startup.java                           application entry point (@SpringBootApplication)
+  global/                                cross-cutting concerns
+    errors/                                global error handlers
+    helpers/                               shared utilities
+  items/                                 business module (one per domain concept)
+    domain/
+      commands/
+        InsertItemCommand.java             business logic (write operation)
+        ListItemsCommand.java              business logic (read operation)
+      entities/
+        Item.java                          pure domain entity (no annotations)
+        ItemEvent.java                     domain event (record)
+        ItemCode.java                      domain enum
+      services/
+        SendItemService.java               service contract (interface)
+      helpers/
+        ItemHelper.java                    domain utilities
+    infrastructure/
+      controllers/
+        InsertItemController.java          HTTP endpoint (write)
+        ListItemsController.java           HTTP endpoint (read)
+        requests/
+          InsertItemRequest.java           request DTO (record)
+        responses/
+          ItemResponse.java                response DTO (record)
+        mappers/
+          InsertItemRequestMapper.java     request-to-entity mapper
+          ItemResponseMapper.java          entity-to-response mapper
+      listeners/
+        ProcessItemListener.java           Kafka listener
+        messages/
+          ItemMessage.java                 message DTO (record)
+        mappers/
+          ItemMessageMapper.java           message-to-entity mapper
+      repositories/
+        contracts/
+          ItemsRepository.java             repository interface
+          QueryDslItemsRepository.java     QueryDSL extension
+        JpaItemsRepository.java            Spring Data JPA implementation
+        models/
+          JpaItem.java                     JPA entity model
+        helpers/
+          ItemQueryBuilder.java            QueryDSL query construction
+      services/
+        JpaSendItemService.java            service implementation
+        mappers/
+          ItemMapper.java                  entity-to-model mapper
+
+src/main/resources/
+  application.yaml                       main configuration
+  application-prod.yaml                  production profile
+  application-test.yaml                  test profile
+  messages.properties                    i18n (English)
+  messages_pt_BR.properties              i18n (Portuguese)
+  db/
+    changelog/                           Liquibase migration scripts (YAML)
+    seeds/                               test data seeders (SQL)
+  app/
+    quality/
+      checkstyle-google-ruleset.xml      Checkstyle configuration
+      pmd-custom-ruleset.xml             PMD configuration
+    security/
+      spotbugs-security-exclude.xml      SpotBugs exclusions
+      dependency-check-suppress.xml      OWASP dependency suppression
+
+src/test/java/.../
+  items/                                 mirrors source module structure
+    domain/
+      builders/
+        ItemEventBuilder.java            test data builder
+      commands/
+        InsertItemCommandTest.java       command unit tests
+    infrastructure/
+      builders/
+        JpaItemBuilder.java              JPA entity builder
+      controllers/
+        InsertItemControllerTest.java    controller unit tests
+      repositories/
+        JpaItemsRepositoryTest.java      repository integration tests
+      services/
+        JpaSendItemServiceTest.java      service unit tests
+      listeners/
+        ProcessItemListenerTest.java     listener tests
+      doubles/
+        SendItemServiceStub.java         stubs
+        DummyItemService.java            dummies
+        InMemoryItemsRepository.java     in-memory implementations
+
+src/test/resources/
+  db/                                    test-specific migrations
+  http/                                  HTTP test request data
+  queue/                                 Kafka test message data
+```
+
+### Key Directories
+
+| Directory                               | Purpose                                                 |
+|-----------------------------------------|---------------------------------------------------------|
+| `global/`                               | Cross-cutting concerns (error handling, shared helpers) |
+| `<module>/domain/commands/`             | Business logic implementations (CQRS write side)        |
+| `<module>/domain/entities/`             | Framework-agnostic domain entities and events           |
+| `<module>/domain/services/`             | Service contracts (interfaces)                          |
+| `<module>/infrastructure/controllers/`  | HTTP controllers (CQRS read side + write endpoints)     |
+| `<module>/infrastructure/listeners/`    | Kafka/queue message listeners                           |
+| `<module>/infrastructure/repositories/` | Repository implementations with JPA/QueryDSL            |
+| `<module>/infrastructure/services/`     | Service implementations with infrastructure tools       |
+| `src/main/resources/db/changelog/`      | Liquibase database migration scripts                    |
+| `src/main/resources/app/quality/`       | Code quality tool configurations                        |
+
+## Package Manager: Gradle
+
+All Java projects use [Gradle](https://gradle.org/) for build automation and dependency management.
+
+### Project Setup
+
+```groovy
+// settings.gradle
+rootProject.name = 'my-application'
+
+// build.gradle
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+```
+
+### Managing Dependencies
+
+```groovy
+dependencies {
+    // Spring Boot starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Database
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.liquibase:liquibase-core'
+
+    // Messaging
+    implementation 'org.springframework.kafka:spring-kafka'
+
+    // Mapping
+    implementation 'org.mapstruct:mapstruct:1.6.2'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.2'
+
+    // Utilities
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'com.github.javafaker:javafaker:1.0.2'
+    testImplementation 'org.awaitility:awaitility:4.2.2'
+    testImplementation 'org.testcontainers:junit-jupiter'
+}
+```
+
+### Gradle Wrapper
+
+Always use the Gradle Wrapper (`gradlew`) to ensure consistent build tool versions across environments:
+
+```bash
+# Build the project
+./gradlew build
+
+# Run tests
+./gradlew test
+
+# Format code
+./gradlew spotlessApply
+
+# Run quality checks
+./gradlew checkstyleMain pmdMain spotbugsMain
+```
+
+The `gradle/wrapper/` directory and `gradlew` / `gradlew.bat` scripts must be committed to version control.
+
+## Build & Distribution
+
+### Building
+
+```bash
+# Build the JAR
+./gradlew bootJar
+
+# Build without running tests
+./gradlew bootJar -x test
+```
+
+### Running
+
+```bash
+# Run via Gradle
+./gradlew bootRun
+
+# Run the compiled JAR
+java -jar build/libs/my-application-1.0.0.jar
+```
+
+### Docker
+
+Use multi-stage builds to produce minimal container images:
+
+```dockerfile
+FROM eclipse-temurin:21-jdk-alpine AS builder
+WORKDIR /app
+COPY gradlew build.gradle settings.gradle ./
+COPY gradle/ gradle/
+RUN ./gradlew dependencies --no-daemon
+COPY src/ src/
+RUN ./gradlew bootJar --no-daemon -x test
+
+FROM eclipse-temurin:21-jre-alpine
+COPY --from=builder /app/build/libs/*.jar /app/app.jar
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+```
+
+## Key Configuration Files
+
+| File                | Purpose                                                            |
+|---------------------|--------------------------------------------------------------------|
+| `build.gradle`      | Build configuration, plugins, dependencies, and quality tool setup |
+| `settings.gradle`   | Project name and multi-module settings                             |
+| `gradle.properties` | Gradle build properties (JVM args, versions)                       |
+| `application.yaml`  | Spring Boot configuration (profiles, datasource, kafka, logging)   |
+| `lombok.config`     | Lombok behavior configuration                                      |
+| `compose.yaml`      | Docker Compose for production                                      |
+| `compose.dev.yaml`  | Docker Compose for local development                               |
+| `.editorconfig`     | Editor standardization                                             |
