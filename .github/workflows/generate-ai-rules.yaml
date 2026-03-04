@@ -5,24 +5,44 @@ on:
     branches:
       - 'main'
     paths:
-      - 'install-ai-rules.sh'
+      - 'Code-Style/**'
+      - 'Code-Style.md'
+      - 'Life-Cycle/**'
+      - 'Cookbooks/Mapper-Design-Pattern.md'
+      - 'Cookbooks/Forking-Technique.md'
+      - '.github/workflows/generate-ai-rules/**'
+      - '.github/workflows/generate-ai-rules.yaml'
   workflow_dispatch:
 
 jobs:
   generate:
     runs-on: 'ubuntu-latest'
 
+    env:
+      PROJECT_PATH: '.github/workflows/generate-ai-rules'
+
     steps:
       - name: 'Checkout'
         uses: 'actions/checkout@v4'
 
+      - name: 'Set Up Go'
+        uses: 'actions/setup-go@v5'
+        with:
+          go-version: '1.23.4'
+          cache-dependency-path: '${{ env.PROJECT_PATH }}/go.sum'
+
+      - name: 'Build Go Program'
+        run: |
+          cd $PROJECT_PATH
+          go build -o generate-ai-rules ./...
+
       - name: 'Generate AI Rule Files'
-        run: bash install-ai-rules.sh .
+        run: './${{ env.PROJECT_PATH }}/generate-ai-rules'
 
       - name: 'Commit and Push Generated Files'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add CLAUDE.md .cursorrules AGENTS.md
+          git add .claude/ .cursor/ AGENTS.md
           git diff --cached --quiet || git commit -m "chore(ai-rules): regenerated AI rule files"
           git push
