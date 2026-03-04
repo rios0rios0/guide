@@ -1,0 +1,176 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	logger "github.com/sirupsen/logrus"
+)
+
+const codexMaxSize = 32 * 1024 // 32 KiB
+
+// writeClaude writes a rule file in Claude Code format to .ai/claude/rules/<name>.md.
+func writeClaude(outputDir string, group RuleGroup, content string) error {
+	dir := filepath.Join(outputDir, ".ai", "claude", "rules")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("creating directory %s: %w", dir, err)
+	}
+
+	var body string
+	if group.Globs != "" {
+		body = fmt.Sprintf("---\npaths:\n  - \"%s\"\n---\n\n%s", group.Globs, content)
+	} else {
+		body = content
+	}
+
+	path := filepath.Join(dir, group.Name+".md")
+	return os.WriteFile(path, []byte(body), 0644)
+}
+
+// writeCursor writes a rule file in Cursor format to .ai/cursor/rules/<name>.mdc.
+func writeCursor(outputDir string, group RuleGroup, content string) error {
+	dir := filepath.Join(outputDir, ".ai", "cursor", "rules")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("creating directory %s: %w", dir, err)
+	}
+
+	var frontmatter string
+	if group.Globs != "" {
+		frontmatter = fmt.Sprintf("---\ndescription: \"%s\"\nglobs: \"%s\"\nalwaysApply: false\n---\n\n",
+			group.Description, group.Globs)
+	} else {
+		frontmatter = fmt.Sprintf("---\ndescription: \"%s\"\nalwaysApply: true\n---\n\n",
+			group.Description)
+	}
+
+	path := filepath.Join(dir, group.Name+".mdc")
+	return os.WriteFile(path, []byte(frontmatter+content), 0644)
+}
+
+// writeCodex writes a single AGENTS.md file for Codex by concatenating all rule groups.
+func writeCodex(outputDir string, groups []RuleGroup, contents []string) error {
+	var sb strings.Builder
+	for i := range groups {
+		if i > 0 {
+			sb.WriteString("\n---\n\n")
+		}
+		sb.WriteString(contents[i])
+	}
+
+	body := sb.String()
+	if len(body) > codexMaxSize {
+		logger.Warnf("AGENTS.md size (%d bytes) exceeds Codex limit of %d bytes", len(body), codexMaxSize)
+	}
+
+	dir := filepath.Join(outputDir, ".ai", "codex")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("creating directory %s: %w", dir, err)
+	}
+
+	path := filepath.Join(dir, "AGENTS.md")
+	return os.WriteFile(path, []byte(body), 0644)
+}
+
+// CodexRule represents a single prefix_rule entry for Codex command execution policies.
+type CodexRule struct {
+	Pattern       []string // command prefix to match
+	Decision      string   // "allow", "prompt", or "forbidden"
+	Justification string   // human-readable reason
+}
+
+// codexRules returns the list of Codex command execution policy rules derived from
+// CI/CD, security, and Git Flow guidelines.
+func codexRules() []CodexRule {
+	return []CodexRule{
+		// Enforce Makefile targets (CI/CD: "Never invoke linters, test runners, or security tools directly")
+		{Pattern: []string{"make", "lint"}, Decision: "allow", Justification: "Linting through Makefile is the approved approach"},
+		{Pattern: []string{"make", "test"}, Decision: "allow", Justification: "Testing through Makefile is the approved approach"},
+		{Pattern: []string{"make", "sast"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
+
+		// Forbid direct linter/test runner invocation — Go
+		{Pattern: []string{"golangci-lint"}, Decision: "forbidden", Justification: "Use `make lint` instead of running golangci-lint directly"},
+
+		// Forbid direct linter/test runner invocation — Python
+		{Pattern: []string{"pytest"}, Decision: "forbidden", Justification: "Use `make test` instead of running pytest directly"},
+		{Pattern: []string{"black"}, Decision: "forbidden", Justification: "Use `make lint` instead of running black directly"},
+		{Pattern: []string{"ruff"}, Decision: "forbidden", Justification: "Use `make lint` instead of running ruff directly"},
+
+		// Forbid direct linter/test runner invocation — JavaScript/TypeScript
+		{Pattern: []string{"eslint"}, Decision: "forbidden", Justification: "Use `make lint` instead of running eslint directly"},
+		{Pattern: []string{"prettier"}, Decision: "forbidden", Justification: "Use `make lint` instead of running prettier directly"},
+		{Pattern: []string{"jest"}, Decision: "forbidden", Justification: "Use `make test` instead of running jest directly"},
+
+		// Forbid direct linter/test runner invocation — Java
+		{Pattern: []string{"checkstyle"}, Decision: "forbidden", Justification: "Use `make lint` instead of running checkstyle directly"},
+
+		// SAST tools — must go through `make sast`
+		{Pattern: []string{"semgrep"}, Decision: "forbidden", Justification: "Use `make sast` instead of running semgrep directly"},
+		{Pattern: []string{"trivy"}, Decision: "forbidden", Justification: "Use `make sast` instead of running trivy directly"},
+		{Pattern: []string{"gitleaks"}, Decision: "forbidden", Justification: "Use `make sast` instead of running gitleaks directly"},
+		{Pattern: []string{"hadolint"}, Decision: "forbidden", Justification: "Use `make sast` instead of running hadolint directly"},
+
+		// Git safety (Git Flow: force-push requires caution)
+		{Pattern: []string{"git", "push", "--force"}, Decision: "prompt", Justification: "Force pushing rewrites remote history. Confirm this is intentional."},
+		{Pattern: []string{"git", "push", "-f"}, Decision: "prompt", Justification: "Force pushing rewrites remote history. Confirm this is intentional."},
+	}
+}
+
+// formatCodexRules generates the Starlark content for a Codex .rules file.
+func formatCodexRules(rules []CodexRule) string {
+	var sb strings.Builder
+	sb.WriteString("# Codex command execution policies\n")
+	sb.WriteString("# Generated from the development guide — do not edit manually.\n")
+	sb.WriteString("# See: https://developers.openai.com/codex/rules/\n\n")
+
+	for i, rule := range rules {
+		if i > 0 {
+			sb.WriteString("\n")
+		}
+		sb.WriteString("prefix_rule(\n")
+		sb.WriteString(fmt.Sprintf("    pattern = %s,\n", formatStarlarkList(rule.Pattern)))
+		sb.WriteString(fmt.Sprintf("    decision = %q,\n", rule.Decision))
+		sb.WriteString(fmt.Sprintf("    justification = %q,\n", rule.Justification))
+		sb.WriteString(")\n")
+	}
+	return sb.String()
+}
+
+// formatStarlarkList formats a string slice as a Starlark list literal.
+func formatStarlarkList(items []string) string {
+	quoted := make([]string, len(items))
+	for i, item := range items {
+		quoted[i] = fmt.Sprintf("%q", item)
+	}
+	return "[" + strings.Join(quoted, ", ") + "]"
+}
+
+// writeCodexRules writes the Codex command execution policy file to .ai/codex/rules/default.rules.
+func writeCodexRules(outputDir string) error {
+	dir := filepath.Join(outputDir, ".ai", "codex", "rules")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("creating directory %s: %w", dir, err)
+	}
+
+	body := formatCodexRules(codexRules())
+	path := filepath.Join(dir, "default.rules")
+	return os.WriteFile(path, []byte(body), 0644)
+}
+
+// formatClaudeFrontmatter returns the frontmatter string for a Claude rule file.
+func formatClaudeFrontmatter(globs string) string {
+	if globs == "" {
+		return ""
+	}
+	return fmt.Sprintf("---\npaths:\n  - \"%s\"\n---\n\n", globs)
+}
+
+// formatCursorFrontmatter returns the frontmatter string for a Cursor rule file.
+func formatCursorFrontmatter(description string, globs string) string {
+	if globs != "" {
+		return fmt.Sprintf("---\ndescription: \"%s\"\nglobs: \"%s\"\nalwaysApply: false\n---\n\n",
+			description, globs)
+	}
+	return fmt.Sprintf("---\ndescription: \"%s\"\nalwaysApply: true\n---\n\n", description)
+}
