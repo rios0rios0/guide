@@ -16,7 +16,7 @@ REPO="rios0rios0/guide"
 BRANCH="main"
 BASE_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
 
-RULE_NAMES="architecture ci-cd code-style design-patterns documentation git-flow golang java javascript python security testing yaml"
+RULE_NAMES="architecture bulk-operations ci-cd code-style design-patterns documentation git-flow golang java javascript python security testing yaml"
 
 # Determine target directory
 if [ -n "$1" ]; then
@@ -73,10 +73,26 @@ for name in $RULE_NAMES; do
 done
 echo ""
 
+# Claude Code commands (.claude/commands/*.md)
+COMMAND_NAMES="scaffold-go-project scaffold-frontend-project scaffold-python-package fix-guardrails"
+echo "Claude Code commands:"
+for name in $COMMAND_NAMES; do
+  download_file "${BASE_URL}/.ai/claude/commands/${name}.md" "${TARGET_DIR}/.claude/commands/${name}.md"
+done
+echo ""
+
 # Cursor rules (.cursor/rules/*.mdc)
 echo "Cursor rules:"
 for name in $RULE_NAMES; do
   download_file "${BASE_URL}/.ai/cursor/rules/${name}.mdc" "${TARGET_DIR}/.cursor/rules/${name}.mdc"
+done
+echo ""
+
+# Cursor skills (.cursor/skills/<name>/SKILL.md)
+SKILL_NAMES="scaffold-go-project scaffold-frontend-project scaffold-python-package fix-guardrails"
+echo "Cursor skills:"
+for name in $SKILL_NAMES; do
+  download_file "${BASE_URL}/.ai/cursor/skills/${name}/SKILL.md" "${TARGET_DIR}/.cursor/skills/${name}/SKILL.md"
 done
 echo ""
 

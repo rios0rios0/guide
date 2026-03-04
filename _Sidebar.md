@@ -50,3 +50,4 @@
   - [Forking Technique](Forking-Technique)
   - [Historical Repository Cleaner](Historical-Repository-Cleaner)
   - [Mapper Design Pattern](Mapper-Design-Pattern)
+  - [Bulk Operations](Bulk-Operations)

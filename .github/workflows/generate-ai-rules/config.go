@@ -136,5 +136,12 @@ func ruleGroups() []RuleGroup {
 				"Cookbooks/Forking-Technique.md",
 			},
 		},
+		{
+			Name:        "bulk-operations",
+			Description: "Bulk operations across multiple repositories",
+			Sources: []string{
+				"Cookbooks/Bulk-Operations.md",
+			},
+		},
 	}
 }
