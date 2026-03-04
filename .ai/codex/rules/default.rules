@@ -21,75 +21,99 @@ prefix_rule(
 )
 
 prefix_rule(
+    pattern = ["make", "semgrep"],
+    decision = "allow",
+    justification = "SAST through Makefile is the approved approach",
+)
+
+prefix_rule(
+    pattern = ["make", "trivy"],
+    decision = "allow",
+    justification = "SAST through Makefile is the approved approach",
+)
+
+prefix_rule(
+    pattern = ["make", "hadolint"],
+    decision = "allow",
+    justification = "SAST through Makefile is the approved approach",
+)
+
+prefix_rule(
+    pattern = ["make", "gitleaks"],
+    decision = "allow",
+    justification = "SAST through Makefile is the approved approach",
+)
+
+prefix_rule(
     pattern = ["golangci-lint"],
     decision = "forbidden",
-    justification = "Use `make lint` instead of running golangci-lint directly",
+    justification = "Do not call golangci-lint directly; use `make lint` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["pytest"],
     decision = "forbidden",
-    justification = "Use `make test` instead of running pytest directly",
+    justification = "Do not call pytest directly; use `make test` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["black"],
     decision = "forbidden",
-    justification = "Use `make lint` instead of running black directly",
+    justification = "Do not call black directly; use `make lint` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["ruff"],
     decision = "forbidden",
-    justification = "Use `make lint` instead of running ruff directly",
+    justification = "Do not call ruff directly; use `make lint` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["eslint"],
     decision = "forbidden",
-    justification = "Use `make lint` instead of running eslint directly",
+    justification = "Do not call eslint directly; use `make lint` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["prettier"],
     decision = "forbidden",
-    justification = "Use `make lint` instead of running prettier directly",
+    justification = "Do not call prettier directly; use `make lint` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["jest"],
     decision = "forbidden",
-    justification = "Use `make test` instead of running jest directly",
+    justification = "Do not call jest directly; use `make test` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["checkstyle"],
     decision = "forbidden",
-    justification = "Use `make lint` instead of running checkstyle directly",
+    justification = "Do not call checkstyle directly; use `make lint` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["semgrep"],
     decision = "forbidden",
-    justification = "Use `make sast` instead of running semgrep directly",
+    justification = "Do not call semgrep directly; use `make semgrep` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["trivy"],
     decision = "forbidden",
-    justification = "Use `make sast` instead of running trivy directly",
+    justification = "Do not call trivy directly; use `make trivy` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["gitleaks"],
     decision = "forbidden",
-    justification = "Use `make sast` instead of running gitleaks directly",
+    justification = "Do not call gitleaks directly; use `make gitleaks` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(
     pattern = ["hadolint"],
     decision = "forbidden",
-    justification = "Use `make sast` instead of running hadolint directly",
+    justification = "Do not call hadolint directly; use `make hadolint` which loads the correct configuration through the pipelines repository scripts",
 )
 
 prefix_rule(

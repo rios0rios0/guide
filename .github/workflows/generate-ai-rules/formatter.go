@@ -84,32 +84,36 @@ type CodexRule struct {
 // CI/CD, security, and Git Flow guidelines.
 func codexRules() []CodexRule {
 	return []CodexRule{
-		// Enforce Makefile targets (CI/CD: "Never invoke linters, test runners, or security tools directly")
+		// Enforce Makefile targets (CI/CD: "Never call tool binaries directly")
 		{Pattern: []string{"make", "lint"}, Decision: "allow", Justification: "Linting through Makefile is the approved approach"},
 		{Pattern: []string{"make", "test"}, Decision: "allow", Justification: "Testing through Makefile is the approved approach"},
 		{Pattern: []string{"make", "sast"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
+		{Pattern: []string{"make", "semgrep"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
+		{Pattern: []string{"make", "trivy"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
+		{Pattern: []string{"make", "hadolint"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
+		{Pattern: []string{"make", "gitleaks"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
 
 		// Forbid direct linter/test runner invocation — Go
-		{Pattern: []string{"golangci-lint"}, Decision: "forbidden", Justification: "Use `make lint` instead of running golangci-lint directly"},
+		{Pattern: []string{"golangci-lint"}, Decision: "forbidden", Justification: "Do not call golangci-lint directly; use `make lint` which loads the correct configuration through the pipelines repository scripts"},
 
 		// Forbid direct linter/test runner invocation — Python
-		{Pattern: []string{"pytest"}, Decision: "forbidden", Justification: "Use `make test` instead of running pytest directly"},
-		{Pattern: []string{"black"}, Decision: "forbidden", Justification: "Use `make lint` instead of running black directly"},
-		{Pattern: []string{"ruff"}, Decision: "forbidden", Justification: "Use `make lint` instead of running ruff directly"},
+		{Pattern: []string{"pytest"}, Decision: "forbidden", Justification: "Do not call pytest directly; use `make test` which loads the correct configuration through the pipelines repository scripts"},
+		{Pattern: []string{"black"}, Decision: "forbidden", Justification: "Do not call black directly; use `make lint` which loads the correct configuration through the pipelines repository scripts"},
+		{Pattern: []string{"ruff"}, Decision: "forbidden", Justification: "Do not call ruff directly; use `make lint` which loads the correct configuration through the pipelines repository scripts"},
 
 		// Forbid direct linter/test runner invocation — JavaScript/TypeScript
-		{Pattern: []string{"eslint"}, Decision: "forbidden", Justification: "Use `make lint` instead of running eslint directly"},
-		{Pattern: []string{"prettier"}, Decision: "forbidden", Justification: "Use `make lint` instead of running prettier directly"},
-		{Pattern: []string{"jest"}, Decision: "forbidden", Justification: "Use `make test` instead of running jest directly"},
+		{Pattern: []string{"eslint"}, Decision: "forbidden", Justification: "Do not call eslint directly; use `make lint` which loads the correct configuration through the pipelines repository scripts"},
+		{Pattern: []string{"prettier"}, Decision: "forbidden", Justification: "Do not call prettier directly; use `make lint` which loads the correct configuration through the pipelines repository scripts"},
+		{Pattern: []string{"jest"}, Decision: "forbidden", Justification: "Do not call jest directly; use `make test` which loads the correct configuration through the pipelines repository scripts"},
 
 		// Forbid direct linter/test runner invocation — Java
-		{Pattern: []string{"checkstyle"}, Decision: "forbidden", Justification: "Use `make lint` instead of running checkstyle directly"},
+		{Pattern: []string{"checkstyle"}, Decision: "forbidden", Justification: "Do not call checkstyle directly; use `make lint` which loads the correct configuration through the pipelines repository scripts"},
 
-		// SAST tools — must go through `make sast`
-		{Pattern: []string{"semgrep"}, Decision: "forbidden", Justification: "Use `make sast` instead of running semgrep directly"},
-		{Pattern: []string{"trivy"}, Decision: "forbidden", Justification: "Use `make sast` instead of running trivy directly"},
-		{Pattern: []string{"gitleaks"}, Decision: "forbidden", Justification: "Use `make sast` instead of running gitleaks directly"},
-		{Pattern: []string{"hadolint"}, Decision: "forbidden", Justification: "Use `make sast` instead of running hadolint directly"},
+		// SAST tools — must go through their respective Makefile targets
+		{Pattern: []string{"semgrep"}, Decision: "forbidden", Justification: "Do not call semgrep directly; use `make semgrep` which loads the correct configuration through the pipelines repository scripts"},
+		{Pattern: []string{"trivy"}, Decision: "forbidden", Justification: "Do not call trivy directly; use `make trivy` which loads the correct configuration through the pipelines repository scripts"},
+		{Pattern: []string{"gitleaks"}, Decision: "forbidden", Justification: "Do not call gitleaks directly; use `make gitleaks` which loads the correct configuration through the pipelines repository scripts"},
+		{Pattern: []string{"hadolint"}, Decision: "forbidden", Justification: "Do not call hadolint directly; use `make hadolint` which loads the correct configuration through the pipelines repository scripts"},
 
 		// Git safety (Git Flow: force-push requires caution)
 		{Pattern: []string{"git", "push", "--force"}, Decision: "prompt", Justification: "Force pushing rewrites remote history. Confirm this is intentional."},
