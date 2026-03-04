@@ -119,7 +119,7 @@ func TestWriteClaude(t *testing.T) {
 			if err != nil {
 				t.Fatalf("writeClaude() error: %v", err)
 			}
-			path := filepath.Join(tmpDir, ".claude", "rules", tt.group.Name+".md")
+			path := filepath.Join(tmpDir, ".ai", "claude", "rules", tt.group.Name+".md")
 			data, err := os.ReadFile(path)
 			if err != nil {
 				t.Fatalf("reading output file: %v", err)
@@ -171,7 +171,7 @@ func TestWriteCursor(t *testing.T) {
 			if err != nil {
 				t.Fatalf("writeCursor() error: %v", err)
 			}
-			path := filepath.Join(tmpDir, ".cursor", "rules", tt.group.Name+".mdc")
+			path := filepath.Join(tmpDir, ".ai", "cursor", "rules", tt.group.Name+".mdc")
 			data, err := os.ReadFile(path)
 			if err != nil {
 				t.Fatalf("reading output file: %v", err)
@@ -202,7 +202,7 @@ func TestWriteCodex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("writeCodex() error: %v", err)
 	}
-	path := filepath.Join(tmpDir, "AGENTS.md")
+	path := filepath.Join(tmpDir, ".ai", "codex", "AGENTS.md")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("reading AGENTS.md: %v", err)
@@ -216,5 +216,101 @@ func TestWriteCodex(t *testing.T) {
 	}
 	if !strings.Contains(content, "---") {
 		t.Error("AGENTS.md should contain separator between groups")
+	}
+}
+
+func TestFormatCodexRules(t *testing.T) {
+	// given
+	rules := []CodexRule{
+		{Pattern: []string{"make", "lint"}, Decision: "allow", Justification: "Use Makefile"},
+		{Pattern: []string{"golangci-lint"}, Decision: "forbidden", Justification: "Use make lint"},
+	}
+
+	// when
+	result := formatCodexRules(rules)
+
+	// then
+	if !strings.Contains(result, "prefix_rule(") {
+		t.Error("result should contain prefix_rule(")
+	}
+	if !strings.Contains(result, `pattern = ["make", "lint"]`) {
+		t.Error("result should contain make lint pattern")
+	}
+	if !strings.Contains(result, `decision = "allow"`) {
+		t.Error("result should contain allow decision")
+	}
+	if !strings.Contains(result, `decision = "forbidden"`) {
+		t.Error("result should contain forbidden decision")
+	}
+	if !strings.Contains(result, `pattern = ["golangci-lint"]`) {
+		t.Error("result should contain golangci-lint pattern")
+	}
+}
+
+func TestFormatStarlarkList(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []string
+		expected string
+	}{
+		{
+			name:     "single element",
+			input:    []string{"golangci-lint"},
+			expected: `["golangci-lint"]`,
+		},
+		{
+			name:     "multiple elements",
+			input:    []string{"git", "push", "--force"},
+			expected: `["git", "push", "--force"]`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// given
+			input := tt.input
+
+			// when
+			result := formatStarlarkList(input)
+
+			// then
+			if result != tt.expected {
+				t.Errorf("formatStarlarkList()\n  got:  %q\n  want: %q", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestWriteCodexRules(t *testing.T) {
+	// given
+	tmpDir := t.TempDir()
+
+	// when
+	err := writeCodexRules(tmpDir)
+
+	// then
+	if err != nil {
+		t.Fatalf("writeCodexRules() error: %v", err)
+	}
+	path := filepath.Join(tmpDir, ".ai", "codex", "rules", "default.rules")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("reading default.rules: %v", err)
+	}
+	content := string(data)
+	if !strings.Contains(content, "prefix_rule(") {
+		t.Error("default.rules should contain prefix_rule(")
+	}
+	if !strings.Contains(content, "make") {
+		t.Error("default.rules should contain make rules")
+	}
+	if !strings.Contains(content, "golangci-lint") {
+		t.Error("default.rules should contain golangci-lint rule")
+	}
+	if !strings.Contains(content, "forbidden") {
+		t.Error("default.rules should contain forbidden decisions")
+	}
+	if !strings.Contains(content, "prompt") {
+		t.Error("default.rules should contain prompt decisions for git force-push")
 	}
 }
