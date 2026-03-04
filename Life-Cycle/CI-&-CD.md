@@ -31,7 +31,16 @@ make test    # Run the full test suite
 make sast    # Run the complete SAST security suite
 ```
 
-**Never call tool binaries (e.g., `golangci-lint`, `pytest`, `eslint`, `semgrep`) directly.** Always use the Makefile targets (`make lint`, `make test`, `make sast`), which invoke the [pipelines repository](https://github.com/rios0rios0/pipelines) scripts to load the correct configuration before running each tool.
+Individual SAST tools can also be run separately when you only need to check a specific category:
+
+```bash
+make semgrep   # Run Semgrep pattern-based analysis only
+make trivy     # Run Trivy IaC/dependency scanning only
+make hadolint  # Run Hadolint Dockerfile linting only
+make gitleaks  # Run Gitleaks secret detection only
+```
+
+**Never call tool binaries (e.g., `golangci-lint`, `pytest`, `eslint`, `semgrep`) directly.** Always use the Makefile targets (`make lint`, `make test`, `make sast`, or the per-tool SAST targets above), which invoke the [pipelines repository](https://github.com/rios0rios0/pipelines) scripts to load the correct configuration before running each tool.
 
 ## SAST Toolchain
 
