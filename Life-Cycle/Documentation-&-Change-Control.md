@@ -18,6 +18,9 @@ Every project must contain at minimum:
 | **`CONTRIBUTING.md`**                 | Guides contributors on prerequisites, workflow, and standards | When prerequisites, workflow, or project structure changes    |
 | **`CHANGELOG.md`**                    | Records all notable changes, organized by version            | **Every change** (always)                                    |
 | **`.github/copilot-instructions.md`** | AI assistant context for the project structure and workflows | When architecture, commands, or development workflow changes |
+| **`CLAUDE.md`**                       | Claude Code project rules and conventions                    | When architecture, commands, or development workflow changes |
+| **`.cursorrules`**                    | Cursor project rules and conventions                         | When architecture, commands, or development workflow changes |
+| **`AGENTS.md`**                       | OpenAI Codex project rules and conventions                   | When architecture, commands, or development workflow changes |
 
 **Templates are available for standardized project setup:**
 
@@ -107,15 +110,62 @@ The `README.md` must accurately describe the current state of the project. Updat
 
 ## AI Assistant Instructions
 
-Projects that use AI-assisted development (GitHub Copilot, Cursor, etc.) should maintain a `.github/copilot-instructions.md` file. This file provides the AI with project-specific context about:
+Projects that use AI-assisted development must maintain instruction files for each AI tool in use. These files provide AI assistants with project-specific context and enforce the team's development standards automatically.
+
+### Supported AI Tools
+
+| Tool           | File                              | Purpose                                                           |
+|----------------|-----------------------------------|-------------------------------------------------------------------|
+| GitHub Copilot | `.github/copilot-instructions.md` | Copilot context for project structure and workflows               |
+| Claude Code    | `CLAUDE.md`                       | Claude Code rules for architecture, testing, and code conventions |
+| Cursor         | `.cursorrules`                    | Cursor rules for architecture, testing, and code conventions      |
+| OpenAI Codex   | `AGENTS.md`                       | Codex rules for architecture, testing, and code conventions       |
+
+### What to Include
+
+All AI instruction files should provide context about:
 
 - Project purpose and architecture
-- Build, test, and lint commands with expected timings
+- Build, test, and lint commands
 - Repository structure and key files
 - Development workflow and validation steps
 - Testing infrastructure and conventions
+- Commit message format and branch naming
+- YAML conventions and security requirements
 
-Update this file whenever the development workflow, architecture, or key commands change.
+### Auto-Generation Pipeline
+
+The AI rule files (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`) are **auto-generated** from a single source of truth: the `install-ai-rules.sh` script at the repository root. This eliminates content duplication and ensures all three files stay in sync.
+
+**How it works:**
+
+1. The `install-ai-rules.sh` script contains the full development guide conventions embedded as a heredoc.
+2. It generates `CLAUDE.md` first, then derives `.cursorrules` (same content without the heading) and `AGENTS.md` (same content with a different heading).
+3. A [GitHub Action](../../.github/workflows/generate-ai-rules.yaml) runs on every push to `main` (when `install-ai-rules.sh` changes), regenerating the files and committing them to the repository.
+
+**To update the AI rules:** edit `install-ai-rules.sh` only. The GitHub Action will regenerate all three output files automatically.
+
+### Installation
+
+Use the `install-ai-rules.sh` script from the [guide repository](https://github.com/rios0rios0/guide) to install all AI rule files into a project:
+
+```bash
+# Download pre-generated files (recommended)
+curl -fsSL https://raw.githubusercontent.com/rios0rios0/guide/main/install-ai-rules.sh | bash -s -- --download .
+
+# Or generate inline without network access
+curl -fsSL https://raw.githubusercontent.com/rios0rios0/guide/main/install-ai-rules.sh | bash -s -- .
+```
+
+Or clone the guide and run locally:
+
+```bash
+./install-ai-rules.sh /path/to/your/project
+```
+
+The script generates `CLAUDE.md`, `.cursorrules`, and `AGENTS.md` with the team's full conventions embedded. It overwrites existing files with the same name. No configuration needed -- the AI agents will immediately know all architecture, testing, code style, security, and documentation conventions.
+
+Update these files whenever the development workflow, architecture, or key commands change.
 
 ## Workflow Integration
 
@@ -124,7 +174,7 @@ Documentation updates must be part of the same commit or PR that introduces the 
 1. **Write the code change.**
 2. **Update `CHANGELOG.md`** -- add an entry under `[Unreleased]` describing what changed.
 3. **Update `README.md`** -- if the change affects usage, setup, or architecture.
-4. **Update `.github/copilot-instructions.md`** -- if the change affects build commands, project structure, or development workflow.
+4. **Update AI instruction files** (`CLAUDE.md`, `.cursorrules`, `AGENTS.md`, `.github/copilot-instructions.md`) -- if the change affects build commands, project structure, or development workflow.
 5. **Commit everything together.** Documentation and code ship as one unit.
 
 **Never merge a PR that introduces user-facing or architectural changes without the corresponding documentation update.**
