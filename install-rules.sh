@@ -74,7 +74,7 @@ done
 echo ""
 
 # Claude Code commands (.claude/commands/*.md)
-COMMAND_NAMES="scaffold-go-project scaffold-frontend-project scaffold-python-package fix-guardrails"
+COMMAND_NAMES="scaffold-go-project scaffold-frontend-project scaffold-python-package fix-guardrails sync-repos"
 echo "Claude Code commands:"
 for name in $COMMAND_NAMES; do
   download_file "${BASE_URL}/.ai/claude/commands/${name}.md" "${TARGET_DIR}/.claude/commands/${name}.md"
