@@ -55,6 +55,7 @@ And its objective is not to limit the development to a specific form, but to pro
   - [Forking Technique](Cookbooks/Forking-Technique.md)
   - [Historical Repository Cleaner](Cookbooks/Historical-Repository-Cleaner.md)
   - [Mapper Design Pattern](Cookbooks/Mapper-Design-Pattern.md)
+  - [Bulk Operations](Cookbooks/Bulk-Operations.md)
 
 ## References
 - [Vizir's StyleGuide](https://github.com/Vizir/styleguide)
