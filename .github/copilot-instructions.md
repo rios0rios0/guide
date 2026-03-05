@@ -14,23 +14,40 @@ Always reference these instructions first and fallback to search or bash command
   go build -o update-wiki ./...
   ```
   - Build time: ~1 second. NEVER CANCEL. Set timeout to 30+ seconds for safety.
-- Run basic validation: `find . -name "*.md" | wc -l` (should show 41+ Markdown files)
+- Build the AI rules generator:
+  ```bash
+  cd .github/workflows/generate-ai-rules
+  go build -o generate-ai-rules ./...
+  ```
+- Run basic validation: `find . -name "*.md" | wc -l` (should show 79+ Markdown files)
 
 ### Core Build Process
-The repository uses a Go-based build system that syncs documentation to GitHub Wiki:
-- **NEVER CANCEL BUILD COMMANDS** - Even though builds are fast (~1s), set timeouts of 30+ seconds
+The repository has two Go-based tools under `.github/workflows/`:
+
+#### update-wiki (Go 1.26.0)
+Syncs documentation to GitHub Wiki:
 - Build location: `.github/workflows/update-wiki/`
 - Build command: `go build -o update-wiki ./...`
-- Expected build time: 1 second maximum
-- Go module download: `go mod download` (takes ~0.3 seconds)
-- Test command: `go test ./...` (reports no test files, completes in ~1 second)
+- Expected build time: ~1 second
 
-### GitHub Actions Workflow
-- File: `.github/workflows/update-wiki.yml`
-- Triggers: Push to main branch or manual workflow dispatch
-- Runtime: Uses Go 1.23.4+
-- Process: Builds Go program, syncs content to GitHub Wiki
-- **NEVER CANCEL**: Full workflow takes ~2-3 minutes including setup. Set timeout to 10+ minutes.
+#### generate-ai-rules (Go 1.24.7)
+Generates AI assistant rule files in `.ai/`:
+- Build location: `.github/workflows/generate-ai-rules/`
+- Build command: `go build -o generate-ai-rules ./...`
+- Expected build time: ~1 second
+
+**NEVER CANCEL BUILD COMMANDS** - Even though builds are fast (~1s), set timeouts of 30+ seconds.
+
+### GitHub Actions Workflows
+Three workflows are defined under `.github/workflows/`:
+
+| File | Trigger | Purpose |
+|------|---------|---------|
+| `update-wiki.yml` | Push to `main`, manual dispatch | Syncs docs to GitHub Wiki |
+| `generate-ai-rules.yaml` | Push to `main` (docs paths), manual dispatch | Regenerates `.ai/` rule files |
+| `sync-docs.yaml` | Pull request (any `.md` change) | Validates TOC sync across README.md, Home.md, _Sidebar.md |
+
+**NEVER CANCEL**: Full workflow takes ~2-3 minutes including setup. Set timeout to 10+ minutes.
 
 ## Validation
 
@@ -43,7 +60,7 @@ Run this complete validation sequence after making any changes:
    ```
    All files must exist.
 
-2. **Build Validation**:
+2. **Build Validation** (update-wiki):
    ```bash
    cd .github/workflows/update-wiki
    go mod verify
@@ -51,17 +68,31 @@ Run this complete validation sequence after making any changes:
    ```
    NEVER CANCEL: Set timeout to 60+ seconds. Actual time: ~1 second.
 
-3. **Content Validation**:
+3. **Build Validation** (generate-ai-rules):
+   ```bash
+   cd .github/workflows/generate-ai-rules
+   go mod verify
+   go build -o generate-ai-rules ./...
+   ```
+
+4. **TOC Sync Validation**:
+   ```bash
+   bash .github/workflows/sync-docs/check-toc-sync.sh
+   ```
+   The Summary sections in `README.md`, `Home.md`, and `_Sidebar.md` must stay in sync.
+   Run this whenever you modify any of those three navigation files.
+
+5. **Content Validation**:
    ```bash
    # Validate markdown files exist and are readable
    find . -name "*.md" -exec head -1 {} \; > /dev/null
-   # Expected: 41+ files, no errors
+   # Expected: 79+ files, no errors
    ```
 
-4. **Manual Validation Scenarios**:
+6. **Manual Validation Scenarios**:
    - **Navigation test**: Open `README.md` and verify all links in the Summary section point to existing files
    - **Structure test**: Verify key directories exist: `Code-Style/`, `Life-Cycle/`, `Cookbooks/`, `Agile-&-Culture/`
-   - **Build test**: Ensure `go build` in `.github/workflows/update-wiki/` succeeds without errors
+   - **Build test**: Ensure `go build` succeeds in both workflow tool directories
 
 ### EditorConfig Compliance
 Always follow the `.editorconfig` settings:
@@ -77,48 +108,88 @@ Always follow the `.editorconfig` settings:
 1. Create markdown file in appropriate directory structure
 2. Follow existing naming conventions (use hyphens, not spaces)
 3. Add navigation links to parent directory's index file
-4. Always validate build process after changes
+4. **Update all three navigation files**: `README.md` (Summary section), `Home.md` (Summary section), and `_Sidebar.md` must remain in sync
+5. Run `bash .github/workflows/sync-docs/check-toc-sync.sh` to verify sync
+6. Always validate build process after changes
+
+### Installing AI Rules
+Use `install-rules.sh` to distribute the generated AI rule files to a project or globally:
+```bash
+# Install globally (into ~/.claude/, ~/.cursor/, ~/AGENTS.md, ~/.codex/)
+./install-rules.sh
+
+# Install into a specific project directory
+./install-rules.sh /path/to/project
+```
 
 ### Repository Navigation
 ```
-/home/runner/work/guide/guide/
-├── README.md              # Main repository overview (identical to Home.md)
-├── Home.md                # Navigation hub with full summary
-├── .editorconfig          # Formatting standards
-├── .github/workflows/     # Build automation
-├── Code-Style/            # 13 files: Language-specific guidelines
-│   ├── GoLang/           # Go coding standards and testing
-│   ├── JavaScript/       # JS standards and testing frameworks
-│   ├── Python/           # Python PEP compliance and best practices
-│   └── Java/             # Java conventions and patterns
-├── Life-Cycle/           # 8 files: Development process guides
-│   ├── Architecture/     # Backend and frontend design principles
-│   ├── Git-Flow/         # Version control workflows
-│   └── Security/         # Security best practices
-├── Cookbooks/            # 10 files: Practical setup guides
-│   └── Tools-&-Setup/    # Development environment setup
-└── Agile-&-Culture/      # 1 file: PDCA methodology
+/
+├── README.md                         # GitHub repo landing page (badges + Summary)
+├── Home.md                           # GitHub Wiki navigation hub (Summary + Context)
+├── Onboarding.md                     # Developer onboarding guide
+├── _Sidebar.md                       # GitHub Wiki sidebar navigation
+├── _Footer.md                        # GitHub Wiki footer
+├── install-rules.sh                  # Script to install AI rules into projects
+├── .editorconfig                     # Formatting standards
+├── .ai/                              # Generated AI assistant rule files
+│   ├── claude/rules/                 # Claude Code rules (*.md)
+│   ├── claude/commands/              # Claude Code slash commands (*.md)
+│   ├── cursor/rules/                 # Cursor rules (*.mdc)
+│   ├── cursor/skills/                # Cursor skills (SKILL.md per skill)
+│   └── codex/                        # Codex AGENTS.md and default.rules
+├── .github/workflows/                # CI/CD automation
+│   ├── update-wiki.yml               # Syncs docs to GitHub Wiki (Go 1.26.0)
+│   ├── generate-ai-rules.yaml        # Generates .ai/ rule files (Go 1.24.7)
+│   └── sync-docs.yaml                # Validates TOC sync on PRs
+├── Agile-&-Culture/                  # Agile methodology guides
+│   └── PDCA.md                       # PDCA cycle methodology
+├── Life-Cycle/                       # Development process guides
+│   ├── Architecture/                 # Backend and frontend design principles
+│   ├── Git-Flow/                     # Version control workflows
+│   ├── Documentation-&-Change-Control/ # Templates and change control
+│   └── *.md                          # Tests, CI-&-CD, Security, Git-Flow, Architecture
+├── Code-Style/                       # Language-specific coding guidelines
+│   ├── GoLang/                       # Go: conventions, formatting, types, logging, testing, structure
+│   ├── Java/                         # Java: conventions, formatting, types, logging, testing, structure
+│   ├── JavaScript/                   # JavaScript: testing
+│   ├── Python/                       # Python: conventions, formatting, types, logging, testing, structure
+│   └── *.md                          # YAML, Language-Guide-Template, language index files
+└── Cookbooks/                        # Practical setup and technique guides
+    └── Tools-&-Setup/                # WSL, Azure CLI, Azure Functions, Database Sync
 ```
 
 ### Frequently Accessed Locations
-- **Main navigation**: `Home.md` or `README.md` (identical content)
+- **GitHub repo page**: `README.md` (includes badges)
+- **Wiki navigation**: `Home.md` (full navigation tree for GitHub Wiki)
 - **Testing guidelines**: `Life-Cycle/Tests.md`
 - **Code style references**: `Code-Style/<language>/` directories
 - **Setup guides**: `Cookbooks/Tools-&-Setup/`
 - **CI/CD information**: `Life-Cycle/CI-&-CD.md`
+- **AI rules**: `.ai/` directory (generated from docs by `generate-ai-rules`)
 
 ### Build System Details
 ```bash
 # Repository root commands
 ls -la                     # View all files and directories
-find . -name "*.md"        # List all documentation files (41+)
+find . -name "*.md"        # List all documentation files (79+)
 
-# Build system commands (run from .github/workflows/update-wiki/)
+# update-wiki build (run from .github/workflows/update-wiki/)
 go mod verify              # Verify dependencies (0.3s)
 go mod download            # Download dependencies (0.3s)
 go build -o update-wiki ./... # Build binary (~1s)
-go test ./...              # Run tests (1s, no test files)
+go test ./...              # Run tests (~1s)
 go clean                   # Clean build artifacts (0.02s)
+
+# generate-ai-rules build (run from .github/workflows/generate-ai-rules/)
+go mod verify              # Verify dependencies (0.3s)
+go mod download            # Download dependencies (0.3s)
+go build -o generate-ai-rules ./... # Build binary (~1s)
+go test ./...              # Run tests (~1s)
+go clean                   # Clean build artifacts (0.02s)
+
+# TOC sync check (run from repository root)
+bash .github/workflows/sync-docs/check-toc-sync.sh
 ```
 
 ## Important Notes
@@ -132,18 +203,22 @@ go clean                   # Clean build artifacts (0.02s)
 
 ### Repository Characteristics
 - **Type**: Documentation repository (not traditional software)
-- **Primary content**: 41+ Markdown files across 22+ directories
-- **Build output**: GitHub Wiki synchronization
-- **No traditional tests**: Content validation via structure checks
-- **Dependencies**: Go 1.23.4+ for build system only
+- **Primary content**: 79+ Markdown files across 25+ directories
+- **Build output**: GitHub Wiki synchronization + `.ai/` rule files
+- **Dependencies**: Go 1.26.0 for update-wiki; Go 1.24.7 for generate-ai-rules
+- **Tests**: Both Go modules include test files (`*_test.go`)
+
+### Navigation File Sync Requirement
+`README.md`, `Home.md`, and `_Sidebar.md` all contain a table of contents. These **must always be kept in sync** (same labels and hierarchy). Differences in link targets are allowed. The `sync-docs.yaml` workflow enforces this on every pull request.
 
 ### Change Validation Workflow
 Always complete this checklist when making changes:
 1. ✅ Verify file structure with `ls` commands
-2. ✅ Run `go build` in update-wiki directory
-3. ✅ Check Markdown file count matches expected (~41 files)
-4. ✅ Manually verify key navigation links work
-5. ✅ Confirm .editorconfig compliance (2-space indents, LF endings)
-6. ✅ Test that modified files render correctly as Markdown
+2. ✅ Run `go build` in both workflow tool directories
+3. ✅ Run `bash .github/workflows/sync-docs/check-toc-sync.sh` after any TOC change
+4. ✅ Check Markdown file count matches expected (~79 files)
+5. ✅ Manually verify key navigation links work
+6. ✅ Confirm .editorconfig compliance (2-space indents, LF endings)
+7. ✅ Test that modified files render correctly as Markdown
 
 The repository is optimized for documentation maintenance and automated wiki synchronization rather than traditional software development workflows.
