@@ -1,4 +1,4 @@
-Sync all git repositories under `$HOME/Development`. For each repo at depth 2 (`<provider>/<org-or-user>/<repo>`):
+Sync all git repositories found recursively under the current directory (or a given path). For each repo discovered via `find -name .git -type d`:
 
 1. If the repo has uncommitted changes (staged, unstaged, or untracked), create a WIP branch (`wip/auto-stash-<timestamp>`) and commit all changes with message `wip: auto-stash uncommitted changes`.
 2. Checkout the default branch (detected via `git symbolic-ref refs/remotes/origin/HEAD`, fallback to `main`).
@@ -12,7 +12,7 @@ Run this by executing the shell function:
 source ~/.scripts/linux-engineering-git-sync-repos.sh && git-sync-repos
 ```
 
-If the user provides a specific subdirectory (e.g. `dev.azure.com/ZestSecurity`), pass it as argument:
+When no argument is given, it defaults to the current working directory (`$PWD`). If the user provides a specific subdirectory (e.g. `dev.azure.com/ZestSecurity`), pass it as argument:
 
 ```bash
 source ~/.scripts/linux-engineering-git-sync-repos.sh && git-sync-repos "$HOME/Development/dev.azure.com/ZestSecurity"
