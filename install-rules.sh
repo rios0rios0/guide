@@ -26,6 +26,10 @@ else
 fi
 
 OVERWRITE_ALL=""
+if [ "${1:-}" = "--force" ]; then
+  OVERWRITE_ALL="yes"
+  shift
+fi
 
 # prompt_overwrite checks if file exists and prompts user for confirmation.
 # Returns 0 if write should proceed, 1 if skipped.
