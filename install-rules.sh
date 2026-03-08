@@ -18,17 +18,17 @@ BASE_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
 
 RULE_NAMES="architecture bulk-operations ci-cd code-style design-patterns documentation git-flow golang java javascript python security testing yaml"
 
-# Determine target directory
-if [ -n "$1" ]; then
-  TARGET_DIR="$(cd "$1" 2>/dev/null && pwd)" || { echo "Error: directory '$1' does not exist."; exit 1; }
-else
-  TARGET_DIR="$HOME"
-fi
-
 OVERWRITE_ALL=""
 if [ "${1:-}" = "--force" ]; then
   OVERWRITE_ALL="yes"
   shift
+fi
+
+# Determine target directory
+if [ -n "${1:-}" ]; then
+  TARGET_DIR="$(cd "$1" 2>/dev/null && pwd)" || { echo "Error: directory '$1' does not exist."; exit 1; }
+else
+  TARGET_DIR="$HOME"
 fi
 
 # prompt_overwrite checks if file exists and prompts user for confirmation.
