@@ -81,6 +81,14 @@ for name in $COMMAND_NAMES; do
 done
 echo ""
 
+# Claude Code agents (.claude/agents/*.md)
+AGENT_NAMES="chezmoi"
+echo "Claude Code agents:"
+for name in $AGENT_NAMES; do
+  download_file "${BASE_URL}/.ai/claude/agents/${name}.md" "${TARGET_DIR}/.claude/agents/${name}.md"
+done
+echo ""
+
 # Cursor rules (.cursor/rules/*.mdc)
 echo "Cursor rules:"
 for name in $RULE_NAMES; do
