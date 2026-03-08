@@ -120,6 +120,10 @@ Use `install-rules.sh` to distribute the generated AI rule files to a project or
 
 # Install into a specific project directory
 ./install-rules.sh /path/to/project
+
+# Force overwrite existing files without prompting (for automated scripts)
+./install-rules.sh --force
+./install-rules.sh --force /path/to/project
 ```
 
 ### Repository Navigation
