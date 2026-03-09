@@ -86,7 +86,7 @@ done
 echo ""
 
 # Claude Code agents (.claude/agents/*.md)
-AGENT_NAMES="chezmoi changelog-enforcer code-reviewer git-workflow security-auditor bulk-operations"
+AGENT_NAMES="chezmoi changelog-enforcer code-reviewer git-workflow security-auditor bulk-operations documentation-writer tdd-coach cicd-engineer"
 echo "Claude Code agents:"
 for name in $AGENT_NAMES; do
   download_file "${BASE_URL}/.ai/claude/agents/${name}.md" "${TARGET_DIR}/.claude/agents/${name}.md"
@@ -105,6 +105,13 @@ SKILL_NAMES="scaffold-go-project scaffold-frontend-project scaffold-python-packa
 echo "Cursor skills:"
 for name in $SKILL_NAMES; do
   download_file "${BASE_URL}/.ai/cursor/skills/${name}/SKILL.md" "${TARGET_DIR}/.cursor/skills/${name}/SKILL.md"
+done
+echo ""
+
+# GitHub Copilot instructions (.github/instructions/*.instructions.md)
+echo "GitHub Copilot instructions:"
+for name in $RULE_NAMES; do
+  download_file "${BASE_URL}/.ai/copilot/instructions/${name}.instructions.md" "${TARGET_DIR}/.github/instructions/${name}.instructions.md"
 done
 echo ""
 
