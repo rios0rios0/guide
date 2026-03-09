@@ -121,47 +121,47 @@ func TestEndToEnd(t *testing.T) {
 		t.Errorf("writeAllRules reported %d errors", errCount)
 	}
 
-	// then - verify Claude rules under .ai/claude/rules/
-	claudeCodeStyle := filepath.Join(outputDir, ".ai", "claude", "rules", "code-style.md")
+	// then - verify Claude rules under claude/rules/
+	claudeCodeStyle := filepath.Join(outputDir, "claude", "rules", "code-style.md")
 	assertFileExists(t, claudeCodeStyle)
 	assertFileContains(t, claudeCodeStyle, "Naming conventions")
 	assertFileNotContains(t, claudeCodeStyle, "---\npaths:")
 
-	claudeGitFlow := filepath.Join(outputDir, ".ai", "claude", "rules", "git-flow.md")
+	claudeGitFlow := filepath.Join(outputDir, "claude", "rules", "git-flow.md")
 	assertFileExists(t, claudeGitFlow)
 	assertFileContains(t, claudeGitFlow, "feature branches")
 	assertFileContains(t, claudeGitFlow, "Rebase before merge")
 	assertFileNotContains(t, claudeGitFlow, "## References")
 
-	// then - verify Cursor rules under .ai/cursor/rules/
-	cursorCodeStyle := filepath.Join(outputDir, ".ai", "cursor", "rules", "code-style.mdc")
+	// then - verify Cursor rules under cursor/rules/
+	cursorCodeStyle := filepath.Join(outputDir, "cursor", "rules", "code-style.mdc")
 	assertFileExists(t, cursorCodeStyle)
 	assertFileContains(t, cursorCodeStyle, "alwaysApply: true")
 
-	cursorGitFlow := filepath.Join(outputDir, ".ai", "cursor", "rules", "git-flow.mdc")
+	cursorGitFlow := filepath.Join(outputDir, "cursor", "rules", "git-flow.mdc")
 	assertFileExists(t, cursorGitFlow)
 	assertFileContains(t, cursorGitFlow, "alwaysApply: true")
 
-	// then - verify Copilot instructions under .ai/copilot/instructions/
-	copilotCodeStyle := filepath.Join(outputDir, ".ai", "copilot", "instructions", "code-style.instructions.md")
+	// then - verify Copilot instructions under copilot/instructions/
+	copilotCodeStyle := filepath.Join(outputDir, "copilot", "instructions", "code-style.instructions.md")
 	assertFileExists(t, copilotCodeStyle)
 	assertFileContains(t, copilotCodeStyle, "Naming conventions")
 	assertFileNotContains(t, copilotCodeStyle, "applyTo:")
 
-	copilotGitFlow := filepath.Join(outputDir, ".ai", "copilot", "instructions", "git-flow.instructions.md")
+	copilotGitFlow := filepath.Join(outputDir, "copilot", "instructions", "git-flow.instructions.md")
 	assertFileExists(t, copilotGitFlow)
 	assertFileContains(t, copilotGitFlow, "feature branches")
 	assertFileContains(t, copilotGitFlow, "Rebase before merge")
 	assertFileNotContains(t, copilotGitFlow, "## References")
 
-	// then - verify Codex AGENTS.md under .ai/codex/
-	agentsFile := filepath.Join(outputDir, ".ai", "codex", "AGENTS.md")
+	// then - verify Codex AGENTS.md under codex/
+	agentsFile := filepath.Join(outputDir, "codex", "AGENTS.md")
 	assertFileExists(t, agentsFile)
 	assertFileContains(t, agentsFile, "Naming conventions")
 	assertFileContains(t, agentsFile, "feature branches")
 
-	// then - verify Codex rules under .ai/codex/rules/
-	codexRulesFile := filepath.Join(outputDir, ".ai", "codex", "rules", "default.rules")
+	// then - verify Codex rules under codex/rules/
+	codexRulesFile := filepath.Join(outputDir, "codex", "rules", "default.rules")
 	assertFileExists(t, codexRulesFile)
 	assertFileContains(t, codexRulesFile, "prefix_rule(")
 	assertFileContains(t, codexRulesFile, "golangci-lint")

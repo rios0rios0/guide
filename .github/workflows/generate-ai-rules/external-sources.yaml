@@ -1,5 +1,5 @@
 # External sources for fetching agents and commands from other GitHub repositories.
-# The generate-ai-rules tool downloads these artifacts and includes them in the generated .ai/ directory.
+# The generate-ai-rules tool downloads these artifacts and includes them in the generated directory.
 
 sources:
   - repo: 'wshobson/agents'

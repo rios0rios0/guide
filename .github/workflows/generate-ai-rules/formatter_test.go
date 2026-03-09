@@ -119,7 +119,7 @@ func TestWriteClaude(t *testing.T) {
 			if err != nil {
 				t.Fatalf("writeClaude() error: %v", err)
 			}
-			path := filepath.Join(tmpDir, ".ai", "claude", "rules", tt.group.Name+".md")
+			path := filepath.Join(tmpDir, "claude", "rules", tt.group.Name+".md")
 			data, err := os.ReadFile(path)
 			if err != nil {
 				t.Fatalf("reading output file: %v", err)
@@ -171,7 +171,7 @@ func TestWriteCursor(t *testing.T) {
 			if err != nil {
 				t.Fatalf("writeCursor() error: %v", err)
 			}
-			path := filepath.Join(tmpDir, ".ai", "cursor", "rules", tt.group.Name+".mdc")
+			path := filepath.Join(tmpDir, "cursor", "rules", tt.group.Name+".mdc")
 			data, err := os.ReadFile(path)
 			if err != nil {
 				t.Fatalf("reading output file: %v", err)
@@ -255,7 +255,7 @@ func TestWriteCopilot(t *testing.T) {
 			if err != nil {
 				t.Fatalf("writeCopilot() error: %v", err)
 			}
-			path := filepath.Join(tmpDir, ".ai", "copilot", "instructions", tt.group.Name+".instructions.md")
+			path := filepath.Join(tmpDir, "copilot", "instructions", tt.group.Name+".instructions.md")
 			data, err := os.ReadFile(path)
 			if err != nil {
 				t.Fatalf("reading output file: %v", err)
@@ -286,7 +286,7 @@ func TestWriteCodex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("writeCodex() error: %v", err)
 	}
-	path := filepath.Join(tmpDir, ".ai", "codex", "AGENTS.md")
+	path := filepath.Join(tmpDir, "codex", "AGENTS.md")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("reading AGENTS.md: %v", err)
@@ -376,7 +376,7 @@ func TestWriteCodexRules(t *testing.T) {
 	if err != nil {
 		t.Fatalf("writeCodexRules() error: %v", err)
 	}
-	path := filepath.Join(tmpDir, ".ai", "codex", "rules", "default.rules")
+	path := filepath.Join(tmpDir, "codex", "rules", "default.rules")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("reading default.rules: %v", err)

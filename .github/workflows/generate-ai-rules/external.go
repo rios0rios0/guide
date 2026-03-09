@@ -118,7 +118,7 @@ func fetchArtifact(repo, branch string, artifact ExternalArtifact, outputDir, ar
 		return fmt.Errorf("fetching %s: %w", url, err)
 	}
 
-	dir := filepath.Join(outputDir, ".ai", "claude", artifactType)
+	dir := filepath.Join(outputDir, "claude", artifactType)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("creating directory %s: %w", dir, err)
 	}
