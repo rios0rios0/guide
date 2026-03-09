@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A documentation repository that serves as the single source of truth for software engineering standards. It contains 80+ Markdown files organized hierarchically and includes two Go-based automation tools that transform this documentation into GitHub Wiki pages and AI assistant rule files (for Claude Code, Cursor, and Codex).
+A documentation repository that serves as the single source of truth for software engineering standards. It contains 80+ Markdown files organized hierarchically and includes two Go-based automation tools that transform this documentation into GitHub Wiki pages and AI assistant rule files (for Claude Code, Cursor, Codex, and GitHub Copilot).
 
 ## Build, Test, and Validate
 
@@ -16,7 +16,7 @@ cd .github/workflows/update-wiki
 go build -o update-wiki ./...
 go test ./...
 
-# generate-ai-rules tool (Go 1.24.7) — generates .ai/ rule files from docs
+# generate-ai-rules tool (Go 1.24.7) — generates AI rule files from docs
 cd .github/workflows/generate-ai-rules
 go build -o generate-ai-rules ./...
 go test ./...
@@ -34,14 +34,14 @@ Build times are ~1 second each. Set timeouts to 60+ seconds for safety.
 ```
 Markdown files (source of truth)
   ├─→ update-wiki tool ─→ GitHub Wiki (flattened links, absolute image URLs)
-  ├─→ generate-ai-rules tool ─→ 'generated' branch (.ai/ directory)
+  ├─→ generate-ai-rules tool ─→ 'generated' branch (claude/, cursor/, codex/, copilot/)
   │   ├── Claude Code, Cursor, Codex, GitHub Copilot rule files
   │   ├── Static assets (agents, commands, skills) ─→ also copied to 'generated' branch
   │   └── External agents (fetched from external-sources.yaml) ─→ merged into agents/
   └─→ install-rules.sh ─→ downloads from 'generated' branch to ~/.claude/, ~/.cursor/, etc.
 ```
 
-The `.ai/` directory does **not** exist on `main`. It lives only on the `generated` branch, which is updated automatically by the `generate-ai-rules.yaml` workflow.
+The generated rule directories (`claude/`, `cursor/`, `codex/`, `copilot/`) do **not** exist on `main`. They live only on the `generated` branch, which is updated automatically by the `generate-ai-rules.yaml` workflow.
 
 ### Go Tools
 
@@ -58,7 +58,7 @@ Hand-written files that the workflow copies to the `generated` branch alongside 
 
 ### Generated Output (on `generated` branch)
 
-The `generated` branch contains the distributable `.ai/` directory:
+The `generated` branch contains the distributable rule files:
 - `claude/rules/` — 14 rule files (`.md`) — auto-generated from docs
 - `claude/commands/` — 5 slash commands — copied from static assets
 - `claude/agents/` — 6 static agents + external agents fetched from configured repos
@@ -86,7 +86,7 @@ Documentation files use hyphens (e.g., `Backend-Design.md`). Directories use `&`
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
 | `update-wiki.yml` | Push to `main`, manual | Syncs docs to GitHub Wiki |
-| `generate-ai-rules.yaml` | Push to `main` (doc paths), manual | Regenerates `.ai/` on `generated` branch |
+| `generate-ai-rules.yaml` | Push to `main` (doc paths), manual | Regenerates AI rules on `generated` branch |
 | `sync-docs.yaml` | PR with `.md` changes | Validates TOC sync |
 
 ## Install Script

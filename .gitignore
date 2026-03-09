@@ -3,7 +3,10 @@
 .github/workflows/generate-ai-rules/generate-ai-rules
 
 # Generated AI rule files (live on the 'generated' branch, not on main)
-.ai/
+claude/
+cursor/
+codex/
+copilot/
 
 # Build artifacts
 /tmp/

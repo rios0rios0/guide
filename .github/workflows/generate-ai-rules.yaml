@@ -52,14 +52,17 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
           # Save generated output and static assets
-          cp -r .ai /tmp/generated-ai
+          cp -r claude /tmp/generated-claude
+          cp -r cursor /tmp/generated-cursor
+          cp -r codex /tmp/generated-codex
+          cp -r copilot /tmp/generated-copilot
           cp -r $PROJECT_PATH/agents/ /tmp/generated-agents
           cp -r $PROJECT_PATH/commands/ /tmp/generated-commands
           cp -r $PROJECT_PATH/skills/ /tmp/generated-skills
           cp install-rules.sh /tmp/generated-install
 
           # Remove untracked generated files to avoid conflicts when switching branches
-          rm -rf .ai
+          rm -rf claude cursor codex copilot
 
           # Fetch the generated branch if it exists, or create it as orphan
           if git fetch origin generated 2>/dev/null; then
@@ -69,18 +72,29 @@ jobs:
             git rm -rf .
           fi
 
-          # Sync generated rules, static agents/commands/skills, and install script
-          rm -rf .ai
-          cp -r /tmp/generated-ai .ai
-          rm -rf .ai/claude/agents && cp -r /tmp/generated-agents .ai/claude/agents
-          # Merge external agents (fetched during generation) into the static agents directory
-          if [ -d /tmp/generated-ai/claude/agents ]; then
-            cp -r /tmp/generated-ai/claude/agents/* .ai/claude/agents/ 2>/dev/null || true
+          # One-time cleanup of legacy .ai/ directory
+          git rm -rf .ai 2>/dev/null || true
+
+          # Sync generated rules
+          rm -rf claude cursor codex copilot
+          cp -r /tmp/generated-claude claude
+          cp -r /tmp/generated-cursor cursor
+          cp -r /tmp/generated-codex codex
+          cp -r /tmp/generated-copilot copilot
+
+          # Replace static agents/commands/skills, then merge external agents
+          rm -rf claude/agents && cp -r /tmp/generated-agents claude/agents
+          if [ -d /tmp/generated-claude/agents ]; then
+            cp -r /tmp/generated-claude/agents/* claude/agents/ 2>/dev/null || true
           fi
-          rm -rf .ai/claude/commands && cp -r /tmp/generated-commands .ai/claude/commands
-          rm -rf .ai/cursor/skills && cp -r /tmp/generated-skills .ai/cursor/skills
+          rm -rf claude/commands && cp -r /tmp/generated-commands claude/commands
+          # Merge external commands (fetched during generation) into the static commands directory
+          if [ -d /tmp/generated-claude/commands ]; then
+            cp -r /tmp/generated-claude/commands/* claude/commands/ 2>/dev/null || true
+          fi
+          rm -rf cursor/skills && cp -r /tmp/generated-skills cursor/skills
           cp /tmp/generated-install install-rules.sh
-          git add .ai/ install-rules.sh
+          git add claude/ cursor/ codex/ copilot/ install-rules.sh
 
           # Commit and push (only if there are changes)
           git diff --cached --quiet || git commit -m "chore(ai-rules): regenerated AI rule files"

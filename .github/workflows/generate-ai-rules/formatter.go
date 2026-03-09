@@ -11,9 +11,9 @@ import (
 
 const codexMaxSize = 32 * 1024 // 32 KiB
 
-// writeClaude writes a rule file in Claude Code format to .ai/claude/rules/<name>.md.
+// writeClaude writes a rule file in Claude Code format to claude/rules/<name>.md.
 func writeClaude(outputDir string, group RuleGroup, content string) error {
-	dir := filepath.Join(outputDir, ".ai", "claude", "rules")
+	dir := filepath.Join(outputDir, "claude", "rules")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("creating directory %s: %w", dir, err)
 	}
@@ -36,9 +36,9 @@ func writeClaude(outputDir string, group RuleGroup, content string) error {
 	return nil
 }
 
-// writeCursor writes a rule file in Cursor format to .ai/cursor/rules/<name>.mdc.
+// writeCursor writes a rule file in Cursor format to cursor/rules/<name>.mdc.
 func writeCursor(outputDir string, group RuleGroup, content string) error {
-	dir := filepath.Join(outputDir, ".ai", "cursor", "rules")
+	dir := filepath.Join(outputDir, "cursor", "rules")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("creating directory %s: %w", dir, err)
 	}
@@ -82,7 +82,7 @@ func writeCodex(outputDir string, groups []RuleGroup, contents []string) error {
 		}).Warn("AGENTS.md size exceeds Codex limit")
 	}
 
-	dir := filepath.Join(outputDir, ".ai", "codex")
+	dir := filepath.Join(outputDir, "codex")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("creating directory %s: %w", dir, err)
 	}
@@ -175,9 +175,9 @@ func formatStarlarkList(items []string) string {
 	return "[" + strings.Join(quoted, ", ") + "]"
 }
 
-// writeCodexRules writes the Codex command execution policy file to .ai/codex/rules/default.rules.
+// writeCodexRules writes the Codex command execution policy file to codex/rules/default.rules.
 func writeCodexRules(outputDir string) error {
-	dir := filepath.Join(outputDir, ".ai", "codex", "rules")
+	dir := filepath.Join(outputDir, "codex", "rules")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("creating directory %s: %w", dir, err)
 	}
@@ -194,9 +194,9 @@ func writeCodexRules(outputDir string) error {
 	return nil
 }
 
-// writeCopilot writes a rule file in GitHub Copilot format to .ai/copilot/instructions/<name>.instructions.md.
+// writeCopilot writes a rule file in GitHub Copilot format to copilot/instructions/<name>.instructions.md.
 func writeCopilot(outputDir string, group RuleGroup, content string) error {
-	dir := filepath.Join(outputDir, ".ai", "copilot", "instructions")
+	dir := filepath.Join(outputDir, "copilot", "instructions")
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("creating directory %s: %w", dir, err)
 	}
