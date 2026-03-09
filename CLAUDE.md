@@ -35,7 +35,9 @@ Build times are ~1 second each. Set timeouts to 60+ seconds for safety.
 Markdown files (source of truth)
   ├─→ update-wiki tool ─→ GitHub Wiki (flattened links, absolute image URLs)
   ├─→ generate-ai-rules tool ─→ 'generated' branch (.ai/ directory)
-  │   Static assets (agents, commands, skills) ─→ also copied to 'generated' branch
+  │   ├── Claude Code, Cursor, Codex, GitHub Copilot rule files
+  │   ├── Static assets (agents, commands, skills) ─→ also copied to 'generated' branch
+  │   └── External agents (fetched from external-sources.yaml) ─→ merged into agents/
   └─→ install-rules.sh ─→ downloads from 'generated' branch to ~/.claude/, ~/.cursor/, etc.
 ```
 
@@ -44,7 +46,7 @@ The `.ai/` directory does **not** exist on `main`. It lives only on the `generat
 ### Go Tools
 
 - **`update-wiki`** (`.github/workflows/update-wiki/main.go`): Converts relative markdown links to Wiki-flat format and resolves image paths to GitHub raw content URLs.
-- **`generate-ai-rules`** (`.github/workflows/generate-ai-rules/`): Parses documentation, extracts sections, and formats them into AI-assistant-specific rule files. Has separate `config.go`, `parser.go`, and `formatter.go` modules with corresponding tests.
+- **`generate-ai-rules`** (`.github/workflows/generate-ai-rules/`): Parses documentation, extracts sections, and formats them into AI-assistant-specific rule files. Has separate `config.go`, `parser.go`, `formatter.go`, and `external.go` modules with corresponding tests. Supports fetching agents from external GitHub repos via `external-sources.yaml`.
 
 ### Static Assets (on `main`)
 
@@ -59,9 +61,10 @@ Hand-written files that the workflow copies to the `generated` branch alongside 
 The `generated` branch contains the distributable `.ai/` directory:
 - `claude/rules/` — 14 rule files (`.md`) — auto-generated from docs
 - `claude/commands/` — 5 slash commands — copied from static assets
-- `claude/agents/` — 6 agents — copied from static assets
+- `claude/agents/` — 6 static agents + external agents fetched from configured repos
 - `cursor/rules/` — 14 rule files (`.mdc`) — auto-generated from docs
 - `cursor/skills/` — 4 skills — copied from static assets
+- `copilot/instructions/` — 14 instruction files (`.instructions.md`) — auto-generated with `applyTo` frontmatter
 - `codex/` — `AGENTS.md` and `rules/default.rules` — auto-generated
 
 ## Critical Constraints

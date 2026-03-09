@@ -142,6 +142,18 @@ func TestEndToEnd(t *testing.T) {
 	assertFileExists(t, cursorGitFlow)
 	assertFileContains(t, cursorGitFlow, "alwaysApply: true")
 
+	// then - verify Copilot instructions under .ai/copilot/instructions/
+	copilotCodeStyle := filepath.Join(outputDir, ".ai", "copilot", "instructions", "code-style.instructions.md")
+	assertFileExists(t, copilotCodeStyle)
+	assertFileContains(t, copilotCodeStyle, "Naming conventions")
+	assertFileNotContains(t, copilotCodeStyle, "applyTo:")
+
+	copilotGitFlow := filepath.Join(outputDir, ".ai", "copilot", "instructions", "git-flow.instructions.md")
+	assertFileExists(t, copilotGitFlow)
+	assertFileContains(t, copilotGitFlow, "feature branches")
+	assertFileContains(t, copilotGitFlow, "Rebase before merge")
+	assertFileNotContains(t, copilotGitFlow, "## References")
+
 	// then - verify Codex AGENTS.md under .ai/codex/
 	agentsFile := filepath.Join(outputDir, ".ai", "codex", "AGENTS.md")
 	assertFileExists(t, agentsFile)
