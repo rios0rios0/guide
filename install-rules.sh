@@ -73,7 +73,7 @@ echo ""
 # Claude Code rules (.claude/rules/*.md)
 echo "Claude Code rules:"
 for name in $RULE_NAMES; do
-  download_file "${BASE_URL}/.ai/claude/rules/${name}.md" "${TARGET_DIR}/.claude/rules/${name}.md"
+  download_file "${BASE_URL}/claude/rules/${name}.md" "${TARGET_DIR}/.claude/rules/${name}.md"
 done
 echo ""
 
@@ -81,7 +81,7 @@ echo ""
 COMMAND_NAMES="scaffold-go-project scaffold-frontend-project scaffold-python-package fix-guardrails sync-repos"
 echo "Claude Code commands:"
 for name in $COMMAND_NAMES; do
-  download_file "${BASE_URL}/.ai/claude/commands/${name}.md" "${TARGET_DIR}/.claude/commands/${name}.md"
+  download_file "${BASE_URL}/claude/commands/${name}.md" "${TARGET_DIR}/.claude/commands/${name}.md"
 done
 echo ""
 
@@ -89,14 +89,14 @@ echo ""
 AGENT_NAMES="chezmoi changelog-enforcer code-reviewer git-workflow security-auditor bulk-operations documentation-writer tdd-coach cicd-engineer"
 echo "Claude Code agents:"
 for name in $AGENT_NAMES; do
-  download_file "${BASE_URL}/.ai/claude/agents/${name}.md" "${TARGET_DIR}/.claude/agents/${name}.md"
+  download_file "${BASE_URL}/claude/agents/${name}.md" "${TARGET_DIR}/.claude/agents/${name}.md"
 done
 echo ""
 
 # Cursor rules (.cursor/rules/*.mdc)
 echo "Cursor rules:"
 for name in $RULE_NAMES; do
-  download_file "${BASE_URL}/.ai/cursor/rules/${name}.mdc" "${TARGET_DIR}/.cursor/rules/${name}.mdc"
+  download_file "${BASE_URL}/cursor/rules/${name}.mdc" "${TARGET_DIR}/.cursor/rules/${name}.mdc"
 done
 echo ""
 
@@ -104,25 +104,25 @@ echo ""
 SKILL_NAMES="scaffold-go-project scaffold-frontend-project scaffold-python-package fix-guardrails"
 echo "Cursor skills:"
 for name in $SKILL_NAMES; do
-  download_file "${BASE_URL}/.ai/cursor/skills/${name}/SKILL.md" "${TARGET_DIR}/.cursor/skills/${name}/SKILL.md"
+  download_file "${BASE_URL}/cursor/skills/${name}/SKILL.md" "${TARGET_DIR}/.cursor/skills/${name}/SKILL.md"
 done
 echo ""
 
 # GitHub Copilot instructions (.github/instructions/*.instructions.md)
 echo "GitHub Copilot instructions:"
 for name in $RULE_NAMES; do
-  download_file "${BASE_URL}/.ai/copilot/instructions/${name}.instructions.md" "${TARGET_DIR}/.github/instructions/${name}.instructions.md"
+  download_file "${BASE_URL}/copilot/instructions/${name}.instructions.md" "${TARGET_DIR}/.github/instructions/${name}.instructions.md"
 done
 echo ""
 
 # Codex AGENTS.md
 echo "Codex instructions:"
-download_file "${BASE_URL}/.ai/codex/AGENTS.md" "${TARGET_DIR}/AGENTS.md"
+download_file "${BASE_URL}/codex/AGENTS.md" "${TARGET_DIR}/AGENTS.md"
 echo ""
 
 # Codex rules (.codex/rules/default.rules)
 echo "Codex rules:"
-download_file "${BASE_URL}/.ai/codex/rules/default.rules" "${TARGET_DIR}/.codex/rules/default.rules"
+download_file "${BASE_URL}/codex/rules/default.rules" "${TARGET_DIR}/.codex/rules/default.rules"
 echo ""
 
 echo "Done."

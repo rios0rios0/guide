@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added CHANGELOG.md following the Keep a Changelog standard
 
 ### Changed
+- removed `.ai/` prefix directory from the `generated` branch; rule files now live directly at `claude/`, `cursor/`, `codex/`, `copilot/`
 - moved generated `.ai/` directory from `main` branch to a dedicated `generated` branch to eliminate workflow conflicts
 - moved static assets (agents, commands, skills) to `.github/workflows/generate-ai-rules/` as source files on `main`
 - changed `install-rules.sh` to download from the `generated` branch instead of `main`
