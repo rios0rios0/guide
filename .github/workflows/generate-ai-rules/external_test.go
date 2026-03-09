@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -8,6 +9,17 @@ import (
 	"strings"
 	"testing"
 )
+
+// redirectTransport rewrites all requests to point at the given test server.
+type redirectTransport struct {
+	serverURL string
+}
+
+func (rt *redirectTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.URL.Scheme = "http"
+	req.URL.Host = strings.TrimPrefix(rt.serverURL, "http://")
+	return http.DefaultTransport.RoundTrip(req)
+}
 
 func TestLoadExternalConfig(t *testing.T) {
 	tests := []struct {
@@ -179,6 +191,68 @@ func TestHttpGetAllFail(t *testing.T) {
 	// then
 	if err == nil {
 		t.Fatal("expected error when all retries fail")
+	}
+}
+
+func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
+	// given
+	agentContent := "You are a test agent.\n"
+	commandContent := "You are a test command.\n"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/agents/foo.md"):
+			w.Write([]byte(agentContent))
+		case strings.HasSuffix(r.URL.Path, "/commands/bar.md"):
+			w.Write([]byte(commandContent))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	originalClient := httpClient
+	httpClient = &http.Client{Transport: &redirectTransport{serverURL: server.URL}}
+	defer func() { httpClient = originalClient }()
+
+	outputDir := t.TempDir()
+	configDir := t.TempDir()
+	configPath := filepath.Join(configDir, "config.yaml")
+	configContent := fmt.Sprintf(`sources:
+  - repo: 'test/repo'
+    branch: 'main'
+    agents:
+      - source: 'agents/foo.md'
+        target: 'foo-agent.md'
+    commands:
+      - source: 'commands/bar.md'
+        target: 'bar-command.md'
+`)
+	os.WriteFile(configPath, []byte(configContent), 0644)
+
+	// when
+	errorCount := fetchExternalSources(configPath, outputDir)
+
+	// then
+	if errorCount != 0 {
+		t.Errorf("expected 0 errors, got %d", errorCount)
+	}
+
+	agentPath := filepath.Join(outputDir, ".ai", "claude", "agents", "foo-agent.md")
+	data, err := os.ReadFile(agentPath)
+	if err != nil {
+		t.Fatalf("expected agent file at %s: %v", agentPath, err)
+	}
+	if string(data) != agentContent {
+		t.Errorf("agent content\n  got:  %q\n  want: %q", string(data), agentContent)
+	}
+
+	cmdPath := filepath.Join(outputDir, ".ai", "claude", "commands", "bar-command.md")
+	data, err = os.ReadFile(cmdPath)
+	if err != nil {
+		t.Fatalf("expected command file at %s: %v", cmdPath, err)
+	}
+	if string(data) != commandContent {
+		t.Errorf("command content\n  got:  %q\n  want: %q", string(data), commandContent)
 	}
 }
 
