@@ -5,10 +5,10 @@ sources:
   - repo: 'wshobson/agents'
     branch: 'main'
     agents:
-      - source: 'plugins/code-documentation/agents/documentation-writer.md'
-        target: 'documentation-writer.md'
-      - source: 'plugins/tdd-workflows/agents/tdd-coach.md'
-        target: 'tdd-coach.md'
-      - source: 'plugins/cicd-automation/agents/cicd-engineer.md'
-        target: 'cicd-engineer.md'
+      - source: 'plugins/code-documentation/agents/docs-architect.md'
+        target: 'docs-architect.md'
+      - source: 'plugins/tdd-workflows/agents/tdd-orchestrator.md'
+        target: 'tdd-orchestrator.md'
+      - source: 'plugins/cicd-automation/agents/devops-troubleshooter.md'
+        target: 'devops-troubleshooter.md'
     commands: []
