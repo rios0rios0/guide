@@ -44,7 +44,7 @@ Three workflows are defined under `.github/workflows/`:
 | File | Trigger | Purpose |
 |------|---------|---------|
 | `update-wiki.yml` | Push to `main`, manual dispatch | Syncs docs to GitHub Wiki |
-| `generate-ai-rules.yaml` | Push to `main` (docs paths), manual dispatch | Regenerates `.ai/` rule files |
+| `generate-ai-rules.yaml` | Push to `main` (docs paths), manual dispatch | Regenerates `.ai/` on `generated` branch |
 | `sync-docs.yaml` | Pull request (any `.md` change) | Validates TOC sync across README.md, Home.md, _Sidebar.md |
 
 **NEVER CANCEL**: Full workflow takes ~2-3 minutes including setup. Set timeout to 10+ minutes.
@@ -113,7 +113,7 @@ Always follow the `.editorconfig` settings:
 6. Always validate build process after changes
 
 ### Installing AI Rules
-Use `install-rules.sh` to distribute the generated AI rule files to a project or globally:
+Use `install-rules.sh` to distribute the generated AI rule files (downloaded from the `generated` branch) to a project or globally:
 ```bash
 # Install globally (into ~/.claude/, ~/.cursor/, ~/AGENTS.md, ~/.codex/)
 ./install-rules.sh
@@ -134,17 +134,16 @@ Use `install-rules.sh` to distribute the generated AI rule files to a project or
 ├── Onboarding.md                     # Developer onboarding guide
 ├── _Sidebar.md                       # GitHub Wiki sidebar navigation
 ├── _Footer.md                        # GitHub Wiki footer
-├── install-rules.sh                  # Script to install AI rules into projects
+├── install-rules.sh                  # Script to install AI rules from 'generated' branch
 ├── .editorconfig                     # Formatting standards
-├── .ai/                              # Generated AI assistant rule files
-│   ├── claude/rules/                 # Claude Code rules (*.md)
-│   ├── claude/commands/              # Claude Code slash commands (*.md)
-│   ├── cursor/rules/                 # Cursor rules (*.mdc)
-│   ├── cursor/skills/                # Cursor skills (SKILL.md per skill)
-│   └── codex/                        # Codex AGENTS.md and default.rules
 ├── .github/workflows/                # CI/CD automation
 │   ├── update-wiki.yml               # Syncs docs to GitHub Wiki (Go 1.26.0)
-│   ├── generate-ai-rules.yaml        # Generates .ai/ rule files (Go 1.24.7)
+│   ├── generate-ai-rules.yaml        # Generates .ai/ on 'generated' branch (Go 1.24.7)
+│   ├── generate-ai-rules/            # Go tool + static assets
+│   │   ├── agents/                   # Claude Code agent source files (6 agents)
+│   │   ├── commands/                 # Claude Code command source files (5 commands)
+│   │   ├── skills/                   # Cursor skill source files (4 skills)
+│   │   └── *.go                      # Go tool (config, parser, formatter)
 │   └── sync-docs.yaml                # Validates TOC sync on PRs
 ├── Agile-&-Culture/                  # Agile methodology guides
 │   └── PDCA.md                       # PDCA cycle methodology
@@ -170,7 +169,8 @@ Use `install-rules.sh` to distribute the generated AI rule files to a project or
 - **Code style references**: `Code-Style/<language>/` directories
 - **Setup guides**: `Cookbooks/Tools-&-Setup/`
 - **CI/CD information**: `Life-Cycle/CI-&-CD.md`
-- **AI rules**: `.ai/` directory (generated from docs by `generate-ai-rules`)
+- **AI rules**: `generated` branch (`.ai/` directory, auto-generated from docs)
+- **AI rule sources**: `.github/workflows/generate-ai-rules/agents/`, `commands/`, `skills/`
 
 ### Build System Details
 ```bash
@@ -208,7 +208,7 @@ bash .github/workflows/sync-docs/check-toc-sync.sh
 ### Repository Characteristics
 - **Type**: Documentation repository (not traditional software)
 - **Primary content**: 79+ Markdown files across 25+ directories
-- **Build output**: GitHub Wiki synchronization + `.ai/` rule files
+- **Build output**: GitHub Wiki synchronization + `.ai/` rule files (on `generated` branch)
 - **Dependencies**: Go 1.26.0 for update-wiki; Go 1.24.7 for generate-ai-rules
 - **Tests**: Both Go modules include test files (`*_test.go`)
 

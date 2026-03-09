@@ -13,7 +13,7 @@
 set -e
 
 REPO="rios0rios0/guide"
-BRANCH="main"
+BRANCH="generated"
 BASE_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
 
 RULE_NAMES="architecture bulk-operations ci-cd code-style design-patterns documentation git-flow golang java javascript python security testing yaml"
@@ -86,7 +86,7 @@ done
 echo ""
 
 # Claude Code agents (.claude/agents/*.md)
-AGENT_NAMES="chezmoi"
+AGENT_NAMES="chezmoi changelog-enforcer code-reviewer git-workflow security-auditor bulk-operations"
 echo "Claude Code agents:"
 for name in $AGENT_NAMES; do
   download_file "${BASE_URL}/.ai/claude/agents/${name}.md" "${TARGET_DIR}/.claude/agents/${name}.md"
