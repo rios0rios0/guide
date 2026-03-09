@@ -1,0 +1,145 @@
+---
+description: "Architecture principles and design patterns"
+alwaysApply: true
+---
+
+# Architecture
+
+> **TL;DR:** All applications follow **Clean Architecture** principles, separating business logic from infrastructure concerns. Dependencies always point inward toward the domain. Adhere to SOLID principles for maintainable, testable code.
+
+## Overview
+
+Modern application development is fundamentally a task of **managing dependencies**. Poor architectural design leads to rigid, fragile codebases that are costly to change. Since requirements evolve, libraries get deprecated, and external services change, the development team must actively maintain a clean dependency graph.
+
+|        Polluted Architecture        |       Clean Architecture        |
+|:---------------------------------------:|:-----------------------------------:|
+
+Clean Architecture enforces a clear separation of concerns where **business rules are independent of frameworks, databases, and delivery mechanisms**. The inner layers define policies; the outer layers implement mechanisms.
+
+## Sub-Pages
+
+---
+
+# Backend Design
+
+> **TL;DR:** Separate code into `domain` (contracts) and `infrastructure` (implementations). The five principal actors are Entities, Controllers, Commands, Services, and Repositories. Use Mappers to isolate layers and Dependency Injection to wire them together.
+
+## Architectural Foundations
+
+The backend architecture draws from three complementary patterns. All language-specific examples in the Code Style guides follow these patterns:
+
+- **[Hexagonal Architecture (Ports & Adapters)](https://alistaiccockburn.com/Hexagonal+architecture):** The `domain`/`infrastructure` split maps directly to the hexagonal model. The domain layer defines **ports** (interfaces for repositories, services) that represent what the application needs. The infrastructure layer provides **adapters** (implementations) that connect the application to databases, HTTP, message queues, and other external systems. Dependencies always point inward -- infrastructure depends on domain, never the reverse.
+
+- **[Domain-Driven Design (DDD)](https://www.domainlanguage.com/ddd/):** Entities encapsulate business logic and are free of framework dependencies. Repositories abstract persistence behind domain-defined contracts. Commands orchestrate domain operations. The ubiquitous language of the business domain drives naming conventions across all layers.
+
+- **[CQRS (Command Query Responsibility Segregation)](https://martinfowler.com/bliki/CQRS.html):** Write operations flow through Commands (which mutate state), while read operations flow through Controllers that query repositories directly or via services. This separation enables independent optimization of reads and writes.
+
+## Concepts
+
+### Rule Types
+
+1. **Domain rules (enterprise rules):** Internal business rules that are independent of external services and do not change when external systems change.
+2. **Application rules:** Rules that define how the application behaves based on the state of domain entities. They orchestrate domain rules.
+3. **Adapter rules:** Conversions and adaptations between external APIs, databases, and domain entity classes.
+
+### Principal Actors
+
+| Actor            | Responsibility                                                                                                    |
+|------------------|-------------------------------------------------------------------------------------------------------------------|
+| **Entities**     | Core business objects. Contain domain rules about what the modeled objects are and how they behave.               |
+| **Controllers**  | Bridge between the view (client) and the business layer. Receive requests and delegate to commands.               |
+| **Commands**     | Implement business/feature logic and apply domain rules.                                                          |
+| **Services**     | Handle application-level concerns: parsing, conversions, transformations.                                         |
+| **Repositories** | Abstract all data access. Changing the database technology requires modifying only the repository implementation. |
+
+## File Structure
+
+The structure scales with complexity. Below are three tiers, from simplest to most complete:
+
+### Minimal (3 layers)
+
+```
+domain/                   (contracts)
+  commands/                 business logic (no separate contract)
+  entities/
+  repositories/
+infrastructure/           (implementations)
+  repositories/             prefixed with tool name
+```
+
+### Intermediate (with Services)
+
+```
+domain/                   (contracts)
+  commands/
+  entities/
+  repositories/             contract used by services
+  services/                 contract used by commands
+infrastructure/           (implementations)
+  repositories/             prefixed with tool name
+  services/                 prefixed with tool name
+```
+
+### Complete (with API layer)
+
+```
+domain/                   (contracts)
+  commands/
+  entities/
+  repositories/             contract used by services
+  services/                 contract used by commands
+infrastructure/           (implementations)
+  controllers/
+    requests/
+    responses/
+    mappers/
+  repositories/             prefixed with tool name
+  services/                 prefixed with tool name
+    mappers/
+```
+
+## Architectural Flows
+
+### Request Flow
+
+Illustrates how an HTTP request from the browser traverses the application layers:
+
+### Mapping/Parsing Flow
+
+Demonstrates how Mappers isolate layers from each other, preventing hard coupling between frameworks or external tools:
+
+### Dependency Injection Flow
+
+Shows how DI wires contracts to their implementations at runtime:
+
+---
+
+# Frontend Design
+
+> **TL;DR:** The frontend follows a lightweight Clean Architecture with 5 layers: Domain, Service, Infrastructure, Presentation, and Main. Dependencies always point toward the Domain layer. The Main layer handles dependency injection.
+
+## Layers
+
+As a lightweight adaptation of Clean Architecture, the frontend is divided into five layers:
+
+| Layer              | Responsibility                                                                         |
+|--------------------|----------------------------------------------------------------------------------------|
+| **Domain**         | The most abstract layer. Defines Entities and Contracts for all other layers.          |
+| **Service**        | Provides communication with APIs and external services.                                |
+| **Infrastructure** | Implements technology-specific interfaces.                                             |
+| **Presentation**   | Contains all view-rendering code (components, pages, hooks).                           |
+| **Main**           | The "wiring" layer. Instantiates Providers and Services, handles Dependency Injection. |
+
+## Architecture Diagrams
+
+### Layer Dependencies
+
+### Applied to Feature Modules
+
+### Dependency Direction
+
+Dependencies always point toward the **Domain** layer, which is the most abstract and stable:
+
+## State Management
+
+Currently, state is managed locally within Presentation components. A dedicated State Layer may be introduced in the future as requirements evolve.
