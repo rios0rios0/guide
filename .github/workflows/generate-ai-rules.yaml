@@ -11,6 +11,7 @@ on:
       - 'Cookbooks/Mapper-Design-Pattern.md'
       - 'Cookbooks/Forking-Technique.md'
       - 'Cookbooks/Bulk-Operations.md'
+      - 'Cookbooks/AI-Assisted-Workflows.md'
       - '.github/workflows/generate-ai-rules/**'
       - '.github/workflows/generate-ai-rules.yaml'
   workflow_dispatch:
@@ -41,7 +42,9 @@ jobs:
           go build -o generate-ai-rules ./...
 
       - name: 'Generate AI Rule Files'
-        run: './${{ env.PROJECT_PATH }}/generate-ai-rules'
+        run: |
+          ./${{ env.PROJECT_PATH }}/generate-ai-rules \
+            -external-config ${{ env.PROJECT_PATH }}/external-sources.yaml
 
       - name: 'Publish Generated Files to generated branch'
         run: |
@@ -70,8 +73,16 @@ jobs:
           rm -rf .ai
           cp -r /tmp/generated-ai .ai
           rm -rf .ai/claude/agents && cp -r /tmp/generated-agents .ai/claude/agents
+          # Merge external agents (fetched during generation) into the static agents directory
+          if [ -d /tmp/generated-ai/.ai/claude/agents ]; then
+            cp -r /tmp/generated-ai/.ai/claude/agents/* .ai/claude/agents/ 2>/dev/null || true
+          fi
           rm -rf .ai/claude/commands && cp -r /tmp/generated-commands .ai/claude/commands
           rm -rf .ai/cursor/skills && cp -r /tmp/generated-skills .ai/cursor/skills
+          # Copy Copilot instructions
+          if [ -d /tmp/generated-ai/.ai/copilot ]; then
+            rm -rf .ai/copilot && cp -r /tmp/generated-ai/.ai/copilot .ai/copilot
+          fi
           cp /tmp/generated-install install-rules.sh
           git add .ai/ install-rules.sh
 

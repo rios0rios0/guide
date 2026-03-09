@@ -51,3 +51,4 @@
   - [Historical Repository Cleaner](Historical-Repository-Cleaner)
   - [Mapper Design Pattern](Mapper-Design-Pattern)
   - [Bulk Operations](Bulk-Operations)
+  - [AI-Assisted Workflows](AI-Assisted-Workflows)

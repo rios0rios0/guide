@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- added GitHub Copilot as a generation target with `.instructions.md` files using `applyTo` frontmatter
+- added AI-Assisted Workflows cookbook page documenting the RPI (Research, Plan, Implement, Review) methodology
+- added dynamic external agent fetch mechanism to pull agents from configured GitHub repositories via `external-sources.yaml`
 - added 5 new Claude Code agents: changelog-enforcer, code-reviewer, git-workflow, security-auditor, and bulk-operations
 - added CHANGELOG.md following the Keep a Changelog standard
 
