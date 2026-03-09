@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A documentation repository that serves as the single source of truth for software engineering standards. It contains 80+ Markdown files organized hierarchically and includes two Go-based automation tools that transform this documentation into GitHub Wiki pages and AI assistant rule files (for Claude Code, Cursor, and Codex).
+A documentation repository that serves as the single source of truth for software engineering standards. It contains 80+ Markdown files organized hierarchically and includes two Go-based automation tools that transform this documentation into GitHub Wiki pages and AI assistant rule files (for Claude Code, Cursor, Codex, and GitHub Copilot).
 
 ## Build, Test, and Validate
 
