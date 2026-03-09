@@ -106,6 +106,11 @@ func fetchExternalSources(configPath, outputDir string) int {
 
 // fetchArtifact downloads a single artifact from a GitHub repo and writes it to the output directory.
 func fetchArtifact(repo, branch string, artifact ExternalArtifact, outputDir, artifactType string) error {
+	target := filepath.Base(artifact.Target)
+	if target == "." || target == ".." || target != artifact.Target {
+		return fmt.Errorf("invalid artifact target %q: must be a plain filename without path separators", artifact.Target)
+	}
+
 	url := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s", repo, branch, artifact.Source)
 
 	body, err := httpGet(url)
@@ -118,7 +123,7 @@ func fetchArtifact(repo, branch string, artifact ExternalArtifact, outputDir, ar
 		return fmt.Errorf("creating directory %s: %w", dir, err)
 	}
 
-	path := filepath.Join(dir, artifact.Target)
+	path := filepath.Join(dir, target)
 	if err := os.WriteFile(path, body, 0644); err != nil {
 		return fmt.Errorf("writing %s: %w", path, err)
 	}
@@ -142,14 +147,16 @@ func httpGet(url string) ([]byte, error) {
 			lastErr = err
 			continue
 		}
-		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
 			lastErr = fmt.Errorf("HTTP %d for %s", resp.StatusCode, url)
 			continue
 		}
 
 		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		if err != nil {
 			lastErr = fmt.Errorf("reading response body: %w", err)
 			continue

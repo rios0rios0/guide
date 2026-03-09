@@ -201,12 +201,7 @@ func writeCopilot(outputDir string, group RuleGroup, content string) error {
 		return fmt.Errorf("creating directory %s: %w", dir, err)
 	}
 
-	var body string
-	if group.Globs != "" {
-		body = fmt.Sprintf("---\napplyTo: \"%s\"\n---\n\n%s", group.Globs, content)
-	} else {
-		body = content
-	}
+	body := formatCopilotFrontmatter(group.Globs) + content
 
 	path := filepath.Join(dir, group.Name+".instructions.md")
 	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
