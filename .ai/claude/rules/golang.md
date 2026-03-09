@@ -1,0 +1,1398 @@
+---
+paths:
+  - "**/*.go"
+---
+
+# Go
+
+> **TL;DR:** Use `snake_case` for file names, a short abbreviation of the type as the method receiver (e.g., `c` for `Client`), [Dig](https://github.com/uber-go/dig) for dependency injection, [golangci-lint](https://golangci-lint.run/) for linting, [Logrus](https://github.com/sirupsen/logrus) for logging, and [testify](https://github.com/stretchr/testify) for testing. Entities must be framework-agnostic.
+
+## Overview
+
+This series of pages outlines Go-specific conventions, with detailed explanations of recommended approaches and the reasoning behind them. For the general baseline, refer to the Code Style guide. See the sub-pages for specific topics:
+
+## Go Proverbs
+
+The [Go Proverbs](https://go-proverbs.github.io/) capture the language's design philosophy:
+
+- Don't communicate by sharing memory, share memory by communicating.
+- Concurrency is not parallelism.
+- The bigger the interface, the weaker the abstraction.
+- Make the zero value useful.
+- A little copying is better than a little dependency.
+- Clear is better than clever.
+- Errors are values.
+- Don't just check errors, handle them gracefully.
+
+---
+
+# Go Conventions
+
+> **TL;DR:** Use `snake_case` for file names, a short abbreviation of the type as the method receiver name (e.g., `c` for `Command`), and follow the strict naming patterns for Commands, Controllers, Repositories, and Mappers. Entities must be framework-agnostic. Use [Dig](https://github.com/uber-go/dig) for dependency injection.
+
+## Overview
+
+This document defines Go-specific naming conventions and component patterns. For the general baseline, refer to the Code Style guide. The architectural layers referenced here are defined in the Backend Design section.
+
+## File Naming
+
+All file names must use `snake_case`:
+
+```
+list_users_command.go     # Correct
+listUsersCommand.go       # Wrong
+ListUsersCommand.go       # Wrong
+```
+
+## General Conventions
+
+1. Use a **one or two letter abbreviation** of the type name as the method receiver (e.g., `c` for `Command`, `r` for `Repository`, `m` for `Mapper`). Do not use generic names like `self`, `this`, or `me` -- this follows the [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments#receiver-names) convention and is enforced by revive's `receiver-naming` rule. The receiver name must be **consistent** across all methods of the same type.
+2. Only attach a method to a struct when the method **needs to mutate** the struct's state.
+3. For an introduction to the DTO pattern, refer to [this article](https://www.baeldung.com/java-dto-pattern).
+
+## Entities
+
+Entities are the core of the application. All business logic related to properties and fields belongs inside the entity.
+
+**Entities must be free of any framework or external tool dependencies.** Do not use tags (e.g., `json`, `gorm`) inside entity structs.
+
+## Commands
+
+| Element     | Pattern                           | Example                                                                     |
+|-------------|-----------------------------------|-----------------------------------------------------------------------------|
+| File name   | `<operation>_<entity>_command.go` | `list_users_command.go`                                                     |
+| Struct name | `<Operation><Entity>Command`      | `ListUsersCommand`                                                          |
+| Method name | `Execute`                         | `func (c ListUsersCommand) Execute(listeners ListUsersCommandListeners)` |
+
+**Notes:**
+- Use plural entity names when the operation targets multiple entities.
+- Use the standard [operations vocabulary](../../Code-Style.md#operations-vocabulary).
+- Listeners must reflect all possible controller responses.
+
+## Controllers
+
+| Element     | Pattern                              | Example                                     |
+|-------------|--------------------------------------|---------------------------------------------|
+| File name   | `<operation>_<entity>_controller.go` | `list_users_controller.go`                  |
+| Struct name | `<Operation><Entity>Controller`      | `ListUsersController`                       |
+| Method name | `Execute`                            | `func (c ListUsersController) Execute()` |
+
+## Services
+
+This layer is **not used** in Go projects.
+
+## Repositories
+
+### Contract (Domain Layer)
+
+| Element        | Pattern                  | Example               |
+|----------------|--------------------------|-----------------------|
+| File name      | `<entity>_repository.go` | `users_repository.go` |
+| Interface name | `<Entity>Repository`     | `UsersRepository`     |
+
+### Implementation (Infrastructure Layer)
+
+| Element     | Pattern                            | Example                   |
+|-------------|------------------------------------|---------------------------|
+| File name   | `<library>_<entity>_repository.go` | `pgx_users_repository.go` |
+| Struct name | `<Library><Entity>Repository`      | `PgxUsersRepository`      |
+
+### Method Naming
+
+Methods follow a logical sequence: find one, find all, filter, check existence, save one, save all, delete.
+
+```go
+// Find a single entity by a specific field
+func (r UsersRepository) FindByTargetField(targetField any) entities.User
+
+// Find multiple entities by a specific field
+func (r UsersRepository) FindAllByTargetField(targetField any) []entities.User
+
+// Check existence (returns boolean)
+func (r UsersRepository) HasBooleanVerification(targetField any) bool
+
+// Persist a single entity
+func (r UsersRepository) Save(user entities.User)
+
+// Persist multiple entities
+func (r UsersRepository) SaveAll(users []entities.User)
+
+// Remove a single entity by a specific field
+func (r UsersRepository) DeleteByTargetField(targetField any)
+```
+
+**Notes:**
+- `TargetField` is a placeholder (e.g., `Id`, `Name`, `Email`).
+- `BooleanVerification` is a placeholder (e.g., `UserInGroup`, `UserPermission`).
+- Implementations use the same signatures but attach to the concrete struct (e.g., `PgxUsersRepository`).
+
+## Mappers
+
+### Repository Mappers
+
+| Element     | Pattern              | Example          |
+|-------------|----------------------|------------------|
+| File name   | `<entity>_mapper.go` | `user_mapper.go` |
+| Struct name | `<Entity>Mapper`     | `UserMapper`     |
+
+```go
+// Infrastructure DTO -> Domain Entity
+func (m UserMapper) MapToEntity(infra any) entities.User
+func (m UserMapper) MapToEntities(infra []any) []entities.User
+
+// Domain Entity -> Infrastructure DTO
+func (m UserMapper) MapToExternal(user entities.User) models.External
+func (m UserMapper) MapToExternals(users []entities.User) []models.External
+```
+
+### Controller Mappers
+
+| Element              | Pattern                                   | Example                          |
+|----------------------|-------------------------------------------|----------------------------------|
+| File name (request)  | `<operation>_<entity>_request_mapper.go`  | `insert_user_request_mapper.go`  |
+| File name (response) | `<operation>_<entity>_response_mapper.go` | `insert_user_response_mapper.go` |
+
+```go
+// Request -> Entity (no inverse mapping)
+func (m InsertUserRequestMapper) MapToEntity(request InsertUserRequest) entities.User
+func (m InsertUserRequestMapper) MapToEntities(requests []InsertUserRequest) []entities.User
+
+// Entity -> Response (no inverse mapping)
+func (m InsertUserResponseMapper) MapToResponse(user entities.User) responses.InsertUserResponse
+func (m InsertUserResponseMapper) MapToResponses(users []entities.User) []responses.InsertUserResponse
+```
+
+**Important:** Do not use `json` tags outside the infrastructure layer. Tags are restricted to request and response DTOs.
+
+## Models
+
+Models reside exclusively in the infrastructure layer and represent DTOs for external data sources (databases, APIs, queues, etc.). They resemble entities but are **not** entities.
+
+Each model is prefixed with the name of the external tool it communicates with:
+
+| Example       | Source             |
+|---------------|--------------------|n| `AwsFile`     | AWS S3             |
+| `ApiDocument` | External API       |
+| `PgxUser`     | PostgreSQL via pgx |
+
+## Dependency Injection
+
+Use [Uber Dig](https://github.com/uber-go/dig) for runtime dependency injection via constructor injection. Dig resolves dependencies automatically by matching types from registered provider functions, requiring no code generation or manual wiring.
+
+### Container File Convention
+
+Each architectural layer must have a `container.go` file that registers its own providers. A top-level orchestrator calls each layer's registration function in dependency order.
+
+| File                                                | Purpose                                      |
+|-----------------------------------------------------|----------------------------------------------|
+| `cmd/<app>/dig.go`                                  | Creates the container and invokes root types |
+| `internal/container.go`                             | Orchestrates registration across all layers  |
+| `internal/domain/entities/container.go`             | Registers entity providers (or no-op)        |
+| `internal/domain/commands/container.go`             | Registers command providers (or no-op)       |
+| `internal/infrastructure/controllers/container.go`  | Registers controller providers               |
+| `internal/infrastructure/repositories/container.go` | Registers repository providers               |
+
+### Orchestrator Pattern
+
+The top-level orchestrator registers providers in bottom-up dependency order:
+
+```go
+package internal
+
+import "go.uber.org/dig"
+
+func RegisterProviders(container *dig.Container) error {
+    if err := repositories.RegisterProviders(container); err != nil {
+        return err
+    }
+    if err := entities.RegisterProviders(container); err != nil {
+        return err
+    }
+    if err := commands.RegisterProviders(container); err != nil {
+        return err
+    }
+    if err := controllers.RegisterProviders(container); err != nil {
+        return err
+    }
+    if err := container.Provide(NewAppInternal); err != nil {
+        return err
+    }
+    return nil
+}
+```
+
+### Layer Registration
+
+Each layer registers its constructors. Dig resolves dependencies by matching constructor parameter types to previously registered providers:
+
+```go
+package controllers
+
+import "go.uber.org/dig"
+
+func RegisterProviders(container *dig.Container) error {
+    if err := container.Provide(NewListUsersController); err != nil {
+        return err
+    }
+    if err := container.Provide(NewDeleteUserController); err != nil {
+        return err
+    }
+    return nil
+}
+```
+
+For layers with no providers, maintain the function as a no-op for architectural consistency:
+
+```go
+package commands
+
+import "go.uber.org/dig"
+
+func RegisterProviders(_ *dig.Container) error {
+    return nil
+}
+```
+
+### Injection Functions
+
+Create injection functions in `cmd/<app>/dig.go` that build the container and invoke the desired root type:
+
+```go
+package main
+
+import (
+    "go.uber.org/dig"
+    "myapp/internal"
+    "myapp/internal/infrastructure/controllers"
+)
+
+func injectController() *controllers.ListUsersController {
+    container := dig.New()
+    if err := internal.RegisterProviders(container); err != nil {
+        panic(err)
+    }
+
+    var controller *controllers.ListUsersController
+    if err := container.Invoke(func(c *controllers.ListUsersController) {
+        controller = c
+    }); err != nil {
+        panic(err)
+    }
+    return controller
+}
+```
+
+### Anonymous Providers for Complex Initialization
+
+When a provider requires post-construction setup (e.g., registering adapters), use an anonymous function:
+
+```go
+if err := container.Provide(func() *ServiceRegistry {
+    registry := NewServiceRegistry()
+    registry.Register("github", github.NewAdapter())
+    registry.Register("gitlab", gitlab.NewAdapter())
+    return registry
+}); err != nil {
+    return err
+}
+```
+
+### Type Aggregation
+
+Collect multiple concrete types into a slice for bulk injection:
+
+```go
+func NewControllers(
+    listController *ListUsersController,
+    deleteController *DeleteUserController,
+) *[]entities.Controller {
+    return &[]entities.Controller{
+        listController,
+        deleteController,
+    }
+}
+```
+
+---
+
+# Go Formatting and Linting
+
+> **TL;DR:** Use **gofmt** (built-in) for code formatting, **goimports** for import ordering, and **golangci-lint** as the linter aggregator. These tools are non-negotiable and must be integrated into every project's CI pipeline.
+
+## Overview
+
+Go's toolchain includes a built-in formatter (`gofmt`) that eliminates all debates about code style. Combined with `goimports` for import management and `golangci-lint` for static analysis, this toolchain ensures consistent, high-quality code across all projects.
+
+## Formatter: gofmt
+
+`gofmt` is Go's official code formatter. It ships with the Go toolchain and produces a single canonical formatting for any Go source file. There are no configuration options -- this is by design.
+
+```bash
+# Format a single file
+gofmt -w main.go
+
+# Format all files in the current module
+gofmt -w .
+```
+
+**Do not use alternative formatters.** `gofmt` is the universal standard in the Go ecosystem, and all Go code must be formatted with it.
+
+## Import Ordering: goimports
+
+[goimports](https://pkg.go.dev/golang.org/x/tools/cmd/goimports) extends `gofmt` by automatically managing import statements -- adding missing imports, removing unused ones, and grouping them into sections:
+
+1. Standard library
+2. Third-party packages
+3. Application packages
+
+```bash
+# Install
+go install golang.org/x/tools/cmd/goimports@latest
+
+# Run
+goimports -w .
+```
+
+Example output:
+
+```go
+import (
+	"context"
+	"fmt"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+
+	"myapp/domain/commands"
+	"myapp/infrastructure/controllers"
+)
+```
+
+## Linter: golangci-lint
+
+[golangci-lint](https://golangci-lint.run/) aggregates dozens of Go linters into a single tool. It is fast, configurable, and must be used in all projects.
+
+### Installation
+
+```bash
+# Binary installation (recommended for CI)
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+
+# Or via go install
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+```
+
+### Usage
+
+```bash
+# Run all enabled linters
+golangci-lint run
+
+# Run on specific directories
+golangci-lint run ./domain/... ./infrastructure/...
+```
+
+### Configuration
+
+Place a `.golangci.yml` file in the project root. A recommended baseline configuration:
+
+```yaml
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - misspell
+    - gocyclo
+    - revive
+    - gocritic
+    - nakedret
+    - prealloc
+
+linters-settings:
+  gocyclo:
+    min-complexity: 15
+  revive:
+    rules:
+      - name: unexported-return
+        disabled: true
+      - name: receiver-naming
+
+issues:
+  exclude-use-default: false
+```
+
+## Editor Configuration
+
+### Visual Studio Code
+
+Install the [Go extension](https://marketplace.visualstudio.com/items?itemName=golang.go) and add the following settings:
+
+```json
+{
+    "go.formatTool": "goimports",
+    "go.lintTool": "golangci-lint",
+    "go.lintOnSave": "package",
+    "[go]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    }
+}
+```
+
+### NeoVim
+
+Use [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) with `gopls` and configure format-on-save:
+
+```lua
+require("lspconfig").gopls.setup({
+    settings = {
+        gopls = {
+            gofumpt = true,
+            analyses = {
+                unusedparams = true,
+                shadow = true,
+            },
+            staticcheck = true,
+        },
+    },
+})
+```
+
+---
+
+# Go Type System
+
+> **TL;DR:** Go is statically typed -- the compiler enforces type safety at build time. Design small interfaces, accept interfaces and return structs, and use generics (Go 1.18+) only when they reduce duplication without sacrificing readability.
+
+## Overview
+
+Go's type system is static and checked at compile time, so explicit type annotations on variables are rarely needed (the compiler infers them via `:=`). This page focuses on the patterns and principles that maximize type safety and code clarity in Go projects.
+
+## Interface Design
+
+### Accept Interfaces, Return Structs
+
+Functions should accept interfaces as parameters and return concrete structs. This keeps the caller flexible while keeping the implementation explicit:
+
+```go
+// Correct -- accepts an interface
+func ProcessItems(repo domain.ItemsRepository) error {
+    items, err := repo.FindAll()
+    // ...
+}
+
+// Wrong -- accepts a concrete type, limiting testability
+func ProcessItems(repo *repositories.PgxItemsRepository) error {
+    items, err := repo.FindAll()
+    // ...
+}
+```
+
+### Small Interfaces
+
+The bigger the interface, the weaker the abstraction. Define interfaces with only the methods the consumer needs:
+
+```go
+// Correct -- small, focused interface
+type ItemReader interface {
+    FindByID(ctx context.Context, id int64) (*entities.Item, error)
+}
+
+// Avoid -- large interface that forces implementors to define unused methods
+type ItemRepository interface {
+    FindByID(ctx context.Context, id int64) (*entities.Item, error)
+    FindAll(ctx context.Context) ([]entities.Item, error)
+    Save(ctx context.Context, item *entities.Item) error
+    Delete(ctx context.Context, id int64) error
+    // ... many more methods
+}
+```
+
+When the full interface is needed (e.g., in the domain layer contract), keep it. But when a function only reads items, accept `ItemReader` instead of the full `ItemRepository`.
+
+### Interface Placement
+
+Interfaces belong in the package that **uses** them, not the package that implements them. In the project's architecture, domain-layer interfaces are defined in `domain/repositories/` and implemented in `infrastructure/repositories/`.
+
+## Generics (Go 1.18+)
+
+Use generics when they eliminate genuine code duplication across multiple types. Do not use generics for single-type operations or when an interface would be clearer.
+
+### When to Use
+
+```go
+// Correct -- generic function that works across multiple slice types
+func Contains[T comparable](slice []T, target T) bool {
+    for _, item := range slice {
+        if item == target {
+            return true
+        }
+    }
+    return false
+}
+```
+
+### When Not to Use
+
+```go
+// Unnecessary -- only works with one type, a regular function is clearer
+func FindUserByID[T entities.User](users []T, id int64) *T { ... }
+
+// Better
+func FindUserByID(users []entities.User, id int64) *entities.User { ... }
+```
+
+## Type Assertions and Type Switches
+
+Prefer type switches over chains of type assertions:
+
+```go
+// Correct -- type switch
+switch v := value.(type) {
+case string:
+    logger.Info(v)
+case int:
+    logger.Info(strconv.Itoa(v))
+default:
+    logger.Warn("unexpected type")
+}
+
+// Avoid -- chained assertions
+if s, ok := value.(string); ok {
+    logger.Info(s)
+} else if i, ok := value.(int); ok {
+    logger.Info(strconv.Itoa(i))
+}
+```
+
+## Prohibited Patterns
+
+```go
+// Wrong -- empty interface as a catch-all parameter
+func Process(data interface{}) { ... }
+func Process(data any) { ... }
+```
+
+Using `any` (`interface{}`) as a function parameter defeats the purpose of static typing. Define a proper interface or use generics with type constraints instead.
+
+---
+
+# Go Logging
+
+> **TL;DR:** Use **[Logrus](https://github.com/sirupsen/logrus)** for all logging. Do not use Go's standard `log` package or `fmt.Println` for application logging. Always import with the alias `logger`. Use structured logging with `WithFields()` instead of string interpolation.
+
+## Overview
+
+Consistent, structured logging is essential for production observability. This page defines the mandatory logging library and patterns for all Go projects.
+
+## Mandatory Library: Logrus
+
+**Use [Logrus](https://github.com/sirupsen/logrus) for all logging.** Logrus provides structured logging, consistent log levels, JSON output support, and field-based contextual logging -- all of which are essential for production observability.
+
+### Installation
+
+```bash
+go get github.com/sirupsen/logrus
+```
+
+**Important:** Always use the lowercase import path `github.com/sirupsen/logrus` (not the uppercase variant).
+
+### Import Convention
+
+Always import Logrus with the alias `logger` to keep usage concise and consistent across the codebase:
+
+```go
+import logger "github.com/sirupsen/logrus"
+```
+
+### Usage
+
+```go
+import logger "github.com/sirupsen/logrus"
+
+func main() {
+    logger.Info("application started")
+    logger.WithFields(logger.Fields{
+        "user_id": 42,
+        "action":  "login",
+    }).Info("user authenticated")
+}
+```
+
+## Log Levels
+
+| Level | Method           | When to Use                                                         |
+|-------|------------------|---------------------------------------------------------------------|
+| Trace | `logger.Trace()` | Very fine-grained diagnostic information                            |
+| Debug | `logger.Debug()` | Diagnostic information useful during development                    |
+| Info  | `logger.Info()`  | General operational events (application started, request processed) |
+| Warn  | `logger.Warn()`  | Potential issues that do not prevent operation                      |
+| Error | `logger.Error()` | Errors that prevent a specific operation but not the application    |
+| Fatal | `logger.Fatal()` | Critical errors that require immediate application shutdown         |
+| Panic | `logger.Panic()` | Critical errors that should panic after logging                     |
+
+## Structured Logging
+
+Always use `WithFields` to attach contextual data to log entries rather than interpolating values into the message string:
+
+```go
+// Correct -- structured fields
+logger.WithFields(logger.Fields{
+    "request_id": requestID,
+    "status":     statusCode,
+}).Info("request completed")
+
+// Wrong -- string interpolation
+logger.Infof("request %s completed with status %d", requestID, statusCode)
+```
+
+## Prohibited Patterns
+
+```go
+// Wrong -- standard library logger
+import "log"
+log.Println("something happened")
+
+// Wrong -- fmt for application logging
+fmt.Println("something happened")
+
+// Wrong -- uppercase import path
+import "github.com/Sirupsen/logrus"
+```
+
+---
+
+# Go Testing Conventions
+
+> **TL;DR:** Use build flags (`//go:build unit` or `//go:build integration`) on every test file. Place test files next to production code with the `_test.go` suffix. Use `stretchr/testify` for suites and assertions. Test packages must be **external** to the production package. All tests must follow the BDD pattern with `// given`, `// when`, `// then` comment blocks. Unit tests must run in **parallel** using `t.Parallel()` + `t.Run()`. Integration tests use **suites** with setup/teardown and are NOT parallel.
+
+## Overview
+
+Go discovers test files automatically by scanning for files ending in `_test.go`. This document defines the conventions for organizing and writing tests across all Go projects.
+
+## File Structure
+
+```
+main/
+  domain/
+  infrastructure/
+    repositories/
+      sqlx_items_repository.go
+      sqlx_items_repository_test.go       <-- placed next to production file
+test/
+  domain/
+    builders/                              <-- test data builders
+    doubles/
+      repositories/                        <-- stubs, dummies, fakes
+    helpers/
+  infrastructure/
+    doubles/
+      repositories/
+```
+
+## General Conventions
+
+1. **Build flags are mandatory.** Every test file must start with a build flag specifying the test type:
+   ```go
+   //go:build unit
+   ```
+   ```go
+   //go:build integration
+   ```
+2. **External test packages.** The test package must be outside the production code package. For example, if the production code is in `package commands`, the test file must use `package commands_test`.
+3. **Testing framework.** Use [`stretchr/testify`](https://github.com/stretchr/testify) for test suites and assertions.
+4. **File naming.** Test files use the `_test` suffix (e.g., `sqlx_items_repository_test.go`).
+5. **File placement.** Test files are placed next to the corresponding production file.
+6. **BDD structure.** Every test must use `// given`, `// when`, `// then` comment blocks to separate preconditions, actions, and assertions.
+7. **Parallel unit tests.** All unit tests must call `t.Parallel()` and use `t.Run()` sub-tests. All sub-tests within a function execute in parallel.
+8. **Sequential integration tests.** Integration tests use `suite.Suite` with setup/teardown and must NOT be parallel, as they share database state.
+
+## Unit Tests (Parallel with `t.Run`)
+
+Unit tests must be structured for **parallel execution**. Each top-level test function calls `t.Parallel()`, and each scenario is a `t.Run()` sub-test. All sub-tests within the same function run concurrently.
+
+### Command Tests
+
+```go
+package commands_test
+
+import (
+	"context"
+	"errors"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"myapp/domain/commands"
+	"myapp/test/domain/doubles"
+	domainErrors "myapp/domain/errors"
+)
+
+func TestDeleteItemCommand(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should call OnSuccess when the item is deleted", func(t *testing.T) {
+		// given
+		repository := doubles.NewItemRepositoryStub()
+		command := commands.NewDeleteItemCommand(repository)
+		onSuccessCalled := false
+
+		// when
+		listeners := commands.DeleteItemListeners{
+			OnSuccess: func() {
+				onSuccessCalled = true
+			},
+		}
+		command.Execute(context.TODO(), 1, listeners)
+
+		// then
+		assert.True(t, onSuccessCalled, "OnSuccess should have been called")
+	})
+
+	t.Run("should call OnNotFound when the item is not found", func(t *testing.T) {
+		// given
+		repository := doubles.NewItemRepositoryStub().WithOnError(domainErrors.ErrRecordNotFound)
+		command := commands.NewDeleteItemCommand(repository)
+		onNotFoundCalled := false
+
+		// when
+		listeners := commands.DeleteItemListeners{
+			OnNotFound: func() {
+				onNotFoundCalled = true
+			},
+		}
+		command.Execute(context.TODO(), 1, listeners)
+
+		// then
+		require.True(t, onNotFoundCalled, "OnNotFound should have been called")
+	})
+
+	t.Run("should call OnError when there is an error processing the delete", func(t *testing.T) {
+		// given
+		dbProcessErr := errors.New("test error")
+		repository := doubles.NewItemRepositoryStub().WithOnError(dbProcessErr)
+		command := commands.NewDeleteItemCommand(repository)
+
+		// when & then
+		listeners := commands.DeleteItemListeners{
+			OnError: func(err error) {
+				assert.Error(t, err)
+			},
+		}
+		command.Execute(context.TODO(), 1, listeners)
+	})
+}
+```
+
+**Key points:**
+- `t.Parallel()` is called at the top of `TestDeleteItemCommand`, enabling all `t.Run()` sub-tests to execute concurrently.
+- Each sub-test is self-contained -- it creates its own doubles, command, and listeners.
+- Listeners pattern reflects all possible controller responses: `OnSuccess`, `OnNotFound`, `OnError`.
+
+### Controller Tests
+
+```go
+package controllers_test
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"myapp/infrastructure/controllers"
+	"myapp/test/domain/doubles"
+)
+
+func TestListItemsController(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should respond 200 (OK) when items are listed successfully", func(t *testing.T) {
+		// given
+		command := doubles.NewListItemsCommandStub()
+		ctrl := controllers.NewListItemsController(command)
+
+		// when
+		req, _ := http.NewRequest("GET", "/items", nil)
+		w := httptest.NewRecorder()
+		ctrl.Execute(w, req)
+
+		// then
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("should respond 500 (Internal Server Error) when command fails", func(t *testing.T) {
+		// given
+		command := doubles.NewListItemsCommandStub().WithOnError()
+		ctrl := controllers.NewListItemsController(command)
+
+		// when
+		req, _ := http.NewRequest("GET", "/items", nil)
+		w := httptest.NewRecorder()
+		ctrl.Execute(w, req)
+
+		// then
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
+}
+```
+
+## Service Tests
+
+This layer is **not used** in Go projects.
+
+## Integration Tests (Suite with Setup/Teardown)
+
+Integration tests use `suite.Suite` because they require shared infrastructure (databases, external services). They are **NOT parallel** due to shared mutable state. Use `SetupSuite`, `SetupTest`, and `TearDownTest` to manage the lifecycle.
+
+Group sub-tests by outcome or feature using `suite.Run()`.
+
+### Repository Tests
+
+```go
+package repositories_test
+
+import (
+	"context"
+	"testing"
+
+	"github.com/brianvoe/gofakeit/v7"
+	"github.com/stretchr/testify/suite"
+
+	"myapp/domain"
+	"myapp/domain/entities"
+	domainErrors "myapp/domain/errors"
+	"myapp/infrastructure/repositories"
+	"myapp/test/domain/builders"
+	dbTest "myapp/test/infrastructure/helpers"
+)
+
+type ItemsRepositorySuite struct {
+	dbTest.DatabaseSuite
+}
+
+func (s *ItemsRepositorySuite) getSeeders() []dbTest.TableSeed {
+	return []dbTest.TableSeed{
+		{
+			MigrationFileRelativePathFromRoot: "db/seeders/test/items/item.sql",
+			TableName:                         "items",
+		},
+	}
+}
+
+func (s *ItemsRepositorySuite) SetupSuite() {
+	s.SetupDatabase()
+}
+
+func (s *ItemsRepositorySuite) SetupTest() {
+	s.RunSeeders(s.DB, s.getSeeders())
+}
+
+func (s *ItemsRepositorySuite) TearDownTest() {
+	sqlResp := s.DB.MustExec("DELETE FROM items")
+	rows, err := sqlResp.RowsAffected()
+	s.Require().NoError(err)
+	s.Require().Positive(rows)
+}
+
+func (s *ItemsRepositorySuite) createItem() entities.Item {
+	return builders.NewItemBuilder().
+		WithID(0).
+		WithExternalID(gofakeit.UUID()).
+		WithPayload().
+		Build()
+}
+
+func (s *ItemsRepositorySuite) getRandomID() int64 {
+	var randomID int64
+	query := "SELECT id FROM items LIMIT 1"
+	err := s.DB.Get(&randomID, query)
+	s.Require().NoError(err, "failed to get random row")
+	return randomID
+}
+
+func (s *ItemsRepositorySuite) newRepository() *repositories.SQLXItemsRepository {
+	return repositories.NewSQLXItemsRepository(s.DB)
+}
+
+func (s *ItemsRepositorySuite) newContext() context.Context {
+	return context.Background()
+}
+
+func (s *ItemsRepositorySuite) newPagination(page, size int) domain.Pagination {
+	return builders.NewPaginationBuilder().
+		WithPage(page).
+		WithSize(size).
+		Build()
+}
+
+func (s *ItemsRepositorySuite) defaultPagination() domain.Pagination {
+	return s.newPagination(1, 100)
+}
+
+func (s *ItemsRepositorySuite) newListParameters(
+	pagination domain.Pagination,
+	filters map[string]any,
+	sorting []domain.SortField,
+) domain.ListParameters {
+	if filters == nil {
+		filters = make(map[string]any)
+	}
+	if sorting == nil {
+		sorting = []domain.SortField{}
+	}
+	return domain.ListParameters{
+		Pagination: pagination,
+		Filters:    filters,
+		Sorting:    sorting,
+	}
+}
+
+// --- Success Cases ---
+
+func (s *ItemsRepositorySuite) TestItemsSuccess() {
+	s.Run("should save a new item successfully", func() {
+		// given
+		item := s.createItem()
+		repository := s.newRepository()
+		ctx := s.newContext()
+
+		// when
+		created, err := repository.Save(ctx, &item)
+
+		// then
+		s.Require().NoError(err)
+		s.Require().Positive(created.ID)
+	})
+
+	s.Run("should list all items successfully", func() {
+		// given
+		params := s.newListParameters(s.defaultPagination(), nil, nil)
+		repository := s.newRepository()
+		ctx := s.newContext()
+
+		// when
+		list, err := repository.ListAll(ctx, params)
+
+		// then
+		s.Greater(len(list.GetContent()), 1)
+		s.NoError(err)
+	})
+
+	s.Run("should delete an item successfully", func() {
+		// given
+		itemID := s.getRandomID()
+		repository := s.newRepository()
+		ctx := s.newContext()
+
+		// when
+		err := repository.Delete(ctx, itemID)
+
+		// then
+		s.NoError(err)
+	})
+
+	s.Run("should get the target item by ID successfully", func() {
+		// given
+		itemID := s.getRandomID()
+		repository := s.newRepository()
+		ctx := s.newContext()
+
+		// when
+		item, err := repository.GetByID(ctx, itemID)
+
+		// then
+		s.Require().NoError(err)
+		s.Require().NotNil(item)
+		s.Require().Equal(item.ID, itemID)
+	})
+
+	s.Run("should update an item successfully", func() {
+		// given
+		itemID := s.getRandomID()
+		repository := s.newRepository()
+		ctx := s.newContext()
+
+		existingItem, err := repository.GetByID(ctx, itemID)
+		s.Require().NoError(err)
+
+		originalTitle := existingItem.Title
+		existingItem.Title = gofakeit.Word() + "_updated"
+
+		// when
+		updated, err := repository.Update(ctx, existingItem)
+
+		// then
+		s.Require().NoError(err)
+		s.Equal(existingItem.ID, updated.ID)
+		s.NotEqual(originalTitle, updated.Title)
+	})
+}
+
+// --- Error Cases ---
+
+func (s *ItemsRepositorySuite) TestItemsError() {
+	s.Run("should return an error when saving with invalid data", func() {
+		// given
+		item := builders.NewItemBuilder().WithPayload().Build()
+		item.ExternalID = "" // invalid
+		repository := s.newRepository()
+
+		// when
+		_, err := repository.Save(s.newContext(), &item)
+
+		// then
+		s.Error(err)
+	})
+
+	s.Run("should return an error when listing with invalid pagination", func() {
+		// given
+		pagination := s.newPagination(-1, -1)
+		params := s.newListParameters(pagination, nil, nil)
+		repository := s.newRepository()
+		ctx := s.newContext()
+
+		// when
+		list, err := repository.ListAll(ctx, params)
+
+		// then
+		s.Require().Error(err)
+		s.Require().Nil(list)
+	})
+
+	s.Run("should return an error when deleting a non-existent item", func() {
+		// given
+		repository := s.newRepository()
+
+		// when
+		err := repository.Delete(s.newContext(), -9)
+
+		// then
+		s.Error(err)
+	})
+
+	s.Run("should return an error when getting an item that does not exist", func() {
+		// given
+		const itemID int64 = 99999
+		repository := s.newRepository()
+		ctx := s.newContext()
+
+		// when
+		item, err := repository.GetByID(ctx, itemID)
+
+		// then
+		s.Require().Error(err)
+		s.Require().Nil(item)
+	})
+
+	s.Run("should return an error when updating a non-existent item", func() {
+		// given
+		const nonExistentID int64 = 99999
+		item := s.createItem()
+		item.ID = nonExistentID
+		repository := s.newRepository()
+		ctx := s.newContext()
+
+		// when
+		_, err := repository.Update(ctx, &item)
+
+		// then
+		s.Require().Error(err)
+		s.Require().ErrorIs(err, domainErrors.ErrRecordNotFound)
+	})
+}
+
+// --- Filter Cases ---
+
+func (s *ItemsRepositorySuite) TestListAllWithFilters() {
+	pagination := s.defaultPagination()
+	repository := s.newRepository()
+	ctx := s.newContext()
+
+	s.Run("should filter items by category ID", func() {
+		// given
+		params := s.newListParameters(pagination, map[string]any{
+			"category_id": 1,
+		}, nil)
+
+		// when
+		list, _ := repository.ListAll(ctx, params)
+
+		// then
+		s.Require().NotEmpty(list.GetContent())
+		for _, item := range list.GetContent() {
+			s.Equal(uint(1), item.Category.ID)
+		}
+	})
+
+	s.Run("should filter items by severity", func() {
+		// given
+		params := s.newListParameters(pagination, map[string]any{
+			"severity": "high",
+		}, nil)
+
+		// when
+		list, _ := repository.ListAll(ctx, params)
+
+		// then
+		s.Require().NotEmpty(list.GetContent())
+		for _, item := range list.GetContent() {
+			s.Equal("high", item.Level)
+		}
+	})
+
+	s.Run("should return empty list when filter matches no items", func() {
+		// given
+		params := s.newListParameters(pagination, map[string]any{
+			"category_id": 999,
+		}, nil)
+
+		// when
+		list, err := repository.ListAll(ctx, params)
+
+		// then
+		s.Require().NoError(err)
+		s.Require().Empty(list.GetContent())
+	})
+}
+
+// --- Sorting Cases ---
+
+func (s *ItemsRepositorySuite) TestListAllWithSorting() {
+	pagination := s.defaultPagination()
+	repository := s.newRepository()
+	ctx := s.newContext()
+
+	s.Run("should sort items by severity ascending", func() {
+		// given
+		params := s.newListParameters(pagination, nil, []domain.SortField{
+			{Field: "severity", Direction: "asc"},
+		})
+
+		// when
+		list, _ := repository.ListAll(ctx, params)
+
+		// then
+		s.Greater(len(list.GetContent()), 1)
+		content := list.GetContent()
+		for i := 1; i < len(content); i++ {
+			s.GreaterOrEqual(content[i].Level, content[i-1].Level)
+		}
+	})
+
+	s.Run("should sort items by severity descending", func() {
+		// given
+		params := s.newListParameters(pagination, nil, []domain.SortField{
+			{Field: "severity", Direction: "desc"},
+		})
+
+		// when
+		list, err := repository.ListAll(ctx, params)
+
+		// then
+		s.Require().NoError(err)
+		content := list.GetContent()
+		for i := 1; i < len(content); i++ {
+			s.LessOrEqual(content[i].Level, content[i-1].Level)
+		}
+	})
+}
+
+// --- Pagination Cases ---
+
+func (s *ItemsRepositorySuite) TestListAllPagination() {
+	s.Run("should paginate items correctly", func() {
+		// given
+		pagination := s.newPagination(1, 2)
+		params := s.newListParameters(pagination, nil, nil)
+		repository := s.newRepository()
+		ctx := s.newContext()
+
+		// when
+		list, _ := repository.ListAll(ctx, params)
+
+		// then
+		s.LessOrEqual(len(list.GetContent()), 2)
+	})
+}
+
+// --- Entry Point ---
+
+func TestSQLXItemsRepository(t *testing.T) {
+	suite.Run(t, new(ItemsRepositorySuite))
+}
+```
+
+**Key points:**
+- **No `t.Parallel()` in suites.** Integration tests share a database through `SetupTest`/`TearDownTest`, so they must run sequentially.
+- **`suite.Run()`** groups related sub-tests within a single test method (e.g., `TestItemsSuccess`, `TestItemsError`).
+- **Helper methods** on the suite (e.g., `createItem()`, `getRandomID()`, `newRepository()`) reduce repetition and keep tests focused on the scenario.
+- **Builders** construct test entities with fluent APIs (e.g., `NewItemBuilder().WithID(0).Build()`).
+- **Seeders** populate the database before each test, and `TearDownTest` cleans up after each test.
+- **Test methods are grouped by concern:** success, error, filters, sorting, pagination.
+
+---
+
+# Go Project Structure
+
+> **TL;DR:** Follow the domain/infrastructure layer separation. Use `go.mod` for dependency management. Place test files next to production code. Use the `test/` directory for shared test helpers, builders, and doubles.
+
+## Overview
+
+This page defines the standard directory layout and dependency management practices for all Go projects. The architecture follows the Backend Design specification, separating code into `domain` (contracts) and `infrastructure` (implementations) layers.
+
+## Directory Structure
+
+```
+cmd/
+  <app>/
+    main.go                   application entry point
+    dig.go                    DI container creation and injection functions
+internal/
+  container.go              top-level DI provider orchestrator
+  domain/                   (contracts)
+    commands/
+      container.go            DI registration for commands (or no-op)
+    entities/
+      container.go            DI registration for entities (or no-op)
+    repositories/
+  infrastructure/           (implementations)
+    controllers/
+      container.go            DI registration for controllers
+      mappers/
+      requests/
+      responses/
+    repositories/             prefixed with the tool name; returns database models
+      container.go            DI registration for repositories
+      mappers/
+      models/
+test/
+  domain/
+    builders/                 test data builders
+    doubles/
+      repositories/           stubs, dummies, fakes
+    helpers/
+  infrastructure/
+    doubles/
+      repositories/
+```
+
+### Key Directories
+
+| Directory                               | Purpose                                                    |
+|-----------------------------------------|------------------------------------------------------------|
+| `cmd/<app>/`                            | Application entry point and DI injection functions         |
+| `internal/domain/commands/`             | Business logic implementations                             |
+| `internal/domain/entities/`             | Framework-agnostic domain entities                         |
+| `internal/domain/repositories/`         | Repository interface contracts                             |
+| `internal/infrastructure/controllers/`  | HTTP controllers (request/response handling)               |
+| `internal/infrastructure/repositories/` | Repository implementations with library-specific code      |
+| `test/domain/builders/`                 | Builder pattern implementations for constructing test data |
+| `test/domain/doubles/`                  | Test doubles (stubs, dummies, fakers, in-memory)           |
+
+## Package Manager: Go Modules
+
+All Go projects use [Go Modules](https://go.dev/ref/mod) for dependency management. The module is defined in `go.mod` at the project root.
+
+### Initializing a Module
+
+```bash
+go mod init github.com/org/project-name
+```
+
+### Managing Dependencies
+
+```bash
+# Add a dependency
+go get github.com/sirupsen/logrus
+
+# Add a specific version
+go get github.com/sirupsen/logrus@v1.9.3
+
+# Update all dependencies
+go get -u ./...
+
+# Remove unused dependencies
+go mod tidy
+```
+
+### go.mod Example
+
+```go
+module github.com/org/project-name
+
+go 1.23
+
+require (
+    github.com/gorilla/mux v1.8.1
+    github.com/sirupsen/logrus v1.9.3
+    github.com/stretchr/testify v1.9.0
+    go.uber.org/dig v1.18.0
+)
+```
+
+### go.sum
+
+The `go.sum` file contains cryptographic checksums for all dependencies and must be committed to version control. Do not edit it manually.
+
+## Build & Distribution
+
+### Building
+
+```bash
+# Build the binary
+go build -o bin/app ./main
+
+# Build with version information
+go build -ldflags "-X main.version=1.0.0" -o bin/app ./main
+```
+
+### Running
+
+```bash
+# Run directly
+go run ./main
+
+# Run the compiled binary
+./bin/app
+```
+
+### Docker
+
+Use multi-stage builds to produce minimal container images:
+
+```dockerfile
+FROM golang:1.23-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -o /bin/app ./main
+
+FROM alpine:3.19
+COPY --from=builder /bin/app /bin/app
+ENTRYPOINT ["/bin/app"]
+```
+
+## Key Configuration Files
+
+| File            | Purpose                                                  |
+|-----------------|----------------------------------------------------------|
+| `go.mod`        | Module path and dependency declarations                  |
+| `go.sum`        | Dependency checksums (auto-generated, must be committed) |
+| `.golangci.yml` | golangci-lint configuration                              |
+| `container.go`  | Dig provider registration (one per architectural layer)  |
+| `.editorconfig` | Editor standardization                                   |
