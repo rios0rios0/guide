@@ -72,6 +72,16 @@ A comprehensive software development guide covering agile culture, architecture,
   - [Mapper Design Pattern](Cookbooks/Mapper-Design-Pattern.md)
   - [Bulk Operations](Cookbooks/Bulk-Operations.md)
 
+## AI Assistant Rules
+
+This repository automatically generates rule files for AI coding assistants (Claude Code, Cursor, Codex) from the documentation. Generated files live on the [`generated`](https://github.com/rios0rios0/guide/tree/generated) branch and can be installed with:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/rios0rios0/guide/generated/install-rules.sh | sh
+```
+
+Or download `install-rules.sh` and run it with `--force` for non-interactive mode. See [install-rules.sh](install-rules.sh) for details.
+
 ## References
 
 - [Vizir's StyleGuide](https://github.com/Vizir/styleguide)
