@@ -95,7 +95,7 @@ func processGroup(sourceDir string, group RuleGroup) (string, error) {
 	return mergeContents(parts), nil
 }
 
-// writeAllRules writes rule files for all AI assistants (Claude, Cursor, and Codex).
+// writeAllRules writes rule files for all AI assistants (Claude, Cursor, Copilot, and Codex).
 // It returns the number of errors encountered during writing.
 func writeAllRules(outputDir string, groups []RuleGroup, contents []string) int {
 	var errorCount int
