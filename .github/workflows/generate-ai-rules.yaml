@@ -73,7 +73,7 @@ jobs:
           fi
 
           # One-time cleanup of legacy .ai/ directory
-          rm -rf .ai
+          git rm -rf .ai 2>/dev/null || true
 
           # Sync generated rules
           rm -rf claude cursor codex copilot
