@@ -71,10 +71,11 @@ A comprehensive software development guide covering agile culture, architecture,
   - [Historical Repository Cleaner](Cookbooks/Historical-Repository-Cleaner.md)
   - [Mapper Design Pattern](Cookbooks/Mapper-Design-Pattern.md)
   - [Bulk Operations](Cookbooks/Bulk-Operations.md)
+  - [AI-Assisted Workflows](Cookbooks/AI-Assisted-Workflows.md)
 
 ## AI Assistant Rules
 
-This repository automatically generates rule files for AI coding assistants (Claude Code, Cursor, Codex) from the documentation. Generated files live on the [`generated`](https://github.com/rios0rios0/guide/tree/generated) branch and can be installed with:
+This repository automatically generates rule files for AI coding assistants (Claude Code, Cursor, Codex, GitHub Copilot) from the documentation. It also fetches curated agents from external repositories. Generated files live on the [`generated`](https://github.com/rios0rios0/guide/tree/generated) branch and can be installed with:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rios0rios0/guide/generated/install-rules.sh | sh

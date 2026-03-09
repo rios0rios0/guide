@@ -31,9 +31,10 @@ Syncs documentation to GitHub Wiki:
 - Expected build time: ~1 second
 
 #### generate-ai-rules (Go 1.24.7)
-Generates AI assistant rule files in `.ai/`:
+Generates AI assistant rule files in `.ai/` for Claude Code, Cursor, Codex, and GitHub Copilot. Also fetches external agents from configured repositories.
 - Build location: `.github/workflows/generate-ai-rules/`
 - Build command: `go build -o generate-ai-rules ./...`
+- Run with external sources: `./generate-ai-rules -external-config external-sources.yaml`
 - Expected build time: ~1 second
 
 **NEVER CANCEL BUILD COMMANDS** - Even though builds are fast (~1s), set timeouts of 30+ seconds.
@@ -140,10 +141,11 @@ Use `install-rules.sh` to distribute the generated AI rule files (downloaded fro
 │   ├── update-wiki.yml               # Syncs docs to GitHub Wiki (Go 1.26.0)
 │   ├── generate-ai-rules.yaml        # Generates .ai/ on 'generated' branch (Go 1.24.7)
 │   ├── generate-ai-rules/            # Go tool + static assets
-│   │   ├── agents/                   # Claude Code agent source files (6 agents)
+│   │   ├── agents/                   # Claude Code agent source files (6 static agents)
 │   │   ├── commands/                 # Claude Code command source files (5 commands)
 │   │   ├── skills/                   # Cursor skill source files (4 skills)
-│   │   └── *.go                      # Go tool (config, parser, formatter)
+│   │   ├── external-sources.yaml     # Config for fetching agents from external repos
+│   │   └── *.go                      # Go tool (config, parser, formatter, external)
 │   └── sync-docs.yaml                # Validates TOC sync on PRs
 ├── Agile-&-Culture/                  # Agile methodology guides
 │   └── PDCA.md                       # PDCA cycle methodology
@@ -169,8 +171,8 @@ Use `install-rules.sh` to distribute the generated AI rule files (downloaded fro
 - **Code style references**: `Code-Style/<language>/` directories
 - **Setup guides**: `Cookbooks/Tools-&-Setup/`
 - **CI/CD information**: `Life-Cycle/CI-&-CD.md`
-- **AI rules**: `generated` branch (`.ai/` directory, auto-generated from docs)
-- **AI rule sources**: `.github/workflows/generate-ai-rules/agents/`, `commands/`, `skills/`
+- **AI rules**: `generated` branch (`.ai/` directory, auto-generated from docs + external sources)
+- **AI rule sources**: `.github/workflows/generate-ai-rules/agents/`, `commands/`, `skills/`, `external-sources.yaml`
 
 ### Build System Details
 ```bash
@@ -208,8 +210,8 @@ bash .github/workflows/sync-docs/check-toc-sync.sh
 ### Repository Characteristics
 - **Type**: Documentation repository (not traditional software)
 - **Primary content**: 79+ Markdown files across 25+ directories
-- **Build output**: GitHub Wiki synchronization + `.ai/` rule files (on `generated` branch)
-- **Dependencies**: Go 1.26.0 for update-wiki; Go 1.24.7 for generate-ai-rules
+- **Build output**: GitHub Wiki synchronization + `.ai/` rule files for Claude Code, Cursor, Codex, and GitHub Copilot (on `generated` branch)
+- **Dependencies**: Go 1.26.0 for update-wiki; Go 1.24.7 for generate-ai-rules (+ gopkg.in/yaml.v3 for external sources)
 - **Tests**: Both Go modules include test files (`*_test.go`)
 
 ### Navigation File Sync Requirement

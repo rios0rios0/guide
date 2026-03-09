@@ -1,0 +1,14 @@
+# External sources for fetching agents and commands from other GitHub repositories.
+# The generate-ai-rules tool downloads these artifacts and includes them in the generated .ai/ directory.
+
+sources:
+  - repo: 'wshobson/agents'
+    branch: 'main'
+    agents:
+      - source: 'plugins/code-documentation/agents/documentation-writer.md'
+        target: 'documentation-writer.md'
+      - source: 'plugins/tdd-workflows/agents/tdd-coach.md'
+        target: 'tdd-coach.md'
+      - source: 'plugins/cicd-automation/agents/cicd-engineer.md'
+        target: 'cicd-engineer.md'
+    commands: []

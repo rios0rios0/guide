@@ -183,6 +183,90 @@ func TestWriteCursor(t *testing.T) {
 	}
 }
 
+func TestFormatCopilotFrontmatter(t *testing.T) {
+	tests := []struct {
+		name     string
+		globs    string
+		expected string
+	}{
+		{
+			name:     "with globs",
+			globs:    "**/*.go",
+			expected: "---\napplyTo: \"**/*.go\"\n---\n\n",
+		},
+		{
+			name:     "without globs",
+			globs:    "",
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// given
+			globs := tt.globs
+
+			// when
+			result := formatCopilotFrontmatter(globs)
+
+			// then
+			if result != tt.expected {
+				t.Errorf("formatCopilotFrontmatter(%q)\n  got:  %q\n  want: %q", globs, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestWriteCopilot(t *testing.T) {
+	tests := []struct {
+		name          string
+		group         RuleGroup
+		content       string
+		expectContent string
+	}{
+		{
+			name: "language rule with applyTo frontmatter",
+			group: RuleGroup{
+				Name:  "golang",
+				Globs: "**/*.go",
+			},
+			content:       "# Go Standards\n\nUse gofmt.\n",
+			expectContent: "---\napplyTo: \"**/*.go\"\n---\n\n# Go Standards\n\nUse gofmt.\n",
+		},
+		{
+			name: "cross-cutting rule without frontmatter",
+			group: RuleGroup{
+				Name: "code-style",
+			},
+			content:       "# Code Style\n\nNaming conventions.\n",
+			expectContent: "# Code Style\n\nNaming conventions.\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// given
+			tmpDir := t.TempDir()
+
+			// when
+			err := writeCopilot(tmpDir, tt.group, tt.content)
+
+			// then
+			if err != nil {
+				t.Fatalf("writeCopilot() error: %v", err)
+			}
+			path := filepath.Join(tmpDir, ".ai", "copilot", "instructions", tt.group.Name+".instructions.md")
+			data, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatalf("reading output file: %v", err)
+			}
+			if string(data) != tt.expectContent {
+				t.Errorf("file content\n  got:  %q\n  want: %q", string(data), tt.expectContent)
+			}
+		})
+	}
+}
+
 func TestWriteCodex(t *testing.T) {
 	// given
 	tmpDir := t.TempDir()

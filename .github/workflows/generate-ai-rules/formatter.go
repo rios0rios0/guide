@@ -194,6 +194,31 @@ func writeCodexRules(outputDir string) error {
 	return nil
 }
 
+// writeCopilot writes a rule file in GitHub Copilot format to .ai/copilot/instructions/<name>.instructions.md.
+func writeCopilot(outputDir string, group RuleGroup, content string) error {
+	dir := filepath.Join(outputDir, ".ai", "copilot", "instructions")
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("creating directory %s: %w", dir, err)
+	}
+
+	var body string
+	if group.Globs != "" {
+		body = fmt.Sprintf("---\napplyTo: \"%s\"\n---\n\n%s", group.Globs, content)
+	} else {
+		body = content
+	}
+
+	path := filepath.Join(dir, group.Name+".instructions.md")
+	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
+		return err
+	}
+	logger.WithFields(logger.Fields{
+		"path":  path,
+		"bytes": len(body),
+	}).Debug("wrote Copilot instruction file")
+	return nil
+}
+
 // formatClaudeFrontmatter returns the frontmatter string for a Claude rule file.
 func formatClaudeFrontmatter(globs string) string {
 	if globs == "" {
@@ -209,4 +234,12 @@ func formatCursorFrontmatter(description string, globs string) string {
 			description, globs)
 	}
 	return fmt.Sprintf("---\ndescription: \"%s\"\nalwaysApply: true\n---\n\n", description)
+}
+
+// formatCopilotFrontmatter returns the frontmatter string for a GitHub Copilot instruction file.
+func formatCopilotFrontmatter(globs string) string {
+	if globs == "" {
+		return ""
+	}
+	return fmt.Sprintf("---\napplyTo: \"%s\"\n---\n\n", globs)
 }

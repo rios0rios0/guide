@@ -12,6 +12,7 @@ import (
 func main() {
 	sourceDir := flag.String("source", ".", "root directory of the documentation repository")
 	outputDir := flag.String("output", ".", "directory where generated rule files are written")
+	externalConfig := flag.String("external-config", "", "path to external-sources.yaml for fetching agents from external repos")
 	logLevel := flag.String("log-level", "info", "log level: trace, debug, info, warn, error, fatal")
 	flag.Parse()
 
@@ -51,6 +52,11 @@ func main() {
 
 	writeErrors := writeAllRules(*outputDir, groups, contents)
 	totalErrors := errorCount + writeErrors
+
+	if *externalConfig != "" {
+		externalErrors := fetchExternalSources(*externalConfig, *outputDir)
+		totalErrors += externalErrors
+	}
 
 	logger.WithFields(logger.Fields{
 		"groups_processed": len(groups),
@@ -93,7 +99,7 @@ func processGroup(sourceDir string, group RuleGroup) (string, error) {
 // It returns the number of errors encountered during writing.
 func writeAllRules(outputDir string, groups []RuleGroup, contents []string) int {
 	var errorCount int
-	var claudeCount, cursorCount int
+	var claudeCount, cursorCount, copilotCount int
 
 	for i, group := range groups {
 		if contents[i] == "" {
@@ -120,6 +126,15 @@ func writeAllRules(outputDir string, groups []RuleGroup, contents []string) int 
 		} else {
 			cursorCount++
 		}
+		if err := writeCopilot(outputDir, group, contents[i]); err != nil {
+			logger.WithFields(logger.Fields{
+				"group": group.Name,
+				"error": err.Error(),
+			}).Error("failed to write Copilot instruction")
+			errorCount++
+		} else {
+			copilotCount++
+		}
 	}
 
 	if err := writeCodex(outputDir, groups, contents); err != nil {
@@ -137,8 +152,9 @@ func writeAllRules(outputDir string, groups []RuleGroup, contents []string) int 
 	}
 
 	logger.WithFields(logger.Fields{
-		"claude_rules": claudeCount,
-		"cursor_rules": cursorCount,
+		"claude_rules":        claudeCount,
+		"cursor_rules":        cursorCount,
+		"copilot_instructions": copilotCount,
 	}).Info("completed writing rules")
 
 	return errorCount
