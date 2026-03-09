@@ -26,7 +26,14 @@ func writeClaude(outputDir string, group RuleGroup, content string) error {
 	}
 
 	path := filepath.Join(dir, group.Name+".md")
-	return os.WriteFile(path, []byte(body), 0644)
+	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
+		return err
+	}
+	logger.WithFields(logger.Fields{
+		"path":  path,
+		"bytes": len(body),
+	}).Debug("wrote Claude rule file")
+	return nil
 }
 
 // writeCursor writes a rule file in Cursor format to .ai/cursor/rules/<name>.mdc.
@@ -45,8 +52,16 @@ func writeCursor(outputDir string, group RuleGroup, content string) error {
 			group.Description)
 	}
 
+	body := frontmatter + content
 	path := filepath.Join(dir, group.Name+".mdc")
-	return os.WriteFile(path, []byte(frontmatter+content), 0644)
+	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
+		return err
+	}
+	logger.WithFields(logger.Fields{
+		"path":  path,
+		"bytes": len(body),
+	}).Debug("wrote Cursor rule file")
+	return nil
 }
 
 // writeCodex writes a single AGENTS.md file for Codex by concatenating all rule groups.
@@ -61,7 +76,10 @@ func writeCodex(outputDir string, groups []RuleGroup, contents []string) error {
 
 	body := sb.String()
 	if len(body) > codexMaxSize {
-		logger.Warnf("AGENTS.md size (%d bytes) exceeds Codex limit of %d bytes", len(body), codexMaxSize)
+		logger.WithFields(logger.Fields{
+			"size_bytes":  len(body),
+			"limit_bytes": codexMaxSize,
+		}).Warn("AGENTS.md size exceeds Codex limit")
 	}
 
 	dir := filepath.Join(outputDir, ".ai", "codex")
@@ -70,7 +88,14 @@ func writeCodex(outputDir string, groups []RuleGroup, contents []string) error {
 	}
 
 	path := filepath.Join(dir, "AGENTS.md")
-	return os.WriteFile(path, []byte(body), 0644)
+	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
+		return err
+	}
+	logger.WithFields(logger.Fields{
+		"path":  path,
+		"bytes": len(body),
+	}).Debug("wrote Codex AGENTS.md")
+	return nil
 }
 
 // CodexRule represents a single prefix_rule entry for Codex command execution policies.
@@ -159,7 +184,14 @@ func writeCodexRules(outputDir string) error {
 
 	body := formatCodexRules(codexRules())
 	path := filepath.Join(dir, "default.rules")
-	return os.WriteFile(path, []byte(body), 0644)
+	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
+		return err
+	}
+	logger.WithFields(logger.Fields{
+		"path":  path,
+		"bytes": len(body),
+	}).Debug("wrote Codex rules file")
+	return nil
 }
 
 // formatClaudeFrontmatter returns the frontmatter string for a Claude rule file.

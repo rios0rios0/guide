@@ -5,7 +5,14 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	logger "github.com/sirupsen/logrus"
 )
+
+func TestMain(m *testing.M) {
+	logger.SetLevel(logger.WarnLevel)
+	os.Exit(m.Run())
+}
 
 func TestProcessGroup(t *testing.T) {
 	// given
@@ -109,7 +116,10 @@ func TestEndToEnd(t *testing.T) {
 	}
 
 	// when
-	writeAllRules(outputDir, groups, contents)
+	errCount := writeAllRules(outputDir, groups, contents)
+	if errCount != 0 {
+		t.Errorf("writeAllRules reported %d errors", errCount)
+	}
 
 	// then - verify Claude rules under .ai/claude/rules/
 	claudeCodeStyle := filepath.Join(outputDir, ".ai", "claude", "rules", "code-style.md")
