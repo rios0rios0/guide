@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added 5 new Claude Code agents: changelog-enforcer, code-reviewer, git-workflow, security-auditor, and bulk-operations
 - added CHANGELOG.md following the Keep a Changelog standard
 
+### Fixed
+- fixed external agent paths in `external-sources.yaml` after upstream `wshobson/agents` repo reorganized its plugin structure
+
 ### Changed
 - removed `.ai/` prefix directory from the `generated` branch; rule files now live directly at `claude/`, `cursor/`, `codex/`, `copilot/`
 - moved generated `.ai/` directory from `main` branch to a dedicated `generated` branch to eliminate workflow conflicts
