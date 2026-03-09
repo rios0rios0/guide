@@ -127,7 +127,7 @@ func TestFetchArtifact(t *testing.T) {
 		t.Fatalf("httpGet() error: %v", err)
 	}
 
-	dir := filepath.Join(tmpDir, ".ai", "claude", "agents")
+	dir := filepath.Join(tmpDir, "claude", "agents")
 	os.MkdirAll(dir, 0755)
 	path := filepath.Join(dir, artifact.Target)
 	os.WriteFile(path, body, 0644)
@@ -237,7 +237,7 @@ func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
 		t.Errorf("expected 0 errors, got %d", errorCount)
 	}
 
-	agentPath := filepath.Join(outputDir, ".ai", "claude", "agents", "foo-agent.md")
+	agentPath := filepath.Join(outputDir, "claude", "agents", "foo-agent.md")
 	data, err := os.ReadFile(agentPath)
 	if err != nil {
 		t.Fatalf("expected agent file at %s: %v", agentPath, err)
@@ -246,7 +246,7 @@ func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
 		t.Errorf("agent content\n  got:  %q\n  want: %q", string(data), agentContent)
 	}
 
-	cmdPath := filepath.Join(outputDir, ".ai", "claude", "commands", "bar-command.md")
+	cmdPath := filepath.Join(outputDir, "claude", "commands", "bar-command.md")
 	data, err = os.ReadFile(cmdPath)
 	if err != nil {
 		t.Fatalf("expected command file at %s: %v", cmdPath, err)
