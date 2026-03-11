@@ -86,7 +86,7 @@ done
 echo ""
 
 # Claude Code agents (.claude/agents/*.md)
-AGENT_NAMES="chezmoi changelog-enforcer code-reviewer git-workflow security-auditor bulk-operations documentation-writer tdd-coach cicd-engineer"
+AGENT_NAMES="chezmoi changelog-enforcer code-reviewer git-workflow security-auditor bulk-operations docs-architect tdd-orchestrator devops-troubleshooter"
 echo "Claude Code agents:"
 for name in $AGENT_NAMES; do
   download_file "${BASE_URL}/claude/agents/${name}.md" "${TARGET_DIR}/.claude/agents/${name}.md"
