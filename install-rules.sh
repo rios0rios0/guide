@@ -15,8 +15,7 @@ set -e
 REPO="rios0rios0/guide"
 BRANCH="generated"
 BASE_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
-
-RULE_NAMES="architecture bulk-operations ci-cd code-style design-patterns documentation git-flow golang java javascript python security testing yaml"
+API_URL="https://api.github.com/repos/${REPO}/contents"
 
 OVERWRITE_ALL=""
 if [ "${1:-}" = "--force" ]; then
@@ -67,51 +66,60 @@ download_file() {
   fi
 }
 
+# list_remote_entries fetches entry names from a directory on the generated branch via the GitHub API.
+list_remote_entries() {
+  path="$1"
+  response=$(curl -fsSL "${API_URL}/${path}?ref=${BRANCH}" 2>/dev/null) || {
+    echo "Error: failed to list files at ${path}" >&2
+    return 1
+  }
+  echo "$response" \
+    | grep -o '"name": *"[^"]*"' \
+    | sed 's/"name": *"//;s/"//'
+}
+
 echo "Installing AI assistant rules into: $TARGET_DIR"
 echo ""
 
 # Claude Code rules (.claude/rules/*.md)
 echo "Claude Code rules:"
-for name in $RULE_NAMES; do
-  download_file "${BASE_URL}/claude/rules/${name}.md" "${TARGET_DIR}/.claude/rules/${name}.md"
+for file in $(list_remote_entries "claude/rules"); do
+  download_file "${BASE_URL}/claude/rules/${file}" "${TARGET_DIR}/.claude/rules/${file}"
 done
 echo ""
 
 # Claude Code commands (.claude/commands/*.md)
-COMMAND_NAMES="scaffold-go-project scaffold-frontend-project scaffold-python-package fix-guardrails sync-repos"
 echo "Claude Code commands:"
-for name in $COMMAND_NAMES; do
-  download_file "${BASE_URL}/claude/commands/${name}.md" "${TARGET_DIR}/.claude/commands/${name}.md"
+for file in $(list_remote_entries "claude/commands"); do
+  download_file "${BASE_URL}/claude/commands/${file}" "${TARGET_DIR}/.claude/commands/${file}"
 done
 echo ""
 
 # Claude Code agents (.claude/agents/*.md)
-AGENT_NAMES="chezmoi changelog-enforcer code-reviewer git-workflow security-auditor bulk-operations docs-architect tdd-orchestrator devops-troubleshooter"
 echo "Claude Code agents:"
-for name in $AGENT_NAMES; do
-  download_file "${BASE_URL}/claude/agents/${name}.md" "${TARGET_DIR}/.claude/agents/${name}.md"
+for file in $(list_remote_entries "claude/agents"); do
+  download_file "${BASE_URL}/claude/agents/${file}" "${TARGET_DIR}/.claude/agents/${file}"
 done
 echo ""
 
 # Cursor rules (.cursor/rules/*.mdc)
 echo "Cursor rules:"
-for name in $RULE_NAMES; do
-  download_file "${BASE_URL}/cursor/rules/${name}.mdc" "${TARGET_DIR}/.cursor/rules/${name}.mdc"
+for file in $(list_remote_entries "cursor/rules"); do
+  download_file "${BASE_URL}/cursor/rules/${file}" "${TARGET_DIR}/.cursor/rules/${file}"
 done
 echo ""
 
 # Cursor skills (.cursor/skills/<name>/SKILL.md)
-SKILL_NAMES="scaffold-go-project scaffold-frontend-project scaffold-python-package fix-guardrails"
 echo "Cursor skills:"
-for name in $SKILL_NAMES; do
-  download_file "${BASE_URL}/cursor/skills/${name}/SKILL.md" "${TARGET_DIR}/.cursor/skills/${name}/SKILL.md"
+for skill_dir in $(list_remote_entries "cursor/skills"); do
+  download_file "${BASE_URL}/cursor/skills/${skill_dir}/SKILL.md" "${TARGET_DIR}/.cursor/skills/${skill_dir}/SKILL.md"
 done
 echo ""
 
 # GitHub Copilot instructions (.github/instructions/*.instructions.md)
 echo "GitHub Copilot instructions:"
-for name in $RULE_NAMES; do
-  download_file "${BASE_URL}/copilot/instructions/${name}.instructions.md" "${TARGET_DIR}/.github/instructions/${name}.instructions.md"
+for file in $(list_remote_entries "copilot/instructions"); do
+  download_file "${BASE_URL}/copilot/instructions/${file}" "${TARGET_DIR}/.github/instructions/${file}"
 done
 echo ""
 
