@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- added `pr-review-resolver` agent for automating PR review comment resolution
 - added GitHub Copilot as a generation target with `.instructions.md` files using `applyTo` frontmatter
 - added AI-Assisted Workflows cookbook page documenting the RPI (Research, Plan, Implement, Review) methodology
 - added dynamic external agent fetch mechanism to pull agents from configured GitHub repositories via `external-sources.yaml`
