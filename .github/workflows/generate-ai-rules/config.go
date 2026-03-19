@@ -129,6 +129,14 @@ func ruleGroups() []RuleGroup {
 			},
 		},
 		{
+			Name:        "markdown-formatting",
+			Description: "Markdown formatting rules for changelogs and documentation",
+			Sources: []string{
+				"Life-Cycle/Documentation-&-Change-Control/CHANGELOG-Formatting.md",
+			},
+			Globs: "**/*.md",
+		},
+		{
 			Name:        "design-patterns",
 			Description: "Design patterns and coding techniques",
 			Sources: []string{
