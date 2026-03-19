@@ -23,6 +23,7 @@ Every project must contain at minimum:
 
 - [README Template](Documentation-&-Change-Control/README-Template.md) -- copy and customize for new projects
 - [CONTRIBUTING Template](Documentation-&-Change-Control/CONTRIBUTING-Template.md) -- copy and customize for new projects
+- [CHANGELOG Formatting](Documentation-&-Change-Control/CHANGELOG-Formatting.md) -- formatting rules for changelog entries
 
 ## Changelog Standard
 

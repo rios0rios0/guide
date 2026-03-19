@@ -15,6 +15,7 @@
   - [Documentation & Change Control](Documentation-&-Change-Control)
     - [README Template](README-Template)
     - [CONTRIBUTING Template](CONTRIBUTING-Template)
+    - [CHANGELOG Formatting](CHANGELOG-Formatting)
 - [Code Style](Code-Style)
   - [Language Guide Template](Language-Guide-Template)
   - [GoLang](GoLang)
