@@ -35,6 +35,7 @@ A comprehensive software development guide covering agile culture, architecture,
   - [Documentation & Change Control](Life-Cycle/Documentation-&-Change-Control.md)
     - [README Template](Life-Cycle/Documentation-&-Change-Control/README-Template.md)
     - [CONTRIBUTING Template](Life-Cycle/Documentation-&-Change-Control/CONTRIBUTING-Template.md)
+    - [CHANGELOG Formatting](Life-Cycle/Documentation-&-Change-Control/CHANGELOG-Formatting.md)
 - [Code Style](Code-Style.md)
   - [Language Guide Template](Code-Style/Language-Guide-Template.md)
   - [GoLang](Code-Style/GoLang.md)

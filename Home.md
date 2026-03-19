@@ -20,6 +20,7 @@ And its objective is not to limit the development to a specific form, but to pro
   - [Documentation & Change Control](Life-Cycle/Documentation-&-Change-Control.md)
     - [README Template](Life-Cycle/Documentation-&-Change-Control/README-Template.md)
     - [CONTRIBUTING Template](Life-Cycle/Documentation-&-Change-Control/CONTRIBUTING-Template.md)
+    - [CHANGELOG Formatting](Life-Cycle/Documentation-&-Change-Control/CHANGELOG-Formatting.md)
 - [Code Style](Code-Style.md)
   - [Language Guide Template](Code-Style/Language-Guide-Template.md)
   - [GoLang](Code-Style/GoLang.md)
