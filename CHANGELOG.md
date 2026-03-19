@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- added `resolve-pr-comments` slash command for auto-detecting the current branch's PR and resolving review comments
+
 ## [0.1.0] - 2026-03-12
 
 ### Added
