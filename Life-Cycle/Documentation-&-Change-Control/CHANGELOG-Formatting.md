@@ -1,6 +1,6 @@
 # CHANGELOG Formatting
 
-> **TL;DR:** Proper nouns are capitalized, code identifiers use backticks, acronyms are uppercased, versions and library names use backticks.
+> **TL;DR:** Proper nouns are capitalized, code identifiers use backticks, acronyms and protocol names use their official casing, versions and library names use backticks.
 
 ## Rules
 
@@ -32,9 +32,9 @@ Class names, function names, variable names, file names, and any code reference 
 | updated Dockerfile                         | updated `Dockerfile`                           |
 | changed settings.json configuration        | changed `settings.json` configuration          |
 
-### 3. Acronyms -- Always Uppercase
+### 3. Acronyms and Protocol Names -- Use Official Casing
 
-Technical acronyms must always be fully uppercased.
+Technical acronyms must be uppercased. Branded protocol and technology names must use their official casing.
 
 | Wrong  | Correct |
 |--------|---------|
