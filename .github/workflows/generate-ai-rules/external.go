@@ -26,6 +26,7 @@ type ExternalSource struct {
 	Agents   []ExternalArtifact `yaml:"agents"`
 	Commands []ExternalArtifact `yaml:"commands"`
 	Skills   []ExternalArtifact `yaml:"skills"`
+	Hooks    []ExternalArtifact `yaml:"hooks"`
 }
 
 // ExternalArtifact maps a source file path in an external repo to a target filename.
@@ -110,6 +111,19 @@ func fetchExternalSources(configPath, outputDir string) int {
 				fetchedCount++
 			}
 		}
+
+		for _, hook := range source.Hooks {
+			if err := fetchArtifact(source.Repo, branch, hook, outputDir, "hooks"); err != nil {
+				logger.WithFields(logger.Fields{
+					"repo":   source.Repo,
+					"source": hook.Source,
+					"error":  err.Error(),
+				}).Error("failed to fetch external hook")
+				errorCount++
+			} else {
+				fetchedCount++
+			}
+		}
 	}
 
 	logger.WithFields(logger.Fields{
@@ -138,7 +152,7 @@ func validateTarget(target, artifactType string) error {
 	}
 
 	switch artifactType {
-	case "agents", "commands":
+	case "agents", "commands", "hooks":
 		if path.Base(cleaned) != cleaned {
 			return fmt.Errorf("invalid artifact target %q: %s targets must be plain filenames", target, artifactType)
 		}
