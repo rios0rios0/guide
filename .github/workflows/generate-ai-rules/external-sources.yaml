@@ -1,4 +1,4 @@
-# External sources for fetching agents and commands from other GitHub repositories.
+# External sources for fetching agents, commands, and skills from other GitHub repositories.
 # The generate-ai-rules tool downloads these artifacts and includes them in the generated directory.
 
 sources:
@@ -12,3 +12,36 @@ sources:
       - source: 'plugins/cicd-automation/agents/devops-troubleshooter.md'
         target: 'devops-troubleshooter.md'
     commands: []
+    skills: []
+
+  - repo: 'affaan-m/everything-claude-code'
+    branch: 'main'
+    agents:
+      - source: 'agents/architect.md'
+        target: 'architect.md'
+      - source: 'agents/planner.md'
+        target: 'planner.md'
+      - source: 'agents/build-error-resolver.md'
+        target: 'build-error-resolver.md'
+      - source: 'agents/refactor-cleaner.md'
+        target: 'refactor-cleaner.md'
+    commands:
+      - source: 'commands/plan.md'
+        target: 'plan.md'
+      - source: 'commands/verify.md'
+        target: 'verify.md'
+      - source: 'commands/test-coverage.md'
+        target: 'test-coverage.md'
+      - source: 'commands/checkpoint.md'
+        target: 'checkpoint.md'
+    skills:
+      - source: 'skills/tdd-workflow/SKILL.md'
+        target: 'tdd-workflow/SKILL.md'
+      - source: 'skills/api-design/SKILL.md'
+        target: 'api-design/SKILL.md'
+      - source: 'skills/database-migrations/SKILL.md'
+        target: 'database-migrations/SKILL.md'
+      - source: 'skills/architecture-decision-records/SKILL.md'
+        target: 'architecture-decision-records/SKILL.md'
+      - source: 'skills/deployment-patterns/SKILL.md'
+        target: 'deployment-patterns/SKILL.md'

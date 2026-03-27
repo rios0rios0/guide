@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	logger "github.com/sirupsen/logrus"
@@ -23,6 +24,7 @@ type ExternalSource struct {
 	Branch   string             `yaml:"branch"`
 	Agents   []ExternalArtifact `yaml:"agents"`
 	Commands []ExternalArtifact `yaml:"commands"`
+	Skills   []ExternalArtifact `yaml:"skills"`
 }
 
 // ExternalArtifact maps a source file path in an external repo to a target filename.
@@ -94,6 +96,19 @@ func fetchExternalSources(configPath, outputDir string) int {
 				fetchedCount++
 			}
 		}
+
+		for _, skill := range source.Skills {
+			if err := fetchArtifact(source.Repo, branch, skill, outputDir, "skills"); err != nil {
+				logger.WithFields(logger.Fields{
+					"repo":   source.Repo,
+					"source": skill.Source,
+					"error":  err.Error(),
+				}).Error("failed to fetch external skill")
+				errorCount++
+			} else {
+				fetchedCount++
+			}
+		}
 	}
 
 	logger.WithFields(logger.Fields{
@@ -104,11 +119,48 @@ func fetchExternalSources(configPath, outputDir string) int {
 	return errorCount
 }
 
+// validateTarget checks that the artifact target path is safe for the given artifact type.
+// Agents and commands must be plain filenames. Skills must follow the <name>/SKILL.md pattern.
+func validateTarget(target, artifactType string) error {
+	cleaned := filepath.Clean(target)
+	if filepath.IsAbs(cleaned) {
+		return fmt.Errorf("invalid artifact target %q: must be a relative path", target)
+	}
+	if strings.Contains(cleaned, "..") {
+		return fmt.Errorf("invalid artifact target %q: path traversal not allowed", target)
+	}
+
+	switch artifactType {
+	case "agents", "commands":
+		if filepath.Base(cleaned) != cleaned {
+			return fmt.Errorf("invalid artifact target %q: %s targets must be plain filenames", target, artifactType)
+		}
+	case "skills":
+		parts := strings.Split(cleaned, string(filepath.Separator))
+		if len(parts) != 2 || parts[1] != "SKILL.md" {
+			return fmt.Errorf("invalid artifact target %q: skills targets must follow the <name>/SKILL.md pattern", target)
+		}
+	default:
+		return fmt.Errorf("unknown artifact type %q", artifactType)
+	}
+
+	return nil
+}
+
+// artifactOutputDir returns the directory where the fetched artifact file should be written.
+// Agents and commands go to claude/<type>/, skills go to cursor/skills/<name>/.
+func artifactOutputDir(outputDir, artifactType, target string) string {
+	if artifactType == "skills" {
+		skillName := strings.Split(filepath.Clean(target), string(filepath.Separator))[0]
+		return filepath.Join(outputDir, "cursor", "skills", skillName)
+	}
+	return filepath.Join(outputDir, "claude", artifactType)
+}
+
 // fetchArtifact downloads a single artifact from a GitHub repo and writes it to the output directory.
 func fetchArtifact(repo, branch string, artifact ExternalArtifact, outputDir, artifactType string) error {
-	target := filepath.Base(artifact.Target)
-	if target == "." || target == ".." || target != artifact.Target {
-		return fmt.Errorf("invalid artifact target %q: must be a plain filename without path separators", artifact.Target)
+	if err := validateTarget(artifact.Target, artifactType); err != nil {
+		return err
 	}
 
 	url := fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s", repo, branch, artifact.Source)
@@ -118,12 +170,12 @@ func fetchArtifact(repo, branch string, artifact ExternalArtifact, outputDir, ar
 		return fmt.Errorf("fetching %s: %w", url, err)
 	}
 
-	dir := filepath.Join(outputDir, "claude", artifactType)
+	dir := artifactOutputDir(outputDir, artifactType, artifact.Target)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("creating directory %s: %w", dir, err)
 	}
 
-	path := filepath.Join(dir, target)
+	path := filepath.Join(dir, filepath.Base(artifact.Target))
 	if err := os.WriteFile(path, body, 0644); err != nil {
 		return fmt.Errorf("writing %s: %w", path, err)
 	}
