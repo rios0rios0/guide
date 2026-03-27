@@ -57,6 +57,21 @@ func TestLoadExternalConfig(t *testing.T) {
     skills:
       - source: 'skills/tdd-workflow/SKILL.md'
         target: 'tdd-workflow/SKILL.md'
+    hooks: []
+`,
+			expectCount: 1,
+		},
+		{
+			name: "valid config with hooks",
+			content: `sources:
+  - repo: 'example/repo'
+    branch: 'main'
+    agents: []
+    commands: []
+    skills: []
+    hooks:
+      - source: 'hooks/hooks.json'
+        target: 'hooks.json'
 `,
 			expectCount: 1,
 		},
@@ -212,6 +227,7 @@ func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
 	agentContent := "You are a test agent.\n"
 	commandContent := "You are a test command.\n"
 	skillContent := "---\nname: tdd\n---\n\nTDD workflow skill.\n"
+	hookContent := "{\"hooks\": {}}\n"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case strings.HasSuffix(r.URL.Path, "/agents/foo.md"):
@@ -220,6 +236,8 @@ func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
 			w.Write([]byte(commandContent))
 		case strings.HasSuffix(r.URL.Path, "/skills/tdd/SKILL.md"):
 			w.Write([]byte(skillContent))
+		case strings.HasSuffix(r.URL.Path, "/hooks/hooks.json"):
+			w.Write([]byte(hookContent))
 		default:
 			http.NotFound(w, r)
 		}
@@ -245,6 +263,9 @@ func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
     skills:
       - source: 'skills/tdd/SKILL.md'
         target: 'tdd/SKILL.md'
+    hooks:
+      - source: 'hooks/hooks.json'
+        target: 'hooks.json'
 `)
 	os.WriteFile(configPath, []byte(configContent), 0644)
 
@@ -282,6 +303,15 @@ func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
 	if string(data) != skillContent {
 		t.Errorf("skill content\n  got:  %q\n  want: %q", string(data), skillContent)
 	}
+
+	hookPath := filepath.Join(outputDir, "claude", "hooks", "hooks.json")
+	data, err = os.ReadFile(hookPath)
+	if err != nil {
+		t.Fatalf("expected hook file at %s: %v", hookPath, err)
+	}
+	if string(data) != hookContent {
+		t.Errorf("hook content\n  got:  %q\n  want: %q", string(data), hookContent)
+	}
 }
 
 func TestFetchExternalSourcesEmptyConfig(t *testing.T) {
@@ -310,6 +340,7 @@ func TestValidateTarget(t *testing.T) {
 		{"valid agent", "foo.md", "agents", false},
 		{"valid command", "bar.md", "commands", false},
 		{"valid skill", "tdd-workflow/SKILL.md", "skills", false},
+		{"valid hook", "hooks.json", "hooks", false},
 		{"agent with path separator", "sub/foo.md", "agents", true},
 		{"command with path separator", "sub/bar.md", "commands", true},
 		{"skill missing SKILL.md", "tdd-workflow/readme.md", "skills", true},
@@ -350,6 +381,7 @@ func TestArtifactOutputDir(t *testing.T) {
 		{"agents", "agents", "foo.md", filepath.Join("/out", "claude", "agents")},
 		{"commands", "commands", "bar.md", filepath.Join("/out", "claude", "commands")},
 		{"skills", "skills", "tdd-workflow/SKILL.md", filepath.Join("/out", "cursor", "skills", "tdd-workflow")},
+		{"hooks", "hooks", "hooks.json", filepath.Join("/out", "claude", "hooks")},
 	}
 
 	for _, tt := range tests {
