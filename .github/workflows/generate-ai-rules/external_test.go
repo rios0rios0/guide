@@ -48,6 +48,34 @@ func TestLoadExternalConfig(t *testing.T) {
 			expectCount: 0,
 		},
 		{
+			name: "valid config with skills",
+			content: `sources:
+  - repo: 'example/repo'
+    branch: 'main'
+    agents: []
+    commands: []
+    skills:
+      - source: 'skills/tdd-workflow/SKILL.md'
+        target: 'tdd-workflow/SKILL.md'
+    hooks: []
+`,
+			expectCount: 1,
+		},
+		{
+			name: "valid config with hooks",
+			content: `sources:
+  - repo: 'example/repo'
+    branch: 'main'
+    agents: []
+    commands: []
+    skills: []
+    hooks:
+      - source: 'hooks/hooks.json'
+        target: 'hooks.json'
+`,
+			expectCount: 1,
+		},
+		{
 			name:      "invalid yaml",
 			content:   "{{invalid",
 			expectErr: true,
@@ -198,12 +226,18 @@ func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
 	// given
 	agentContent := "You are a test agent.\n"
 	commandContent := "You are a test command.\n"
+	skillContent := "---\nname: tdd\n---\n\nTDD workflow skill.\n"
+	hookContent := "{\"hooks\": {}}\n"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case strings.HasSuffix(r.URL.Path, "/agents/foo.md"):
 			w.Write([]byte(agentContent))
 		case strings.HasSuffix(r.URL.Path, "/commands/bar.md"):
 			w.Write([]byte(commandContent))
+		case strings.HasSuffix(r.URL.Path, "/skills/tdd/SKILL.md"):
+			w.Write([]byte(skillContent))
+		case strings.HasSuffix(r.URL.Path, "/hooks/hooks.json"):
+			w.Write([]byte(hookContent))
 		default:
 			http.NotFound(w, r)
 		}
@@ -226,6 +260,12 @@ func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
     commands:
       - source: 'commands/bar.md'
         target: 'bar-command.md'
+    skills:
+      - source: 'skills/tdd/SKILL.md'
+        target: 'tdd/SKILL.md'
+    hooks:
+      - source: 'hooks/hooks.json'
+        target: 'hooks.json'
 `)
 	os.WriteFile(configPath, []byte(configContent), 0644)
 
@@ -254,6 +294,24 @@ func TestFetchExternalSourcesWithArtifacts(t *testing.T) {
 	if string(data) != commandContent {
 		t.Errorf("command content\n  got:  %q\n  want: %q", string(data), commandContent)
 	}
+
+	skillPath := filepath.Join(outputDir, "cursor", "skills", "tdd", "SKILL.md")
+	data, err = os.ReadFile(skillPath)
+	if err != nil {
+		t.Fatalf("expected skill file at %s: %v", skillPath, err)
+	}
+	if string(data) != skillContent {
+		t.Errorf("skill content\n  got:  %q\n  want: %q", string(data), skillContent)
+	}
+
+	hookPath := filepath.Join(outputDir, "claude", "hooks", "hooks.json")
+	data, err = os.ReadFile(hookPath)
+	if err != nil {
+		t.Fatalf("expected hook file at %s: %v", hookPath, err)
+	}
+	if string(data) != hookContent {
+		t.Errorf("hook content\n  got:  %q\n  want: %q", string(data), hookContent)
+	}
 }
 
 func TestFetchExternalSourcesEmptyConfig(t *testing.T) {
@@ -269,5 +327,112 @@ func TestFetchExternalSourcesEmptyConfig(t *testing.T) {
 	// then
 	if errorCount != 0 {
 		t.Errorf("expected 0 errors for empty config, got %d", errorCount)
+	}
+}
+
+func TestValidateTarget(t *testing.T) {
+	tests := []struct {
+		name         string
+		target       string
+		artifactType string
+		expectErr    bool
+	}{
+		{"valid agent", "foo.md", "agents", false},
+		{"valid command", "bar.md", "commands", false},
+		{"valid skill", "tdd-workflow/SKILL.md", "skills", false},
+		{"valid hook", "hooks.json", "hooks", false},
+		{"agent with path separator", "sub/foo.md", "agents", true},
+		{"command with path separator", "sub/bar.md", "commands", true},
+		{"skill missing SKILL.md", "tdd-workflow/readme.md", "skills", true},
+		{"skill flat file", "SKILL.md", "skills", true},
+		{"skill too deep", "a/b/SKILL.md", "skills", true},
+		{"path traversal in agent", "../etc/passwd", "agents", true},
+		{"path traversal in skill", "../etc/SKILL.md", "skills", true},
+		{"normalized traversal in agent", "sub/../foo.md", "agents", true},
+		{"normalized traversal in command", "sub/../bar.md", "commands", true},
+		{"normalized traversal in skill", "sub/../tdd-workflow/SKILL.md", "skills", true},
+		{"absolute path", "/tmp/foo.md", "agents", true},
+		{"unknown artifact type", "foo.md", "unknown", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// when
+			err := validateTarget(tt.target, tt.artifactType)
+
+			// then
+			if tt.expectErr && err == nil {
+				t.Errorf("expected error for target %q (%s), got nil", tt.target, tt.artifactType)
+			}
+			if !tt.expectErr && err != nil {
+				t.Errorf("unexpected error for target %q (%s): %v", tt.target, tt.artifactType, err)
+			}
+		})
+	}
+}
+
+func TestArtifactOutputDir(t *testing.T) {
+	tests := []struct {
+		name         string
+		artifactType string
+		target       string
+		expected     string
+	}{
+		{"agents", "agents", "foo.md", filepath.Join("/out", "claude", "agents")},
+		{"commands", "commands", "bar.md", filepath.Join("/out", "claude", "commands")},
+		{"skills", "skills", "tdd-workflow/SKILL.md", filepath.Join("/out", "cursor", "skills", "tdd-workflow")},
+		{"hooks", "hooks", "hooks.json", filepath.Join("/out", "claude", "hooks")},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// when
+			got := artifactOutputDir("/out", tt.artifactType, tt.target)
+
+			// then
+			if got != tt.expected {
+				t.Errorf("artifactOutputDir(%q, %q) = %q, want %q", tt.artifactType, tt.target, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestFetchArtifactSkill(t *testing.T) {
+	// given
+	skillContent := "---\nname: api-design\n---\n\nAPI design skill.\n"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/skills/api-design/SKILL.md") {
+			w.Write([]byte(skillContent))
+		} else {
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	originalClient := httpClient
+	httpClient = &http.Client{Transport: &redirectTransport{serverURL: server.URL}}
+	defer func() { httpClient = originalClient }()
+
+	outputDir := t.TempDir()
+	artifact := ExternalArtifact{
+		Source: "skills/api-design/SKILL.md",
+		Target: "api-design/SKILL.md",
+	}
+
+	// when
+	err := fetchArtifact("test/repo", "main", artifact, outputDir, "skills")
+
+	// then
+	if err != nil {
+		t.Fatalf("fetchArtifact() error: %v", err)
+	}
+
+	skillPath := filepath.Join(outputDir, "cursor", "skills", "api-design", "SKILL.md")
+	data, err := os.ReadFile(skillPath)
+	if err != nil {
+		t.Fatalf("expected skill file at %s: %v", skillPath, err)
+	}
+	if string(data) != skillContent {
+		t.Errorf("skill content\n  got:  %q\n  want: %q", string(data), skillContent)
 	}
 }
