@@ -94,6 +94,15 @@ jobs:
             cp -r /tmp/generated-claude/commands/* claude/commands/ 2>/dev/null || true
           fi
           rm -rf cursor/skills && cp -r /tmp/generated-skills cursor/skills
+          # Merge external skills (fetched during generation) into the static skills directory
+          if [ -d /tmp/generated-cursor/skills ]; then
+            cp -r /tmp/generated-cursor/skills/* cursor/skills/ 2>/dev/null || true
+          fi
+          # Copy external hooks (no static hooks exist, so no merge needed)
+          if [ -d /tmp/generated-claude/hooks ]; then
+            mkdir -p claude/hooks
+            cp -r /tmp/generated-claude/hooks/* claude/hooks/ 2>/dev/null || true
+          fi
           cp /tmp/generated-install install-rules.sh
           git add claude/ cursor/ codex/ copilot/ install-rules.sh
 
