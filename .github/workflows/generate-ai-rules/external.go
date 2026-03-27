@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -121,9 +122,15 @@ func fetchExternalSources(configPath, outputDir string) int {
 
 // validateTarget checks that the artifact target path is safe for the given artifact type.
 // Agents and commands must be plain filenames. Skills must follow the <name>/SKILL.md pattern.
+// Targets must be canonical (path.Clean(target) == target) to prevent traversal segments like
+// "sub/../foo.md" from being silently normalized. The path package is used instead of
+// filepath because config targets always use forward slashes regardless of OS.
 func validateTarget(target, artifactType string) error {
-	cleaned := filepath.Clean(target)
-	if filepath.IsAbs(cleaned) {
+	cleaned := path.Clean(target)
+	if cleaned != target {
+		return fmt.Errorf("invalid artifact target %q: must be a canonical path (cleaned to %q)", target, cleaned)
+	}
+	if path.IsAbs(cleaned) {
 		return fmt.Errorf("invalid artifact target %q: must be a relative path", target)
 	}
 	if strings.Contains(cleaned, "..") {
@@ -132,11 +139,11 @@ func validateTarget(target, artifactType string) error {
 
 	switch artifactType {
 	case "agents", "commands":
-		if filepath.Base(cleaned) != cleaned {
+		if path.Base(cleaned) != cleaned {
 			return fmt.Errorf("invalid artifact target %q: %s targets must be plain filenames", target, artifactType)
 		}
 	case "skills":
-		parts := strings.Split(cleaned, string(filepath.Separator))
+		parts := strings.Split(cleaned, "/")
 		if len(parts) != 2 || parts[1] != "SKILL.md" {
 			return fmt.Errorf("invalid artifact target %q: skills targets must follow the <name>/SKILL.md pattern", target)
 		}
@@ -149,9 +156,10 @@ func validateTarget(target, artifactType string) error {
 
 // artifactOutputDir returns the directory where the fetched artifact file should be written.
 // Agents and commands go to claude/<type>/, skills go to cursor/skills/<name>/.
+// Uses the path package to split config-style forward-slash paths portably.
 func artifactOutputDir(outputDir, artifactType, target string) string {
 	if artifactType == "skills" {
-		skillName := strings.Split(filepath.Clean(target), string(filepath.Separator))[0]
+		skillName := strings.Split(path.Clean(target), "/")[0]
 		return filepath.Join(outputDir, "cursor", "skills", skillName)
 	}
 	return filepath.Join(outputDir, "claude", artifactType)
