@@ -317,6 +317,9 @@ func TestValidateTarget(t *testing.T) {
 		{"skill too deep", "a/b/SKILL.md", "skills", true},
 		{"path traversal in agent", "../etc/passwd", "agents", true},
 		{"path traversal in skill", "../etc/SKILL.md", "skills", true},
+		{"normalized traversal in agent", "sub/../foo.md", "agents", true},
+		{"normalized traversal in command", "sub/../bar.md", "commands", true},
+		{"normalized traversal in skill", "sub/../tdd-workflow/SKILL.md", "skills", true},
 		{"absolute path", "/tmp/foo.md", "agents", true},
 		{"unknown artifact type", "foo.md", "unknown", true},
 	}
