@@ -65,7 +65,7 @@ The `generated` branch contains the distributable rule files:
 - `claude/agents/` — 7 static agents + external agents fetched from configured repos
 - `claude/hooks/` — 1 static hook + external hooks fetched from configured repos
 - `cursor/rules/` — 14 rule files (`.mdc`) — auto-generated from docs
-- `cursor/skills/` — 4 skills — copied from static assets
+- `cursor/skills/` — 5 skills — copied from static assets
 - `copilot/instructions/` — 14 instruction files (`.instructions.md`) — auto-generated with `applyTo` frontmatter
 - `codex/` — `AGENTS.md` and `rules/default.rules` — auto-generated
 
