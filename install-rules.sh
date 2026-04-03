@@ -30,40 +30,86 @@ else
   TARGET_DIR="$HOME"
 fi
 
-# prompt_overwrite checks if file exists and prompts user for confirmation.
-# Returns 0 if write should proceed, 1 if skipped.
-prompt_overwrite() {
-  file="$1"
-  if [ ! -f "$file" ]; then
-    return 0
+# checksum computes a SHA-256 hash for a file (portable across Linux and macOS).
+checksum() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | cut -d ' ' -f1
+  else
+    shasum -a 256 "$1" | cut -d ' ' -f1
   fi
-  if [ "$OVERWRITE_ALL" = "yes" ]; then
-    return 0
-  fi
-  printf "File %s already exists. Overwrite? [y/n/a] " "$file"
-  read -r answer </dev/tty
-  case "$answer" in
-    y|Y) return 0 ;;
-    a|A) OVERWRITE_ALL="yes"; return 0 ;;
-    *)   return 1 ;;
-  esac
 }
 
-# download_file fetches a URL to a local path.
+# file_size returns the size in bytes of a file (portable across Linux and macOS).
+file_size() {
+  wc -c < "$1" | tr -d ' '
+}
+
+# download_file fetches a URL to a local path, comparing checksums when the file already exists.
 download_file() {
   url="$1"
   dest="$2"
   dir="$(dirname "$dest")"
   mkdir -p "$dir"
-  if prompt_overwrite "$dest"; then
-    if curl -fsSL -o "$dest" "$url"; then
-      echo "  Installed: $dest"
-    else
-      echo "  Warning: failed to download $url" >&2
-    fi
-  else
-    echo "  Skipped: $dest"
+
+  # Download to a temporary file first
+  tmp="$(mktemp "${TMPDIR:-/tmp}/install-rules.XXXXXX")"
+  if ! curl -fsSL -o "$tmp" "$url"; then
+    echo "  Warning: failed to download $url" >&2
+    rm -f "$tmp"
+    return
   fi
+
+  # If the local file does not exist, install directly
+  if [ ! -f "$dest" ]; then
+    mv "$tmp" "$dest"
+    chmod 644 "$dest"
+    # Ensure hook scripts are executable
+    case "$dest" in *.sh) chmod 755 "$dest" ;; esac
+    echo "  Installed (new): $dest"
+    return
+  fi
+
+  # Compare checksums
+  local_hash="$(checksum "$dest")"
+  remote_hash="$(checksum "$tmp")"
+
+  if [ "$local_hash" = "$remote_hash" ]; then
+    rm -f "$tmp"
+    echo "  Up to date: $dest"
+    return
+  fi
+
+  # Files differ -- show size comparison to help the user decide
+  local_bytes="$(file_size "$dest")"
+  remote_bytes="$(file_size "$tmp")"
+  diff_bytes=$((remote_bytes - local_bytes))
+
+  if [ "$diff_bytes" -gt 0 ]; then
+    size_note="remote is ${diff_bytes} bytes larger (local: ${local_bytes}B, remote: ${remote_bytes}B) -- installing adds content"
+  elif [ "$diff_bytes" -lt 0 ]; then
+    abs_diff=$(( -diff_bytes ))
+    size_note="local is ${abs_diff} bytes larger (local: ${local_bytes}B, remote: ${remote_bytes}B) -- installing removes content"
+  else
+    size_note="same size but different content (${local_bytes}B)"
+  fi
+
+  if [ "$OVERWRITE_ALL" = "yes" ]; then
+    mv "$tmp" "$dest"
+    chmod 644 "$dest"
+    case "$dest" in *.sh) chmod 755 "$dest" ;; esac
+    echo "  Updated: $dest ($size_note)"
+    return
+  fi
+
+  printf "  Changed: %s\n" "$dest"
+  printf "    %s\n" "$size_note"
+  printf "    Overwrite? [y/n/a] "
+  read -r answer </dev/tty
+  case "$answer" in
+    y|Y) mv "$tmp" "$dest"; chmod 644 "$dest"; case "$dest" in *.sh) chmod 755 "$dest" ;; esac; echo "  Updated: $dest" ;;
+    a|A) OVERWRITE_ALL="yes"; mv "$tmp" "$dest"; chmod 644 "$dest"; case "$dest" in *.sh) chmod 755 "$dest" ;; esac; echo "  Updated: $dest" ;;
+    *)   rm -f "$tmp"; echo "  Skipped: $dest" ;;
+  esac
 }
 
 # list_remote_entries fetches entry names from a directory on the generated branch via the GitHub API.
@@ -99,6 +145,13 @@ echo ""
 echo "Claude Code agents:"
 for file in $(list_remote_entries "claude/agents"); do
   download_file "${BASE_URL}/claude/agents/${file}" "${TARGET_DIR}/.claude/agents/${file}"
+done
+echo ""
+
+# Claude Code hooks (.claude/hooks/*)
+echo "Claude Code hooks:"
+for file in $(list_remote_entries "claude/hooks"); do
+  download_file "${BASE_URL}/claude/hooks/${file}" "${TARGET_DIR}/.claude/hooks/${file}"
 done
 echo ""
 
