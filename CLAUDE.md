@@ -36,8 +36,8 @@ Markdown files (source of truth)
   ├─→ update-wiki tool ─→ GitHub Wiki (flattened links, absolute image URLs)
   ├─→ generate-ai-rules tool ─→ 'generated' branch (claude/, cursor/, codex/, copilot/)
   │   ├── Claude Code, Cursor, Codex, GitHub Copilot rule files
-  │   ├── Static assets (agents, commands, skills) ─→ also copied to 'generated' branch
-  │   └── External agents (fetched from external-sources.yaml) ─→ merged into agents/
+  │   ├── Static assets (agents, commands, skills, hooks) ─→ also copied to 'generated' branch
+  │   └── External artifacts (fetched from external-sources.yaml) ─→ merged into respective dirs
   └─→ install-rules.sh ─→ downloads from 'generated' branch to ~/.claude/, ~/.cursor/, etc.
 ```
 
@@ -53,15 +53,17 @@ The generated rule directories (`claude/`, `cursor/`, `codex/`, `copilot/`) do *
 Hand-written files that the workflow copies to the `generated` branch alongside auto-generated rules:
 
 - `.github/workflows/generate-ai-rules/agents/` — 7 Claude Code agent files
-- `.github/workflows/generate-ai-rules/commands/` — 5 Claude Code slash commands
-- `.github/workflows/generate-ai-rules/skills/` — 4 Cursor skills
+- `.github/workflows/generate-ai-rules/commands/` — 8 Claude Code slash commands
+- `.github/workflows/generate-ai-rules/skills/` — 5 Cursor skills
+- `.github/workflows/generate-ai-rules/hooks/` — 1 Claude Code hook
 
 ### Generated Output (on `generated` branch)
 
 The `generated` branch contains the distributable rule files:
 - `claude/rules/` — 14 rule files (`.md`) — auto-generated from docs
-- `claude/commands/` — 5 slash commands — copied from static assets
+- `claude/commands/` — 8 slash commands — copied from static assets + external
 - `claude/agents/` — 7 static agents + external agents fetched from configured repos
+- `claude/hooks/` — 1 static hook + external hooks fetched from configured repos
 - `cursor/rules/` — 14 rule files (`.mdc`) — auto-generated from docs
 - `cursor/skills/` — 4 skills — copied from static assets
 - `copilot/instructions/` — 14 instruction files (`.instructions.md`) — auto-generated with `applyTo` frontmatter
