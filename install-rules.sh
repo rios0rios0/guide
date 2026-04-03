@@ -52,7 +52,7 @@ download_file() {
   mkdir -p "$dir"
 
   # Download to a temporary file first
-  tmp="$(mktemp)"
+  tmp="$(mktemp "${TMPDIR:-/tmp}/install-rules.XXXXXX")"
   if ! curl -fsSL -o "$tmp" "$url"; then
     echo "  Warning: failed to download $url" >&2
     rm -f "$tmp"
@@ -62,6 +62,9 @@ download_file() {
   # If the local file does not exist, install directly
   if [ ! -f "$dest" ]; then
     mv "$tmp" "$dest"
+    chmod 644 "$dest"
+    # Ensure hook scripts are executable
+    case "$dest" in *.sh) chmod 755 "$dest" ;; esac
     echo "  Installed (new): $dest"
     return
   fi
@@ -92,6 +95,8 @@ download_file() {
 
   if [ "$OVERWRITE_ALL" = "yes" ]; then
     mv "$tmp" "$dest"
+    chmod 644 "$dest"
+    case "$dest" in *.sh) chmod 755 "$dest" ;; esac
     echo "  Updated: $dest ($size_note)"
     return
   fi
@@ -101,8 +106,8 @@ download_file() {
   printf "    Overwrite? [y/n/a] "
   read -r answer </dev/tty
   case "$answer" in
-    y|Y) mv "$tmp" "$dest"; echo "  Updated: $dest" ;;
-    a|A) OVERWRITE_ALL="yes"; mv "$tmp" "$dest"; echo "  Updated: $dest" ;;
+    y|Y) mv "$tmp" "$dest"; chmod 644 "$dest"; case "$dest" in *.sh) chmod 755 "$dest" ;; esac; echo "  Updated: $dest" ;;
+    a|A) OVERWRITE_ALL="yes"; mv "$tmp" "$dest"; chmod 644 "$dest"; case "$dest" in *.sh) chmod 755 "$dest" ;; esac; echo "  Updated: $dest" ;;
     *)   rm -f "$tmp"; echo "  Skipped: $dest" ;;
   esac
 }

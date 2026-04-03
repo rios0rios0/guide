@@ -7,6 +7,11 @@
 
 set -euo pipefail
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo '{"decision":"block","reason":"Missing required dependency: jq. Install jq to enable the changelog-guard hook."}' >&2
+  exit 2
+fi
+
 INPUT="$(cat)"
 COMMAND="$(echo "$INPUT" | jq -r '.input.command // empty')"
 
@@ -15,13 +20,22 @@ if ! echo "$COMMAND" | grep -q "git commit"; then
   exit 0
 fi
 
+# Only run repository checks when we're inside a Git work tree.
+# Fail open if Git context is unavailable.
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  exit 0
+fi
+
 # Check if CHANGELOG.md is staged
 if ! git diff --cached --name-only 2>/dev/null | grep -q "^CHANGELOG.md$"; then
   exit 0
 fi
 
-# Get full-context diff so section headers are always visible
-DIFF="$(git diff --cached -U9999 -- CHANGELOG.md 2>/dev/null)"
+# Get full-context diff so section headers are always visible.
+# Avoid aborting under set -e if git diff fails unexpectedly; fail open instead.
+if ! DIFF="$(git diff --cached -U9999 -- CHANGELOG.md 2>/dev/null)"; then
+  exit 0
+fi
 
 # Parse the diff to check if additions land in a released section.
 # Strategy: walk the diff hunks. Track which section we're in by looking at
