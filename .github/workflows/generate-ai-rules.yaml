@@ -60,6 +60,7 @@ jobs:
           cp -r $PROJECT_PATH/agents/ /tmp/generated-agents
           cp -r $PROJECT_PATH/commands/ /tmp/generated-commands
           cp -r $PROJECT_PATH/skills/ /tmp/generated-skills
+          cp -r $PROJECT_PATH/hooks/ /tmp/generated-hooks
           cp install-rules.sh /tmp/generated-install
 
           # Remove untracked generated files to avoid conflicts when switching branches
@@ -98,9 +99,9 @@ jobs:
           if [ -d /tmp/generated-cursor/skills ]; then
             cp -r /tmp/generated-cursor/skills/* cursor/skills/ 2>/dev/null || true
           fi
-          # Copy external hooks (no static hooks exist, so no merge needed)
+          rm -rf claude/hooks && cp -r /tmp/generated-hooks claude/hooks
+          # Merge external hooks (fetched during generation) into the static hooks directory
           if [ -d /tmp/generated-claude/hooks ]; then
-            mkdir -p claude/hooks
             cp -r /tmp/generated-claude/hooks/* claude/hooks/ 2>/dev/null || true
           fi
           cp /tmp/generated-install install-rules.sh
