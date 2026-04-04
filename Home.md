@@ -61,13 +61,15 @@ And its objective is not to limit the development to a specific form, but to pro
 
 ## AI Assistant Rules
 
-This repository automatically generates rule files for AI coding assistants (Claude Code, Cursor, Codex, GitHub Copilot) from the documentation. It also fetches curated agents from external repositories. Generated files live on the [`generated`](https://github.com/rios0rios0/guide/tree/generated) branch and can be installed with:
+This repository automatically generates rule files for AI coding assistants (Claude Code, Cursor, Codex, GitHub Copilot) from the documentation. Generated files live on the [`generated`](https://github.com/rios0rios0/guide/tree/generated) branch. Install with [aisync](https://github.com/rios0rios0/aisync):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rios0rios0/guide/generated/install-rules.sh | sh
+aisync init
+aisync source add guide --source-repo rios0rios0/guide --branch generated
+aisync pull
 ```
 
-Or download `install-rules.sh` and run it with `--force` for non-interactive mode. See [install-rules.sh](install-rules.sh) for details.
+Or as a Claude Code plugin: `/plugin marketplace add rios0rios0/guide`
 
 ## References
 - [Vizir's StyleGuide](https://github.com/Vizir/styleguide)

@@ -31,10 +31,10 @@ Syncs documentation to GitHub Wiki:
 - Expected build time: ~1 second
 
 #### generate-ai-rules (Go 1.24.7)
-Generates AI assistant rule files for Claude Code, Cursor, Codex, and GitHub Copilot. Also fetches external agents from configured repositories.
+Generates AI assistant rule files for Claude Code, Cursor, Codex, and GitHub Copilot from the guide's own documentation.
 - Build location: `.github/workflows/generate-ai-rules/`
 - Build command: `go build -o generate-ai-rules ./...`
-- Run with external sources: `./generate-ai-rules -external-config external-sources.yaml`
+- Run: `./generate-ai-rules`
 - Expected build time: ~1 second
 
 **NEVER CANCEL BUILD COMMANDS** - Even though builds are fast (~1s), set timeouts of 30+ seconds.
@@ -114,18 +114,14 @@ Always follow the `.editorconfig` settings:
 6. Always validate build process after changes
 
 ### Installing AI Rules
-Use `install-rules.sh` to distribute the generated AI rule files (downloaded from the `generated` branch) to a project or globally:
+Use [aisync](https://github.com/rios0rios0/aisync) to install and sync AI rule files across devices:
 ```bash
-# Install globally (into ~/.claude/, ~/.cursor/, ~/AGENTS.md, ~/.codex/)
-./install-rules.sh
-
-# Install into a specific project directory
-./install-rules.sh /path/to/project
-
-# Force overwrite existing files without prompting (for automated scripts)
-./install-rules.sh --force
-./install-rules.sh --force /path/to/project
+aisync init
+aisync source add guide --source-repo rios0rios0/guide --branch generated
+aisync pull
 ```
+
+Or as a Claude Code plugin: `/plugin marketplace add rios0rios0/guide`
 
 ### Repository Navigation
 ```
@@ -135,7 +131,7 @@ Use `install-rules.sh` to distribute the generated AI rule files (downloaded fro
 ├── Onboarding.md                     # Developer onboarding guide
 ├── _Sidebar.md                       # GitHub Wiki sidebar navigation
 ├── _Footer.md                        # GitHub Wiki footer
-├── install-rules.sh                  # Script to install AI rules from 'generated' branch
+├── .claude-plugin/marketplace.json   # Claude Code plugin marketplace definition
 ├── .editorconfig                     # Formatting standards
 ├── .github/workflows/                # CI/CD automation
 │   ├── update-wiki.yml               # Syncs docs to GitHub Wiki (Go 1.26.0)
@@ -144,8 +140,7 @@ Use `install-rules.sh` to distribute the generated AI rule files (downloaded fro
 │   │   ├── agents/                   # Claude Code agent source files (6 static agents)
 │   │   ├── commands/                 # Claude Code command source files (5 commands)
 │   │   ├── skills/                   # Cursor skill source files (4 skills)
-│   │   ├── external-sources.yaml     # Config for fetching agents from external repos
-│   │   └── *.go                      # Go tool (config, parser, formatter, external)
+│   │   ├── └── *.go                      # Go tool (config, parser, formatter)
 │   └── sync-docs.yaml                # Validates TOC sync on PRs
 ├── Agile-&-Culture/                  # Agile methodology guides
 │   └── PDCA.md                       # PDCA cycle methodology
@@ -172,7 +167,7 @@ Use `install-rules.sh` to distribute the generated AI rule files (downloaded fro
 - **Setup guides**: `Cookbooks/Tools-&-Setup/`
 - **CI/CD information**: `Life-Cycle/CI-&-CD.md`
 - **AI rules**: `generated` branch (auto-generated from docs + external sources)
-- **AI rule sources**: `.github/workflows/generate-ai-rules/agents/`, `commands/`, `skills/`, `external-sources.yaml`
+- **AI rule sources**: `.github/workflows/generate-ai-rules/agents/`, `commands/`, `skills/`, `hooks/`
 
 ### Build System Details
 ```bash

@@ -14,7 +14,6 @@ on:
       - 'Cookbooks/AI-Assisted-Workflows.md'
       - '.github/workflows/generate-ai-rules/**'
       - '.github/workflows/generate-ai-rules.yaml'
-      - 'install-rules.sh'
   workflow_dispatch:
 
 permissions:
@@ -44,8 +43,7 @@ jobs:
 
       - name: 'Generate AI Rule Files'
         run: |
-          ./${{ env.PROJECT_PATH }}/generate-ai-rules \
-            -external-config ${{ env.PROJECT_PATH }}/external-sources.yaml
+          ./${{ env.PROJECT_PATH }}/generate-ai-rules
 
       - name: 'Publish Generated Files to generated branch'
         run: |
@@ -61,7 +59,6 @@ jobs:
           cp -r $PROJECT_PATH/commands/ /tmp/generated-commands
           cp -r $PROJECT_PATH/skills/ /tmp/generated-skills
           cp -r $PROJECT_PATH/hooks/ /tmp/generated-hooks
-          cp install-rules.sh /tmp/generated-install
 
           # Remove untracked generated files to avoid conflicts when switching branches
           rm -rf claude cursor codex copilot
@@ -74,8 +71,9 @@ jobs:
             git rm -rf .
           fi
 
-          # One-time cleanup of legacy .ai/ directory
+          # One-time cleanup of legacy directories
           git rm -rf .ai 2>/dev/null || true
+          git rm -f install-rules.sh 2>/dev/null || true
 
           # Sync generated rules
           rm -rf claude cursor codex copilot
@@ -84,28 +82,40 @@ jobs:
           cp -r /tmp/generated-codex codex
           cp -r /tmp/generated-copilot copilot
 
-          # Replace static agents/commands/skills, then merge external agents
+          # Copy static assets (guide's own agents/commands/skills/hooks only)
           rm -rf claude/agents && cp -r /tmp/generated-agents claude/agents
-          if [ -d /tmp/generated-claude/agents ]; then
-            cp -r /tmp/generated-claude/agents/* claude/agents/ 2>/dev/null || true
-          fi
           rm -rf claude/commands && cp -r /tmp/generated-commands claude/commands
-          # Merge external commands (fetched during generation) into the static commands directory
-          if [ -d /tmp/generated-claude/commands ]; then
-            cp -r /tmp/generated-claude/commands/* claude/commands/ 2>/dev/null || true
-          fi
           rm -rf cursor/skills && cp -r /tmp/generated-skills cursor/skills
-          # Merge external skills (fetched during generation) into the static skills directory
-          if [ -d /tmp/generated-cursor/skills ]; then
-            cp -r /tmp/generated-cursor/skills/* cursor/skills/ 2>/dev/null || true
-          fi
           rm -rf claude/hooks && cp -r /tmp/generated-hooks claude/hooks
-          # Merge external hooks (fetched during generation) into the static hooks directory
-          if [ -d /tmp/generated-claude/hooks ]; then
-            cp -r /tmp/generated-claude/hooks/* claude/hooks/ 2>/dev/null || true
-          fi
-          cp /tmp/generated-install install-rules.sh
-          git add claude/ cursor/ codex/ copilot/ install-rules.sh
+
+          # Generate aisync source definition for aisync users
+          cat > aisync-source.yaml << 'AISYNC_EOF'
+          name: 'guide'
+          repo: 'rios0rios0/guide'
+          branch: 'generated'
+          refresh: '168h'
+          mappings:
+            - source: 'claude/rules'
+              target: 'shared/claude/rules'
+            - source: 'claude/commands'
+              target: 'shared/claude/commands'
+            - source: 'claude/agents'
+              target: 'shared/claude/agents'
+            - source: 'claude/hooks'
+              target: 'shared/claude/hooks'
+            - source: 'claude/skills'
+              target: 'shared/claude/skills'
+            - source: 'cursor/rules'
+              target: 'shared/cursor/rules'
+            - source: 'cursor/skills'
+              target: 'shared/cursor/skills'
+            - source: 'copilot/instructions'
+              target: 'shared/copilot/instructions'
+            - source: 'codex/rules'
+              target: 'shared/codex/rules'
+          AISYNC_EOF
+
+          git add claude/ cursor/ codex/ copilot/ aisync-source.yaml
 
           # Commit and push (only if there are changes)
           git diff --cached --quiet || git commit -m "chore(ai-rules): regenerated AI rule files"

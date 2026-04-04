@@ -1,0 +1,17 @@
+{
+  "name": "guide",
+  "owner": {
+    "name": "rios0rios0"
+  },
+  "metadata": {
+    "description": "Engineering standards rules, agents, commands, hooks, and skills",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "engineering-standards",
+      "source": "./.github/workflows/generate-ai-rules",
+      "description": "Engineering standards with 7 agents, 8 commands, 5 skills, and 1 hook for software development best practices"
+    }
+  ]
+}

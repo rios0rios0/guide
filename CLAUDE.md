@@ -36,9 +36,10 @@ Markdown files (source of truth)
   ├─→ update-wiki tool ─→ GitHub Wiki (flattened links, absolute image URLs)
   ├─→ generate-ai-rules tool ─→ 'generated' branch (claude/, cursor/, codex/, copilot/)
   │   ├── Claude Code, Cursor, Codex, GitHub Copilot rule files
-  │   ├── Static assets (agents, commands, skills, hooks) ─→ also copied to 'generated' branch
-  │   └── External artifacts (fetched from external-sources.yaml) ─→ merged into respective dirs
-  └─→ install-rules.sh ─→ downloads from 'generated' branch to ~/.claude/, ~/.cursor/, etc.
+  │   ├── Static assets (agents, commands, skills, hooks) ─→ copied to 'generated' branch
+  │   └── aisync-source.yaml ─→ source definition for aisync users
+  ├─→ .claude-plugin/marketplace.json ─→ Claude Code plugin marketplace
+  └─→ aisync (external tool) ─→ downloads from 'generated' branch to ~/.claude/, ~/.cursor/, etc.
 ```
 
 The generated rule directories (`claude/`, `cursor/`, `codex/`, `copilot/`) do **not** exist on `main`. They live only on the `generated` branch, which is updated automatically by the `generate-ai-rules.yaml` workflow.
@@ -46,7 +47,7 @@ The generated rule directories (`claude/`, `cursor/`, `codex/`, `copilot/`) do *
 ### Go Tools
 
 - **`update-wiki`** (`.github/workflows/update-wiki/main.go`): Converts relative markdown links to Wiki-flat format and resolves image paths to GitHub raw content URLs.
-- **`generate-ai-rules`** (`.github/workflows/generate-ai-rules/`): Parses documentation, extracts sections, and formats them into AI-assistant-specific rule files. Has separate `config.go`, `parser.go`, `formatter.go`, and `external.go` modules with corresponding tests. Supports fetching agents from external GitHub repos via `external-sources.yaml`.
+- **`generate-ai-rules`** (`.github/workflows/generate-ai-rules/`): Parses documentation, extracts sections, and formats them into AI-assistant-specific rule files. Has separate `config.go`, `parser.go`, and `formatter.go` modules with corresponding tests.
 
 ### Static Assets (on `main`)
 
@@ -61,13 +62,19 @@ Hand-written files that the workflow copies to the `generated` branch alongside 
 
 The `generated` branch contains the distributable rule files:
 - `claude/rules/` — 14 rule files (`.md`) — auto-generated from docs
-- `claude/commands/` — 8 slash commands — copied from static assets + external
-- `claude/agents/` — 7 static agents + external agents fetched from configured repos
-- `claude/hooks/` — 1 static hook + external hooks fetched from configured repos
+- `claude/commands/` — 8 slash commands — copied from static assets
+- `claude/agents/` — 7 agents — copied from static assets
+- `claude/hooks/` — 1 hook — copied from static assets
 - `cursor/rules/` — 14 rule files (`.mdc`) — auto-generated from docs
 - `cursor/skills/` — 5 skills — copied from static assets
 - `copilot/instructions/` — 14 instruction files (`.instructions.md`) — auto-generated with `applyTo` frontmatter
 - `codex/` — `AGENTS.md` and `rules/default.rules` — auto-generated
+- `aisync-source.yaml` — source definition for aisync users
+
+### Distribution
+
+- **[aisync](https://github.com/rios0rios0/aisync)** — CLI tool that syncs rules across devices: `aisync source add guide --source-repo rios0rios0/guide --branch generated`
+- **Claude Code Plugin Marketplace** — `/plugin marketplace add rios0rios0/guide`
 
 ## Critical Constraints
 
@@ -90,7 +97,3 @@ Documentation files use hyphens (e.g., `Backend-Design.md`). Directories use `&`
 | `update-wiki.yml` | Push to `main`, manual | Syncs docs to GitHub Wiki |
 | `generate-ai-rules.yaml` | Push to `main` (doc paths), manual | Regenerates AI rules on `generated` branch |
 | `sync-docs.yaml` | PR with `.md` changes | Validates TOC sync |
-
-## Install Script
-
-`install-rules.sh` downloads generated rule files from the `generated` branch on GitHub and installs them globally (`~/.claude/`, `~/.cursor/`, etc.) or into a specific project directory. Supports `--force` to skip overwrite prompts.
