@@ -9,10 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- added `.claude-plugin/marketplace.json` for Claude Code plugin marketplace (`/plugin marketplace add rios0rios0/guide`)
+- added `aisync-source.yaml` generation on the `generated` branch for [aisync](https://github.com/rios0rios0/aisync) users
 - added `fix-ci` slash command for auto-detecting failing CI checks, classifying failures, and pushing fixes
 - added `changelog-guard.sh` hook as a static asset to block commits that add CHANGELOG entries outside the `[Unreleased]` section
-- added hooks installation section to `install-rules.sh` so hooks from the `generated` branch are installed alongside rules, commands, and agents
-- added checksum comparison to `install-rules.sh` that detects unchanged files, shows byte-level size differences, and warns whether installing adds or removes content
+
+### Removed
+
+- removed `install-rules.sh` — distribution now handled by [aisync](https://github.com/rios0rios0/aisync)
+- removed `external-sources.yaml` and external source fetching from `generate-ai-rules` tool — each external repo is now an independent source that users add directly to their aisync config
+- removed `external.go` and `external_test.go` from `generate-ai-rules` tool
 
 ## [0.2.0] - 2026-03-20
 

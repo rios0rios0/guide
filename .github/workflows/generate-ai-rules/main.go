@@ -12,7 +12,6 @@ import (
 func main() {
 	sourceDir := flag.String("source", ".", "root directory of the documentation repository")
 	outputDir := flag.String("output", ".", "directory where generated rule files are written")
-	externalConfig := flag.String("external-config", "", "path to external-sources.yaml for fetching agents from external repos")
 	logLevel := flag.String("log-level", "info", "log level: trace, debug, info, warn, error, fatal")
 	flag.Parse()
 
@@ -52,11 +51,6 @@ func main() {
 
 	writeErrors := writeAllRules(*outputDir, groups, contents)
 	totalErrors := errorCount + writeErrors
-
-	if *externalConfig != "" {
-		externalErrors := fetchExternalSources(*externalConfig, *outputDir)
-		totalErrors += externalErrors
-	}
 
 	logger.WithFields(logger.Fields{
 		"groups_processed": len(groups),
