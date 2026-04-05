@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-05
+
 ### Added
 
-- added `fix-ci` slash command for auto-detecting failing CI checks, classifying failures, and pushing fixes
 - added `changelog-guard.sh` hook as a static asset to block commits that add CHANGELOG entries outside the `[Unreleased]` section
-- added hooks installation section to `install-rules.sh` so hooks from the `generated` branch are installed alongside rules, commands, and agents
+- added `fix-ci` slash command for auto-detecting failing CI checks, classifying failures, and pushing fixes
 - added checksum comparison to `install-rules.sh` that detects unchanged files, shows byte-level size differences, and warns whether installing adds or removes content
+- added hooks installation section to `install-rules.sh` so hooks from the `generated` branch are installed alongside rules, commands, and agents
 
 ## [0.2.0] - 2026-03-20
 
@@ -24,19 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- added `pr-review-resolver` agent for automating PR review comment resolution
-- added GitHub Copilot as a generation target with `.instructions.md` files using `applyTo` frontmatter
-- added AI-Assisted Workflows cookbook page documenting the RPI (Research, Plan, Implement, Review) methodology
-- added dynamic external agent fetch mechanism to pull agents from configured GitHub repositories via `external-sources.yaml`
 - added 5 new Claude Code agents: changelog-enforcer, code-reviewer, git-workflow, security-auditor, and bulk-operations
+- added `pr-review-resolver` agent for automating PR review comment resolution
+- added AI-Assisted Workflows cookbook page documenting the RPI (Research, Plan, Implement, Review) methodology
 - added CHANGELOG.md following the Keep a Changelog standard
+- added dynamic external agent fetch mechanism to pull agents from configured GitHub repositories via `external-sources.yaml`
+- added GitHub Copilot as a generation target with `.instructions.md` files using `applyTo` frontmatter
 
 ### Changed
 
-- removed `.ai/` prefix directory from the `generated` branch; rule files now live directly at `claude/`, `cursor/`, `codex/`, `copilot/`
+- changed `install-rules.sh` to download from the `generated` branch instead of `main`
 - moved generated `.ai/` directory from `main` branch to a dedicated `generated` branch to eliminate workflow conflicts
 - moved static assets (agents, commands, skills) to `.github/workflows/generate-ai-rules/` as source files on `main`
-- changed `install-rules.sh` to download from the `generated` branch instead of `main`
+- removed `.ai/` prefix directory from the `generated` branch; rule files now live directly at `claude/`, `cursor/`, `codex/`, `copilot/`
 
 ### Fixed
 
