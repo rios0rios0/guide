@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- refreshed `CLAUDE.md` and `.github/copilot-instructions.md` to document the `claude-code-review.yaml` and `claude.yaml` workflows, and corrected stale static-asset counts in copilot instructions
+
 ## [0.3.0] - 2026-04-14
 
 ### Added

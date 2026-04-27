@@ -40,13 +40,15 @@ Generates AI assistant rule files for Claude Code, Cursor, Codex, and GitHub Cop
 **NEVER CANCEL BUILD COMMANDS** - Even though builds are fast (~1s), set timeouts of 30+ seconds.
 
 ### GitHub Actions Workflows
-Three workflows are defined under `.github/workflows/`:
+Five workflows are defined under `.github/workflows/`:
 
 | File | Trigger | Purpose |
 |------|---------|---------|
 | `update-wiki.yml` | Push to `main`, manual dispatch | Syncs docs to GitHub Wiki |
 | `generate-ai-rules.yaml` | Push to `main` (docs paths), manual dispatch | Regenerates AI rules on `generated` branch |
 | `sync-docs.yaml` | Pull request (any `.md` change) | Validates TOC sync across README.md, Home.md, _Sidebar.md |
+| `claude-code-review.yaml` | PR opened/synchronize/reopened | AI-assisted PR review via Claude Code |
+| `claude.yaml` | Issue/PR comments, issue events, PR reviews | Claude Code automation for issues and PRs |
 
 **NEVER CANCEL**: Full workflow takes ~2-3 minutes including setup. Set timeout to 10+ minutes.
 
@@ -141,9 +143,9 @@ Use `install-rules.sh` to distribute the generated AI rule files (downloaded fro
 │   ├── update-wiki.yml               # Syncs docs to GitHub Wiki (Go 1.26.0)
 │   ├── generate-ai-rules.yaml        # Generates AI rules on 'generated' branch (Go 1.24.7)
 │   ├── generate-ai-rules/            # Go tool + static assets
-│   │   ├── agents/                   # Claude Code agent source files (6 static agents)
-│   │   ├── commands/                 # Claude Code command source files (5 commands)
-│   │   ├── skills/                   # Cursor skill source files (4 skills)
+│   │   ├── agents/                   # Claude Code agent source files (7 static agents)
+│   │   ├── commands/                 # Claude Code command source files (8 commands)
+│   │   ├── skills/                   # Cursor skill source files (5 skills)
 │   │   ├── external-sources.yaml     # Config for fetching agents from external repos
 │   │   └── *.go                      # Go tool (config, parser, formatter, external)
 │   └── sync-docs.yaml                # Validates TOC sync on PRs
