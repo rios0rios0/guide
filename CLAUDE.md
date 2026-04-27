@@ -90,6 +90,8 @@ Documentation files use hyphens (e.g., `Backend-Design.md`). Directories use `&`
 | `update-wiki.yml` | Push to `main`, manual | Syncs docs to GitHub Wiki |
 | `generate-ai-rules.yaml` | Push to `main` (doc paths), manual | Regenerates AI rules on `generated` branch |
 | `sync-docs.yaml` | PR with `.md` changes | Validates TOC sync |
+| `claude-code-review.yaml` | PR opened/synchronize/reopened | AI-assisted PR review via Claude Code |
+| `claude.yaml` | Issue/PR comments, issue events, PR reviews | Claude Code automation for issues and PRs |
 
 ## Install Script
 
