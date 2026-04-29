@@ -1,6 +1,6 @@
 module github.com/rios0rios0/guide/generate-ai-rules
 
-go 1.24.7
+go 1.26.2
 
 require (
 	github.com/sirupsen/logrus v1.9.4

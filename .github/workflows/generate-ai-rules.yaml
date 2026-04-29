@@ -34,7 +34,7 @@ jobs:
       - name: 'Set Up Go'
         uses: 'actions/setup-go@v6'
         with:
-          go-version: '1.23.4'
+          go-version-file: '${{ env.PROJECT_PATH }}/go.mod'
           cache-dependency-path: '${{ env.PROJECT_PATH }}/go.sum'
 
       - name: 'Build Go Program'
