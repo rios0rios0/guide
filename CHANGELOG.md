@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- bumped `update-wiki` and `generate-ai-rules` Go modules to `1.26.2`
+- switched `update-wiki.yml` and `generate-ai-rules.yaml` workflows to `go-version-file` so the workflow Go version always tracks each subproject's `go.mod`, preventing future drift
+
+### Fixed
+
+- aligned the workflow Go version with each subproject's `go.mod`, fixing the `go: go.mod requires go >= 1.24.7 / 1.26.0` build failures in `Generate AI Rules` and `Update Wiki`
+
 ## [0.3.1] - 2026-04-28
 
 ### Changed
