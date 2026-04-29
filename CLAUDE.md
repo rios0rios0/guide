@@ -11,12 +11,12 @@ A documentation repository that serves as the single source of truth for softwar
 There is no Makefile. The two Go tools are built and tested independently:
 
 ```bash
-# update-wiki tool (Go 1.26.0) — syncs docs to GitHub Wiki
+# update-wiki tool (Go 1.26.2) — syncs docs to GitHub Wiki
 cd .github/workflows/update-wiki
 go build -o update-wiki ./...
 go test ./...
 
-# generate-ai-rules tool (Go 1.24.7) — generates AI rule files from docs
+# generate-ai-rules tool (Go 1.26.2) — generates AI rule files from docs
 cd .github/workflows/generate-ai-rules
 go build -o generate-ai-rules ./...
 go test ./...
