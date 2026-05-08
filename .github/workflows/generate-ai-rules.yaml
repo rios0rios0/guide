@@ -103,8 +103,6 @@ jobs:
               target: 'shared/claude/agents'
             - source: 'claude/hooks'
               target: 'shared/claude/hooks'
-            - source: 'claude/skills'
-              target: 'shared/claude/skills'
             - source: 'cursor/rules'
               target: 'shared/cursor/rules'
             - source: 'cursor/skills'
@@ -113,6 +111,8 @@ jobs:
               target: 'shared/copilot/instructions'
             - source: 'codex/rules'
               target: 'shared/codex/rules'
+            - source: 'codex/AGENTS.md'
+              target: 'shared/codex/AGENTS.md'
           AISYNC_EOF
 
           git add claude/ cursor/ codex/ copilot/ aisync-source.yaml
