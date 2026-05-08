@@ -76,13 +76,35 @@ A comprehensive software development guide covering agile culture, architecture,
 
 ## AI Assistant Rules
 
-This repository automatically generates rule files for AI coding assistants (Claude Code, Cursor, Codex, GitHub Copilot) from the documentation. It also fetches curated agents from external repositories. Generated files live on the [`generated`](https://github.com/rios0rios0/guide/tree/generated) branch and can be installed with:
+This repository automatically generates rule files for AI coding assistants (Claude Code, Cursor, Codex, GitHub Copilot) from the documentation. Generated files live on the [`generated`](https://github.com/rios0rios0/guide/tree/generated) branch.
+
+### Install with aisync (recommended)
+
+[aisync](https://github.com/rios0rios0/aisync) syncs AI tool configurations across devices with encryption and multi-source support:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rios0rios0/guide/generated/install-rules.sh | sh
+aisync init
+aisync source add guide --source-repo rios0rios0/guide --branch generated
+aisync pull
 ```
 
-Or download `install-rules.sh` and run it with `--force` for non-interactive mode. See [install-rules.sh](install-rules.sh) for details.
+### Install as Claude Code plugin
+
+```bash
+/plugin marketplace add rios0rios0/guide
+```
+
+### Recommended External Sources
+
+These community sources complement the guide's rules. Add any combination to your aisync config:
+
+| Source | Repository | Description |
+|--------|-----------|-------------|
+| **Guide** | `rios0rios0/guide@generated` | 14 engineering standard rules, 7 agents, 8 commands, 5 skills |
+| **Agents** | `wshobson/agents@main` | 112+ specialized agents (docs, TDD, CI/CD) |
+| **Everything Claude Code** | `affaan-m/everything-claude-code@main` | Anthropic Hackathon winner. 28 agents, 125 skills, 60 commands |
+| **Power Platform** | `microsoft/power-platform-skills@main` | Official Microsoft Power Platform plugins |
+| **HVE Core** | `microsoft/hve-core@main` | 49 agents, 102 instructions, 63 prompts, 11 skills |
 
 ## References
 
