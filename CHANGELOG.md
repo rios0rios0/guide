@@ -7,22 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-09
+
 ### Added
 
 - added `.claude-plugin/marketplace.json` for Claude Code plugin marketplace (`/plugin marketplace add rios0rios0/guide`)
 - added `aisync-source.yaml` generation on the `generated` branch for [aisync](https://github.com/rios0rios0/aisync) users
+- added `codex/AGENTS.md` mapping to generated `aisync-source.yaml` so aisync installs the full Codex output, not just `codex/rules`
 
 ### Removed
 
-- removed `install-rules.sh` — distribution now handled by [aisync](https://github.com/rios0rios0/aisync)
+- removed `claude/skills` mapping from generated `aisync-source.yaml` — the `generated` branch has no `claude/skills/` directory; skills live under `cursor/skills/`
 - removed `external-sources.yaml` and external source fetching from `generate-ai-rules` tool — each external repo is now an independent source that users add directly to their aisync config
 - removed `external.go` and `external_test.go` from `generate-ai-rules` tool
+- removed `install-rules.sh` — distribution now handled by [aisync](https://github.com/rios0rios0/aisync)
 - removed unused `gopkg.in/yaml.v3` direct dependency from `generate-ai-rules` `go.mod` after deleting `external.go`
-
-### Fixed
-
-- removed `claude/skills` mapping from generated `aisync-source.yaml` — the `generated` branch has no `claude/skills/` directory; skills live under `cursor/skills/`
-- added `codex/AGENTS.md` mapping to generated `aisync-source.yaml` so aisync installs the full Codex output, not just `codex/rules`
 
 ## [0.3.2] - 2026-04-29
 
