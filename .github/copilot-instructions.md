@@ -19,7 +19,7 @@ Always reference these instructions first and fallback to search or bash command
   cd .github/workflows/generate-ai-rules
   go build -o generate-ai-rules ./...
   ```
-- Run basic validation: `find . -name "*.md" | wc -l` (should show 79+ Markdown files)
+- Run basic validation: `find . -name "*.md" | wc -l` (should show 80+ Markdown files)
 
 ### Core Build Process
 The repository has two Go-based tools under `.github/workflows/`:
@@ -40,15 +40,16 @@ Generates AI assistant rule files for Claude Code, Cursor, Codex, and GitHub Cop
 **NEVER CANCEL BUILD COMMANDS** - Even though builds are fast (~1s), set timeouts of 30+ seconds.
 
 ### GitHub Actions Workflows
-Five workflows are defined under `.github/workflows/`:
+Six workflows are defined under `.github/workflows/`:
 
 | File | Trigger | Purpose |
 |------|---------|---------|
 | `update-wiki.yml` | Push to `main`, manual dispatch | Syncs docs to GitHub Wiki |
 | `generate-ai-rules.yaml` | Push to `main` (docs paths), manual dispatch | Regenerates AI rules on `generated` branch |
 | `sync-docs.yaml` | Pull request (any `.md` change) | Validates TOC sync across README.md, Home.md, _Sidebar.md |
-| `claude-code-review.yaml` | PR opened/synchronize/reopened | AI-assisted PR review via Claude Code |
+| `claude-code-review.yaml` | PR opened/synchronize/ready_for_review/reopened | AI-assisted PR review via Claude Code |
 | `claude.yaml` | Issue/PR comments, issue events, PR reviews | Claude Code automation for issues and PRs |
+| `release.yaml` | Push to `main` | Automated release via reusable workflow |
 
 **NEVER CANCEL**: Full workflow takes ~2-3 minutes including setup. Set timeout to 10+ minutes.
 
@@ -89,7 +90,7 @@ Run this complete validation sequence after making any changes:
    ```bash
    # Validate markdown files exist and are readable
    find . -name "*.md" -exec head -1 {} \; > /dev/null
-   # Expected: 79+ files, no errors
+   # Expected: 80+ files, no errors
    ```
 
 6. **Manual Validation Scenarios**:
@@ -176,7 +177,7 @@ Or as a Claude Code plugin: `/plugin marketplace add rios0rios0/guide`
 ```bash
 # Repository root commands
 ls -la                     # View all files and directories
-find . -name "*.md"        # List all documentation files (79+)
+find . -name "*.md"        # List all documentation files (80+)
 
 # update-wiki build (run from .github/workflows/update-wiki/)
 go mod verify              # Verify dependencies (0.3s)
@@ -207,7 +208,7 @@ bash .github/workflows/sync-docs/check-toc-sync.sh
 
 ### Repository Characteristics
 - **Type**: Documentation repository (not traditional software)
-- **Primary content**: 79+ Markdown files across 25+ directories
+- **Primary content**: 80+ Markdown files across 25+ directories
 - **Build output**: GitHub Wiki synchronization + AI rule files for Claude Code, Cursor, Codex, and GitHub Copilot (on `generated` branch)
 - **Dependencies**: Go 1.26.2 for update-wiki and generate-ai-rules
 - **Tests**: Both Go modules include test files (`*_test.go`)
