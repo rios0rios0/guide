@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added `.claude-plugin/marketplace.json` for Claude Code plugin marketplace (`/plugin marketplace add rios0rios0/guide`)
 - added `aisync-source.yaml` generation on the `generated` branch for [aisync](https://github.com/rios0rios0/aisync) users
 
+### Changed
+
+- refreshed `CLAUDE.md` and `.github/copilot-instructions.md` to document the `release.yaml` workflow and correct the `claude-code-review.yaml` trigger list
+
 ### Removed
 
 - removed `install-rules.sh` — distribution now handled by [aisync](https://github.com/rios0rios0/aisync)
