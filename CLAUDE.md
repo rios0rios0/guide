@@ -61,13 +61,13 @@ Hand-written files that the workflow copies to the `generated` branch alongside 
 ### Generated Output (on `generated` branch)
 
 The `generated` branch contains the distributable rule files:
-- `claude/rules/` — 14 rule files (`.md`) — auto-generated from docs
+- `claude/rules/` — 15 rule files (`.md`) — auto-generated from docs
 - `claude/commands/` — 8 slash commands — copied from static assets
 - `claude/agents/` — 7 agents — copied from static assets
 - `claude/hooks/` — 1 hook — copied from static assets
-- `cursor/rules/` — 14 rule files (`.mdc`) — auto-generated from docs
+- `cursor/rules/` — 15 rule files (`.mdc`) — auto-generated from docs
 - `cursor/skills/` — 5 skills — copied from static assets
-- `copilot/instructions/` — 14 instruction files (`.instructions.md`) — auto-generated with `applyTo` frontmatter
+- `copilot/instructions/` — 15 instruction files (`.instructions.md`) — auto-generated with `applyTo` frontmatter
 - `codex/` — `AGENTS.md` and `rules/default.rules` — auto-generated
 - `aisync-source.yaml` — source definition for aisync users
 

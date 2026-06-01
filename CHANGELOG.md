@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- refreshed `CLAUDE.md` to correct the generated rule-file count from 14 to 15 per assistant, matching the 15 rule groups defined in `generate-ai-rules` `config.go`
+
 ## [0.4.0] - 2026-05-19
 
 ### Added
