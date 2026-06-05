@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- changed Go testing convention to remove mandatory `//go:build unit` tag from unit tests — build tags are now required only for integration, e2e, and other non-unit test types
+
 ## [0.4.1] - 2026-06-03
 
 ### Changed

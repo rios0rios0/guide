@@ -1,6 +1,6 @@
 # Go Testing Conventions
 
-> **TL;DR:** Use build flags (`//go:build unit` or `//go:build integration`) on every test file. Place test files next to production code with the `_test.go` suffix. Use `stretchr/testify` for suites and assertions. Test packages must be **external** to the production package. All tests must follow the BDD pattern with `// given`, `// when`, `// then` comment blocks. Unit tests must run in **parallel** using `t.Parallel()` + `t.Run()`. Integration tests use **suites** with setup/teardown and are NOT parallel.
+> **TL;DR:** Unit tests need **no build tag** — Go runs `_test.go` files by default, so a tag would be redundant. Use build flags (`//go:build integration`, `//go:build e2e`, etc.) **only** on non-unit test files that require external infrastructure. Place test files next to production code with the `_test.go` suffix. Use `stretchr/testify` for suites and assertions. Test packages must be **external** to the production package. All tests must follow the BDD pattern with `// given`, `// when`, `// then` comment blocks. Unit tests must run in **parallel** using `t.Parallel()` + `t.Run()`. Integration tests use **suites** with setup/teardown and are NOT parallel.
 
 ## Overview
 
@@ -28,13 +28,14 @@ test/
 
 ## General Conventions
 
-1. **Build flags are mandatory.** Every test file must start with a build flag specifying the test type:
-   ```go
-   //go:build unit
-   ```
+1. **Build flags for non-unit tests only.** Unit tests do **not** use build tags — Go discovers and runs `_test.go` files by default, so a `//go:build unit` tag is redundant. Build flags are required only for tests that depend on external infrastructure (databases, APIs, containers, etc.):
    ```go
    //go:build integration
    ```
+   ```go
+   //go:build e2e
+   ```
+   Running `go test ./...` executes only untagged (unit) tests. To include integration tests: `go test -tags=integration ./...`.
 2. **External test packages.** The test package must be outside the production code package. For example, if the production code is in `package commands`, the test file must use `package commands_test`.
 3. **Testing framework.** Use [`stretchr/testify`](https://github.com/stretchr/testify) for test suites and assertions.
 4. **File naming.** Test files use the `_test` suffix (e.g., `sqlx_items_repository_test.go`).
