@@ -239,7 +239,7 @@ func injectController() *controllers.ListUsersController {
 ### 8. Create test structure
 
 - Place test files next to production files with `_test.go` suffix
-- Add build flags: `//go:build unit` or `//go:build integration`
+- Unit tests do not need build tags — Go runs `_test.go` files by default. Add build flags (`//go:build integration`, `//go:build e2e`, etc.) only for tests that require external infrastructure
 - Use `stretchr/testify` suites and `assert`/`require` for assertions
 - Create builders in `test/domain/builders/` for test data
 - Create doubles (stubs/dummies) in `test/domain/doubles/repositories/`
