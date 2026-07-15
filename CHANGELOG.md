@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- fixed the documented release-bump branch name from `bump/x.y.z` to `chore/bump-x.y.z` in the Documentation & Change Control guide
+
 ## [0.4.2] - 2026-06-09
 
 ### Changed

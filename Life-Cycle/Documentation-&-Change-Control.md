@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 All in-progress changes go under `[Unreleased]`. When a release is cut:
 
-1. Create a branch `bump/x.x.x`.
+1. Create a branch `chore/bump-x.y.z`.
 2. Move entries from `[Unreleased]` to a new version heading with the release date.
 3. Open a Pull Request targeting `main`.
 4. After merge, create a Git tag for the version.
