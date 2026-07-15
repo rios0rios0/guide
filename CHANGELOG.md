@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- fixed the documented release-bump branch name from `bump/x.x.x` to `chore/bump-x.x.x` in the Documentation & Change Control guide, aligning it with the `chore(bump)` commit convention and the `chore/` branch-type standard from Git Flow
+
 ## [0.4.2] - 2026-06-09
 
 ### Changed
