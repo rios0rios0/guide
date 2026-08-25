@@ -1,6 +1,6 @@
 # Git Flow
 
-> **TL;DR:** Use a feature-branch model with `main` always deployable. Synchronize branches with `git rebase` (never merge). Follow the `type(TASK-ID): message` commit format in simple past tense. Use Semantic Versioning (MAJOR.MINOR.PATCH) for releases. Flag breaking changes in commits, CHANGELOG.md, and PRs.
+> **TL;DR:** Use a feature-branch model with `main` always deployable. Synchronize branches with `git rebase` (never merge). Follow the `type(TASK-ID): message` commit format in simple past tense. Use Semantic Versioning (MAJOR.MINOR.PATCH) for releases. Flag breaking changes in commits, in the changelog fragment, and in PRs.
 
 ## Overview
 
@@ -25,7 +25,7 @@ The workflow follows a feature-branch model with these principles:
 5. **Create a Pull Request** targeting `main`, adding reviewers.
 6. After code review approval, **merge** the feature branch into `main`.
 7. The CI pipeline builds `main` and deploys to the QA environment.
-8. After QA approval, follow the `CHANGELOG.md` instructions to generate a production release.
+8. After QA approval, cut a `bump/x.y.z` branch and compile the pending changelog fragments into a version section -- see [Documentation & Change Control](Documentation-&-Change-Control.md).
 9. The CI pipeline deploys the release to production.
 
 ## Naming Conventions
@@ -156,9 +156,10 @@ When code changes alter public interfaces, flag the breaking change in **three p
    **BREAKING CHANGE:** input behavior now must be implemented by the peer, including value and handleChange
    ```
 
-2. **CHANGELOG.md:**
-   ```
-   - **BREAKING CHANGE:** updated input to use props for state management
+2. **Changelog fragment** -- the `--breaking` flag is what bumps the major; the prefix is what the reader sees:
+   ```bash
+   chlog new --kind Changed --breaking \
+     --body "**BREAKING CHANGE:** updated input to use props for state management"
    ```
 
 3. **Pull Request description:**

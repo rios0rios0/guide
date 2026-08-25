@@ -25,6 +25,8 @@ Use the prerequisite block that matches your project:
 | **Python**                | Python 3.12+, PDM, Make                                                                |
 | **JavaScript/TypeScript** | Node.js 20+, npm, Make                                                                 |
 
+Every project additionally needs [chlog](https://github.com/luizjhonata/chlog) (`go install github.com/luizjhonata/chlog@latest`) to write changelog fragments -- it is a single Go binary and does not require the project itself to be written in Go.
+
 ## Template
 
 ````markdown
@@ -39,6 +41,7 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 
 - {LANGUAGE}
 - [Make](https://www.gnu.org/software/make/)
+- [chlog](https://github.com/luizjhonata/chlog) (`go install github.com/luizjhonata/chlog@latest`)
 <!-- Add any other tools required by your project -->
 <!-- Java projects: -->
 <!-- - Docker (for integration tests with TestContainers) -->
@@ -60,7 +63,10 @@ development practices, refer to the **[Development Guide](https://github.com/rio
    make test
    make sast
    ```
-6. Update `CHANGELOG.md` under `[Unreleased]`
+6. Add a changelog fragment -- never edit `CHANGELOG.md`, which is generated from them:
+   ```bash
+   chlog new --kind Added --body "added the thing that was not there before"
+   ```
 7. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Git-Flow)
 8. Open a pull request against `main`
 
@@ -94,7 +100,7 @@ docker compose -f compose.dev.yaml up -d
 2. Implement the required interface/contract
 3. Register it in the dependency injection wiring
 4. Add tests following the [testing guide](https://github.com/rios0rios0/guide/wiki/Tests)
-5. Update `CHANGELOG.md` with an entry under `[Unreleased] > Added`
+5. Add a changelog fragment: `chlog new --kind Added --body "added ..."`
 -->
 ````
 

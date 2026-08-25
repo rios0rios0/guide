@@ -1,6 +1,6 @@
 # Documentation & Change Control
 
-> **TL;DR:** Every project must maintain a `CHANGELOG.md` (following [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)) and a `README.md`. Every code change must be accompanied by the corresponding documentation update -- changelog **always**, README and other docs (e.g., `.github/copilot-instructions.md`) **whenever behavior, configuration, or architecture changes**.
+> **TL;DR:** Every project must maintain a `README.md` and a `CHANGELOG.md` -- but the changelog is **generated, never edited by hand**. Every change writes its own fragment under `.changes/unreleased/` with [chlog](https://github.com/luizjhonata/chlog), and a release compiles the pending fragments into a version section. Every code change must be accompanied by the corresponding documentation update -- a changelog fragment **always**, README and other docs (e.g., `.github/copilot-instructions.md`) **whenever behavior, configuration, or architecture changes**.
 
 ## Overview
 
@@ -16,20 +16,99 @@ Every project must contain at minimum:
 |---------------------------------------|--------------------------------------------------------------|--------------------------------------------------------------|
 | **`README.md`**                       | Describes the project, its usage, setup, and architecture    | When behavior, configuration, CLI, or setup changes          |
 | **`CONTRIBUTING.md`**                 | Guides contributors on prerequisites, workflow, and standards | When prerequisites, workflow, or project structure changes    |
-| **`CHANGELOG.md`**                    | Records all notable changes, organized by version            | **Every change** (always)                                    |
+| **`.changes/unreleased/`**            | One YAML changelog fragment per change, written by `chlog new` | **Every change** (always)                                   |
+| **`.chlog.yaml`**                     | chlog's configuration -- the kinds and the bump each infers  | When the kinds change (rarely)                               |
+| **`CHANGELOG.md`**                    | Records all notable changes, organized by version -- **generated from the fragments, never edited by hand** | At release time, by `chlog batch auto && chlog merge`        |
 | **`.github/copilot-instructions.md`** | AI assistant context for the project structure and workflows | When architecture, commands, or development workflow changes |
 
 **Templates are available for standardized project setup:**
 
 - [README Template](Documentation-&-Change-Control/README-Template.md) -- copy and customize for new projects
 - [CONTRIBUTING Template](Documentation-&-Change-Control/CONTRIBUTING-Template.md) -- copy and customize for new projects
-- [CHANGELOG Formatting](Documentation-&-Change-Control/CHANGELOG-Formatting.md) -- formatting rules for changelog entries
+- [CHANGELOG Formatting](Documentation-&-Change-Control/CHANGELOG-Formatting.md) -- formatting rules for the body of a changelog fragment
 
 ## Changelog Standard
 
-All changelogs must follow the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format, combined with [Semantic Versioning](https://semver.org/).
+`CHANGELOG.md` still follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format
+combined with [Semantic Versioning](https://semver.org/) -- but **nobody writes it**. It is compiled
+from fragments by [chlog](https://github.com/luizjhonata/chlog), a single Go binary:
 
-### Format
+```bash
+go install github.com/luizjhonata/chlog@latest
+```
+
+### One Fragment per Change
+
+Every change writes its **own** YAML file under `.changes/unreleased/`:
+
+```bash
+chlog new --kind Added --body "added JavaScript updater supporting npm, yarn, and pnpm projects"
+chlog new --kind Changed --breaking --body "**BREAKING CHANGE:** changed `Input` to take its value from props"
+```
+
+which produces a file the tool names for you:
+
+```yaml
+kind: 'Added'
+body: 'added JavaScript updater supporting npm, yarn, and pnpm projects'
+time: '2026-01-15T09:41:02.117823941Z'
+```
+
+This buys the one thing a single shared file cannot give: two branches each adding an entry no
+longer touch the same lines, so a rebase that used to conflict on `CHANGELOG.md` now conflicts on
+nothing.
+
+**Never edit `CHANGELOG.md` by hand.** The only writer is `chlog merge`, at release time.
+
+### Kinds
+
+The kind is the Keep a Changelog category, and it carries the version bump a release infers from it:
+
+| Kind           | When to Use                                       | Infers  |
+|----------------|---------------------------------------------------|---------|
+| **Added**      | New features, new files, new capabilities         | `minor` |
+| **Changed**    | Modifications to existing functionality           | `minor` |
+| **Deprecated** | Features that will be removed in a future version | `minor` |
+| **Removed**    | Features that were removed                        | `minor` |
+| **Fixed**      | Bug fixes                                         | `patch` |
+| **Security**   | Vulnerability fixes                               | `patch` |
+
+**No kind infers a major.** Under SemVer a major bump means a backward-incompatible change, which is
+a property of the change and not of its category -- so it is signalled per fragment with
+`chlog new --breaking`, and never inferred from a label. Keep the `**BREAKING CHANGE:**` prefix in
+the body as well: the flag drives the version, the prefix tells the reader.
+
+### Configuration
+
+Every project carries a `.chlog.yaml` at its root. Spell chlog's defaults out rather than relying on
+them, so the kinds and their bump levels are readable without going to the tool:
+
+```yaml
+changesDir: .changes
+unreleasedDir: unreleased
+changelogPath: CHANGELOG.md
+versionFormat: '## [{{.Version}}] - {{.Time.Format "2006-01-02"}}'
+kindFormat: '### {{.Kind}}'
+changeFormat: '- {{.Body}}'
+kinds:
+  - label: Added
+    auto: minor
+  - label: Changed
+    auto: minor
+  - label: Deprecated
+    auto: minor
+  - label: Removed
+    auto: minor
+  - label: Fixed
+    auto: patch
+  - label: Security
+    auto: patch
+```
+
+### The Generated File
+
+`CHANGELOG.md` keeps its familiar shape -- an empty `[Unreleased]` heading and one section per
+released version:
 
 ```markdown
 # Changelog
@@ -39,16 +118,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+This file is not edited by hand. Every change writes its own fragment under
+`.changes/unreleased/` with [chlog](https://github.com/luizjhonata/chlog), and a release
+compiles the pending fragments into a version section here.
+
 ## [Unreleased]
-
-### Added
-- added new feature X that does Y
-
-### Changed
-- changed behavior of Z to handle edge case W
-
-### Fixed
-- fixed a bug where A caused B
 
 ## [1.0.0] - 2026-01-15
 
@@ -56,34 +130,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added initial project setup with Clean Architecture
 ```
 
-### Change Categories
-
-| Category       | When to Use                                       |
-|----------------|---------------------------------------------------|
-| **Added**      | New features, new files, new capabilities         |
-| **Changed**    | Modifications to existing functionality           |
-| **Deprecated** | Features that will be removed in a future version |
-| **Removed**    | Features that were removed                        |
-| **Fixed**      | Bug fixes                                         |
-| **Security**   | Vulnerability fixes                               |
-
 ### Writing Rules
+
+These govern the `--body` of a fragment -- the text that becomes the bullet:
 
 - **Write for humans, not machines.** Describe *what changed and why*, not implementation details.
 - **Use simple past tense.** "added", "changed", "fixed", "removed" -- consistent with the commit message standard.
-- **Start each entry with a lowercase verb.** Example: `- added automatic Dockerfile image tag update`.
-- **Be specific.** Bad: `- updated dependencies`. Good: `- added JavaScript updater supporting npm, yarn, and pnpm projects`.
+- **Start each body with a lowercase verb.** Example: `chlog new --kind Added --body "added automatic Dockerfile image tag update"`.
+- **Be specific.** Bad: `updated dependencies`. Good: `added JavaScript updater supporting npm, yarn, and pnpm projects`.
 - **Link to issues or PRs** when the change is non-trivial.
-- **Group related changes** in a single entry rather than listing every file touched.
+- **Group related changes** in a single fragment rather than one per file touched.
+- **One fragment per change, not per commit.** A branch that does one thing carries one fragment.
 
-### The `[Unreleased]` Section
+See [CHANGELOG Formatting](Documentation-&-Change-Control/CHANGELOG-Formatting.md) for capitalization
+and backtick rules.
 
-All in-progress changes go under `[Unreleased]`. When a release is cut:
+### Releasing
 
-1. Create a branch `chore/bump-x.y.z`.
-2. Move entries from `[Unreleased]` to a new version heading with the release date.
+The pending fragments become a version section at release time:
+
+1. Create a branch `bump/x.y.z`.
+2. Run `chlog batch auto && chlog merge`. `batch auto` derives the version from the pending kinds and
+   their `breaking` flags; `merge` folds the compiled batch into `CHANGELOG.md` and empties
+   `.changes/unreleased/`.
 3. Open a Pull Request targeting `main`.
 4. After merge, create a Git tag for the version.
+
+[AutoBump](https://github.com/rios0rios0/autobump) performs steps 2 and 3 -- see below.
+
+### CI Enforcement
+
+The shared [`rios0rios0/pipelines`](https://github.com/rios0rios0/pipelines) basic-checks gate is
+chlog-aware: when `.chlog.yaml` is present it requires a **new fragment** on an ordinary branch, and
+flips to requiring an updated `CHANGELOG.md` on a `bump/*` branch. No per-repository CI job is
+needed. `chlog hook install --local` runs the same check on every commit in a local clone, and
+`chlog check` runs it on demand.
+
+### AI Assistants
+
+`chlog ai setup` injects a marked block (`<!-- chlog:start -->` ... `<!-- chlog:end -->`) into
+`CLAUDE.md` and `.github/copilot-instructions.md` telling the assistant to write a fragment on every
+change and never to touch `CHANGELOG.md`. Re-running the command updates the block in place, so it
+is safe to run again after an upgrade.
 
 ## README Standard
 
@@ -123,7 +211,7 @@ Update this file whenever the development workflow, architecture, or key command
 Documentation updates must be part of the same commit or PR that introduces the change:
 
 1. **Write the code change.**
-2. **Update `CHANGELOG.md`** -- add an entry under `[Unreleased]` describing what changed.
+2. **Write a changelog fragment** -- `chlog new --kind <Kind> --body "..."` describing what changed. Never edit `CHANGELOG.md`.
 3. **Update `README.md`** -- if the change affects usage, setup, or architecture.
 4. **Update `.github/copilot-instructions.md`** -- if the change affects build commands, project structure, or development workflow.
 5. **Commit everything together.** Documentation and code ship as one unit.
@@ -132,14 +220,15 @@ Documentation updates must be part of the same commit or PR that introduces the 
 
 ## Automation with AutoBump
 
-[AutoBump](https://github.com/rios0rios0/autobump) is a CLI tool that automates the release step of the changelog workflow. When the `[Unreleased]` section is ready to ship, AutoBump detects the project language, moves unreleased entries into a new versioned section with the current date, updates language-specific version files (e.g., `go.mod`, `package.json`, `pyproject.toml`, `build.gradle`), commits, pushes, and opens a merge/pull request -- all in a single command.
+[AutoBump](https://github.com/rios0rios0/autobump) is a CLI tool that automates the release step of the changelog workflow. When the pending fragments are ready to ship, AutoBump detects the project language, reads the fragments under `.changes/unreleased/` directly, compiles them into a new versioned section with the current date, updates language-specific version files (e.g., `go.mod`, `package.json`, `pyproject.toml`, `build.gradle`), commits, pushes, and opens a merge/pull request -- all in a single command. Adopting chlog therefore changes nothing about the release flow.
 
 It supports Go, Java, Python, TypeScript, and C# projects, with automatic language detection, and works across GitHub, GitLab, and Azure DevOps.
 
-**AutoBump does not replace the discipline of writing changelog entries.** The `CHANGELOG.md`, `README.md`, and other documentation files must already exist and be maintained by the team as part of every change. AutoBump only automates the versioning and release ceremony -- not the content creation.
+**AutoBump does not replace the discipline of writing changelog fragments.** The fragments, `README.md`, and other documentation files must already exist and be maintained by the team as part of every change. AutoBump only automates the versioning and release ceremony -- not the content creation.
 
 ## References
 
+- [chlog](https://github.com/luizjhonata/chlog)
 - [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 - [Semantic Versioning](https://semver.org/)
 - [Common Changelog](https://common-changelog.org/)
