@@ -37,6 +37,13 @@ from fragments by [chlog](https://github.com/luizjhonata/chlog), a single Go bin
 go install github.com/luizjhonata/chlog@latest
 ```
 
+`go install` builds from source, so it needs a Go toolchain on the contributor's machine -- which a
+Java, Python, or TypeScript project has no reason to require. Those projects should take the
+prebuilt binary for their platform from the
+[releases page](https://github.com/luizjhonata/chlog/releases) instead; chlog publishes one for
+Linux, macOS, and Windows on both amd64 and arm64. Either way the tool is a single self-contained
+binary, and the project itself never gains a Go dependency.
+
 ### One Fragment per Change
 
 Every change writes its **own** YAML file under `.changes/unreleased/`:

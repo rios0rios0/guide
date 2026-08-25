@@ -25,7 +25,7 @@ Use the prerequisite block that matches your project:
 | **Python**                | Python 3.12+, PDM, Make                                                                |
 | **JavaScript/TypeScript** | Node.js 20+, npm, Make                                                                 |
 
-Every project additionally needs [chlog](https://github.com/luizjhonata/chlog) (`go install github.com/luizjhonata/chlog@latest`) to write changelog fragments -- it is a single Go binary and does not require the project itself to be written in Go.
+Every project additionally needs [chlog](https://github.com/luizjhonata/chlog) to write changelog fragments. It is a single self-contained binary, so the project itself never gains a Go dependency -- but `go install github.com/luizjhonata/chlog@latest` builds it from source and therefore needs a Go toolchain locally. On a Java, Python, or JavaScript project, point contributors at the prebuilt binary for their platform on the [releases page](https://github.com/luizjhonata/chlog/releases) (Linux, macOS, and Windows; amd64 and arm64) and keep the toolchain out of the prerequisites.
 
 ## Template
 
@@ -41,7 +41,7 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 
 - {LANGUAGE}
 - [Make](https://www.gnu.org/software/make/)
-- [chlog](https://github.com/luizjhonata/chlog) (`go install github.com/luizjhonata/chlog@latest`)
+- [chlog](https://github.com/luizjhonata/chlog) -- `go install github.com/luizjhonata/chlog@latest` (needs a Go toolchain), or a prebuilt binary from the [releases page](https://github.com/luizjhonata/chlog/releases)
 <!-- Add any other tools required by your project -->
 <!-- Java projects: -->
 <!-- - Docker (for integration tests with TestContainers) -->

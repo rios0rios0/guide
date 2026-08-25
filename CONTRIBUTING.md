@@ -9,6 +9,7 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 
 - [Git](https://git-scm.com/downloads) 2.30+
 - [Go](https://go.dev/dl/) 1.26+ (for building and testing the wiki update tool)
+- [chlog](https://github.com/luizjhonata/chlog) (`go install github.com/luizjhonata/chlog@latest`)
 - A Markdown editor or IDE (e.g., [VS Code](https://code.visualstudio.com/) with the Markdown preview extension)
 
 ## Development Workflow
@@ -27,5 +28,9 @@ development practices, refer to the **[Development Guide](https://github.com/rio
    go test ./...
    ```
 6. Preview your Markdown changes locally (e.g., using VS Code Markdown preview or a local Markdown renderer)
-7. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Life-Cycle/Git-Flow)
-8. Open a pull request against `main`
+7. Add a changelog fragment -- never edit `CHANGELOG.md`, which is generated from them:
+   ```bash
+   chlog new --kind Changed --body "changed the testing standard to ban mock libraries"
+   ```
+8. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Life-Cycle/Git-Flow)
+9. Open a pull request against `main`
