@@ -187,19 +187,32 @@ make sast   # if SAST had findings
 
 If new findings appear, fix them. Repeat until all three gates pass. If you cannot resolve a finding after 2 attempts, document it and proceed -- the PR description should note unresolved items.
 
-### Step 7 -- Write a changelog fragment
+### Step 7 -- Record the fixes in the changelog
 
-**Never edit `CHANGELOG.md`** -- it is generated from fragments by [chlog](https://github.com/luizjhonata/chlog). Write one fragment for the fixes:
+Check the repository root first -- the mode decides where the entry goes.
+
+**If `.chlog.yaml` (or `.chlog.yml`) or `.changes/` exists**, the project uses
+[chlog](https://github.com/luizjhonata/chlog): **never edit `CHANGELOG.md`**, it is generated from
+fragments. Write one fragment for the fixes:
 
 ```bash
 chlog new --kind Fixed --body "fixed the `gochecknoglobals` findings in `clear_history.go`"
 ```
 
+**Otherwise**, add the entry by hand as a bullet under `[Unreleased] > Fixed` in `CHANGELOG.md`:
+
+```markdown
+## [Unreleased]
+
+### Fixed
+- fixed the `gochecknoglobals` findings in `clear_history.go`
+```
+
 Follow the Documentation rule for changelog conventions:
 
 - Use **simple past tense**: "fixed", "removed", "replaced"
-- Start each body with a **lowercase verb**
-- Use the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) kinds: Added, Changed, Deprecated, Removed, Fixed, Security
+- Start each entry with a **lowercase verb**
+- Use the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) categories: Added, Changed, Deprecated, Removed, Fixed, Security
 
 ### Step 8 -- Stage and commit
 

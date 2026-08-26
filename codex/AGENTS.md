@@ -4563,7 +4563,7 @@ Use the following standard operation prefixes consistently across all projects:
 
 # Git Flow
 
-> **TL;DR:** Use a feature-branch model with `main` always deployable. Synchronize branches with `git rebase` (never merge). Follow the `type(TASK-ID): message` commit format in simple past tense. Use Semantic Versioning (MAJOR.MINOR.PATCH) for releases. Flag breaking changes in commits, in the changelog fragment, and in PRs.
+> **TL;DR:** Use a feature-branch model with `main` always deployable. Synchronize branches with `git rebase` (never merge). Follow the `type(SCOPE): message` commit format in simple past tense, using the ticket ID as the scope -- the only changes exempt from that are the ones the team's automation produces (dependency upgrades, release bumps, configuration refreshes). Use Semantic Versioning (MAJOR.MINOR.PATCH) for releases. Flag breaking changes in commits, in the changelog, and in PRs.
 
 ## Overview
 
@@ -4586,7 +4586,7 @@ The workflow follows a feature-branch model with these principles:
 5. **Create a Pull Request** targeting `main`, adding reviewers.
 6. After code review approval, **merge** the feature branch into `main`.
 7. The CI pipeline builds `main` and deploys to the QA environment.
-8. After QA approval, cut a `bump/x.y.z` branch and compile the pending changelog fragments into a version section -- see Documentation & Change Control.
+8. After QA approval, cut a `chore/bump-x.y.z` branch and compile the pending changelog entries into a version section -- see Documentation & Change Control.
 9. The CI pipeline deploys the release to production.
 
 ## Naming Conventions
@@ -4604,6 +4604,9 @@ fix/TICKET-990
 feat/add-logs
 fix/input-mask
 ```
+
+A ticketless branch is the exception, not the default -- see [Ticket Reference](#ticket-reference)
+for when it is allowed.
 
 ### Branch Types
 
@@ -4624,10 +4627,12 @@ fix/input-mask
 type(SCOPE): message
 ```
 
-Where **SCOPE** is the task ID (if available) or a short descriptive scope.
+Where **SCOPE** is the ticket ID, or -- for the changes listed in
+[Ticket Reference](#ticket-reference) -- a short descriptive scope.
 
 ### Rules
 
+- **Use the ticket ID as the scope** whenever the change has one. See [Ticket Reference](#ticket-reference).
 - **No period** at the end of the subject line.
 - **Do not capitalize** the first letter.
 - Use **simple past tense**: `changed`, `fixed`, `removed`, `added` (not present continuous).
@@ -4683,6 +4688,53 @@ git log <last tag> HEAD --pretty=format:%s
 git log <last release> HEAD --grep feature
 ```
 
+## Ticket Reference
+
+A change that exists in the ticket management system -- Jira, Azure Boards, Trello, GitHub Issues,
+or whatever the project uses -- **must carry its ticket ID** in the branch name and in the commit
+scope:
+
+```
+feat/TICKET-000
+feat(TICKET-000): added the endpoint the ticket asked for
+```
+
+The ticket is what ties a line of code to the reason it exists. Recovering that link months later
+costs far more than typing it now, so "it is linked from the pull request" is not a substitute.
+
+### Exceptions -- Automated Changes
+
+Three classes of change have no ticket **by construction**: nobody opens one, because nobody asked
+for the change. They are produced on a schedule by the team's automation, and they carry a short
+descriptive scope in place of a ticket ID:
+
+| Change                                        | Produced by                                                          | Branch                        | Scope            |
+|-----------------------------------------------|-----------------------------------------------------------------------|-------------------------------|------------------|
+| **Dependency upgrades**                       | [autoupdate](https://github.com/rios0rios0/autoupdate)               | `chore/autoupdate-YYYY-MM-DD` | `chore(deps)`    |
+| **Release bumps**                             | [autobump](https://github.com/rios0rios0/autobump)                   | `chore/bump-x.y.z`            | `chore(bump)`    |
+| **Configuration and documentation refreshes** | [config-automation](https://github.com/rios0rios0/config-automation) | `chore/config-and-docs-refresh` | `chore(refresh)` |
+
+Exactly as the automation writes them:
+
+```
+chore(deps): bumped dependencies via autoupdate
+chore(bump): bumped version to 1.4.0
+chore(refresh): refreshed configuration and documentation
+```
+
+### What the Exception Covers
+
+- **It follows the change, not the author.** A person who upgrades a dependency or cuts a release by
+  hand writes `chore(deps)` / `chore(bump)` for the same reason the bot does -- there is no ticket to
+  reference. The reverse holds too: an automated branch carrying anything beyond its remit stops
+  being an exempt change, so split that work out and give it a ticket.
+- **Only the ticket is waived.** The `type(SCOPE): message` format, simple past tense, the changelog
+  entry, the pull request, and review all still apply -- an automated PR is reviewed and merged like
+  any other.
+- **Nothing else is exempt by default.** Other ticketless work either gets a ticket opened for it,
+  or -- on a project with no ticket management system at all -- uses a short descriptive scope, as
+  in `fix/input-mask` and `fix(input-mask): fixed the phone mask on paste`.
+
 ## Semantic Versioning
 
 Follow [Semantic Versioning (SemVer)](https://semver.org/) for all releases:
@@ -4717,10 +4769,16 @@ When code changes alter public interfaces, flag the breaking change in **three p
    **BREAKING CHANGE:** input behavior now must be implemented by the peer, including value and handleChange
    ```
 
-2. **Changelog fragment** -- the `--breaking` flag is what bumps the major; the prefix is what the reader sees:
+2. **Changelog entry** -- when the project uses chlog, the `--breaking` flag is what bumps the major
+   and the prefix is what the reader sees:
    ```bash
    chlog new --kind Changed --breaking \
      --body "**BREAKING CHANGE:** updated input to use props for state management"
+   ```
+
+   When it does not, the prefix carries both jobs, under `[Unreleased] > Changed`:
+   ```markdown
+   - **BREAKING CHANGE:** updated input to use props for state management
    ```
 
 3. **Pull Request description:**
@@ -5284,7 +5342,7 @@ Until a formal standard is adopted, treat `make lint && make sast` as a mandator
 
 # Documentation & Change Control
 
-> **TL;DR:** Every project must maintain a `README.md` and a `CHANGELOG.md` -- but the changelog is **generated, never edited by hand**. Every change writes its own fragment under `.changes/unreleased/` with [chlog](https://github.com/luizjhonata/chlog), and a release compiles the pending fragments into a version section. Every code change must be accompanied by the corresponding documentation update -- a changelog fragment **always**, README and other docs (e.g., `.github/copilot-instructions.md`) **whenever behavior, configuration, or architecture changes**.
+> **TL;DR:** Every project must maintain a `README.md` and a `CHANGELOG.md`. *How* the changelog is written depends on the project: one that uses [chlog](https://github.com/luizjhonata/chlog) writes a YAML fragment per change under `.changes/unreleased/` and never edits `CHANGELOG.md` by hand; one that has not adopted chlog edits the `[Unreleased]` section of `CHANGELOG.md` directly. Either way the changelog entry ships with the change -- **always** -- and README and other docs (e.g., `.github/copilot-instructions.md`) are updated **whenever behavior, configuration, or architecture changes**.
 
 ## Overview
 
@@ -5296,22 +5354,53 @@ Documentation and change control are integral parts of the engineering workflow,
 
 Every project must contain at minimum:
 
-| File                                  | Purpose                                                      | Update Frequency                                             |
-|---------------------------------------|--------------------------------------------------------------|--------------------------------------------------------------|
-| **`README.md`**                       | Describes the project, its usage, setup, and architecture    | When behavior, configuration, CLI, or setup changes          |
-| **`CONTRIBUTING.md`**                 | Guides contributors on prerequisites, workflow, and standards | When prerequisites, workflow, or project structure changes    |
-| **`.changes/unreleased/`**            | One YAML changelog fragment per change, written by `chlog new` | **Every change** (always)                                   |
-| **`.chlog.yaml`**                     | chlog's configuration -- the kinds and the bump each infers  | When the kinds change (rarely)                               |
-| **`CHANGELOG.md`**                    | Records all notable changes, organized by version -- **generated from the fragments, never edited by hand** | At release time, by `chlog batch auto && chlog merge`        |
-| **`.github/copilot-instructions.md`** | AI assistant context for the project structure and workflows | When architecture, commands, or development workflow changes |
+| File                                  | Purpose                                                                                                     | Required when                     | Update Frequency                                      |
+|---------------------------------------|-------------------------------------------------------------------------------------------------------------|-----------------------------------|-------------------------------------------------------|
+| **`README.md`**                       | Describes the project, its usage, setup, and architecture                                                   | Always                            | When behavior, configuration, CLI, or setup changes   |
+| **`CONTRIBUTING.md`**                 | Guides contributors on prerequisites, workflow, and standards                                               | Always                            | When prerequisites, workflow, or structure changes    |
+| **`CHANGELOG.md`**                    | Records all notable changes, organized by version                                                           | Always                            | See [Changelog Standard](#changelog-standard)         |
+| **`.chlog.yaml`**                     | chlog's configuration -- the kinds and the bump each infers, and the marker CI detects                      | When the project uses chlog       | When the kinds change (rarely)                        |
+| **`.changes/unreleased/`**            | One YAML changelog fragment per change, written by `chlog new`                                              | When the project uses chlog       | **Every change** (always)                             |
+| **`.github/copilot-instructions.md`** | AI assistant context for the project structure and workflows                                                | Always                            | When architecture, commands, or workflow changes      |
 
 **Templates are available for standardized project setup:**
 
 ## Changelog Standard
 
-`CHANGELOG.md` still follows the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format
-combined with [Semantic Versioning](https://semver.org/) -- but **nobody writes it**. It is compiled
-from fragments by [chlog](https://github.com/luizjhonata/chlog), a single Go binary:
+Every project keeps a `CHANGELOG.md` in the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+format, versioned with [Semantic Versioning](https://semver.org/). What differs between projects is
+**who writes that file**:
+
+| Mode                | Where a change is recorded                      | Who writes `CHANGELOG.md`            |
+|---------------------|-------------------------------------------------|--------------------------------------|
+| **With chlog**      | A YAML fragment under `.changes/unreleased/`    | `chlog merge`, at release time       |
+| **Without chlog**   | A bullet under `[Unreleased]` in `CHANGELOG.md` | The author of the change, by hand    |
+
+Both modes produce the same released file and obey the same [writing rules](#writing-rules). Only
+the mechanics differ, so a contributor moving between repositories has one thing to check first:
+which mode this repository is in.
+
+### Deciding Which Mode Applies
+
+Look at the project root:
+
+| Signal at the project root                       | Mode                                                       |
+|--------------------------------------------------|-------------------------------------------------------------|
+| `.chlog.yaml` (or `.chlog.yml`) exists           | **chlog** -- write a fragment                               |
+| No config file, but `.changes/` exists           | **chlog** -- write a fragment, and add the missing config   |
+| Neither exists                                   | **No chlog** -- edit `[Unreleased]` in `CHANGELOG.md`       |
+
+The shared [`rios0rios0/pipelines`](https://github.com/rios0rios0/pipelines) basic-checks gate
+decides the same way, and it keys on **`.chlog.yaml` specifically**. A project that adopts chlog
+must therefore commit that file: with the fragments in place but no config, CI still asks for a
+`CHANGELOG.md` diff and the fragment does not satisfy it. Its values repeating chlog's built-in
+defaults is not a reason to delete it -- the file is the marker that flips the gate, whatever it
+contains.
+
+## Changelog with chlog
+
+[chlog](https://github.com/luizjhonata/chlog) is a single Go binary that compiles per-change
+fragments into `CHANGELOG.md`:
 
 ```bash
 go install github.com/luizjhonata/chlog@latest
@@ -5345,7 +5434,7 @@ This buys the one thing a single shared file cannot give: two branches each addi
 longer touch the same lines, so a rebase that used to conflict on `CHANGELOG.md` now conflicts on
 nothing.
 
-**Never edit `CHANGELOG.md` by hand.** The only writer is `chlog merge`, at release time.
+**Never edit `CHANGELOG.md` by hand in this mode.** The only writer is `chlog merge`, at release time.
 
 ### Kinds
 
@@ -5367,30 +5456,35 @@ the body as well: the flag drives the version, the prefix tells the reader.
 
 ### Configuration
 
-Every project carries a `.chlog.yaml` at its root. Spell chlog's defaults out rather than relying on
-them, so the kinds and their bump levels are readable without going to the tool:
+Every project that uses chlog carries a `.chlog.yaml` at its root. Spell chlog's defaults out rather
+than relying on them: the file is what CI detects, and it makes the kinds and their bump levels
+readable without going to the tool. It follows the YAML conventions like
+every other YAML file -- the `.yaml` extension, and single quotes around every string:
 
 ```yaml
-changesDir: .changes
-unreleasedDir: unreleased
-changelogPath: CHANGELOG.md
+changesDir: '.changes'
+unreleasedDir: 'unreleased'
+changelogPath: 'CHANGELOG.md'
 versionFormat: '## [{{.Version}}] - {{.Time.Format "2006-01-02"}}'
 kindFormat: '### {{.Kind}}'
 changeFormat: '- {{.Body}}'
 kinds:
-  - label: Added
-    auto: minor
-  - label: Changed
-    auto: minor
-  - label: Deprecated
-    auto: minor
-  - label: Removed
-    auto: minor
-  - label: Fixed
-    auto: patch
-  - label: Security
-    auto: patch
+  - label: 'Added'
+    auto: 'minor'
+  - label: 'Changed'
+    auto: 'minor'
+  - label: 'Deprecated'
+    auto: 'minor'
+  - label: 'Removed'
+    auto: 'minor'
+  - label: 'Fixed'
+    auto: 'patch'
+  - label: 'Security'
+    auto: 'patch'
 ```
+
+The double quotes inside `versionFormat` belong to the Go template, not to YAML: a single-quoted
+scalar takes them literally, which is exactly what the template needs.
 
 ### The Generated File
 
@@ -5417,48 +5511,133 @@ compiles the pending fragments into a version section here.
 - added initial project setup with Clean Architecture
 ```
 
-### Writing Rules
-
-These govern the `--body` of a fragment -- the text that becomes the bullet:
-
-- **Write for humans, not machines.** Describe *what changed and why*, not implementation details.
-- **Use simple past tense.** "added", "changed", "fixed", "removed" -- consistent with the commit message standard.
-- **Start each body with a lowercase verb.** Example: `chlog new --kind Added --body "added automatic Dockerfile image tag update"`.
-- **Be specific.** Bad: `updated dependencies`. Good: `added JavaScript updater supporting npm, yarn, and pnpm projects`.
-- **Link to issues or PRs** when the change is non-trivial.
-- **Group related changes** in a single fragment rather than one per file touched.
-- **One fragment per change, not per commit.** A branch that does one thing carries one fragment.
-
-See CHANGELOG Formatting for capitalization
-and backtick rules.
-
 ### Releasing
 
 The pending fragments become a version section at release time:
 
-1. Create a branch `bump/x.y.z`.
+1. Create a branch `chore/bump-x.y.z`.
 2. Run `chlog batch auto && chlog merge`. `batch auto` derives the version from the pending kinds and
    their `breaking` flags; `merge` folds the compiled batch into `CHANGELOG.md` and empties
    `.changes/unreleased/`.
 3. Open a Pull Request targeting `main`.
 4. After merge, create a Git tag for the version.
 
-[AutoBump](https://github.com/rios0rios0/autobump) performs steps 2 and 3 -- see below.
+[AutoBump](https://github.com/rios0rios0/autobump) performs steps 2 and 3 -- see
+[Automation with AutoBump](#automation-with-autobump).
 
 ### CI Enforcement
 
 The shared [`rios0rios0/pipelines`](https://github.com/rios0rios0/pipelines) basic-checks gate is
 chlog-aware: when `.chlog.yaml` is present it requires a **new fragment** on an ordinary branch, and
-flips to requiring an updated `CHANGELOG.md` on a `bump/*` branch. No per-repository CI job is
-needed. `chlog hook install --local` runs the same check on every commit in a local clone, and
-`chlog check` runs it on demand.
+flips to requiring an updated `CHANGELOG.md` on a `chore/bump-*` (or `bump/*`) branch, where
+`chlog merge` has already consumed the fragments. No per-repository CI job is needed.
+`chlog hook install --local` runs the same check on every commit in a local clone, and `chlog check`
+runs it on demand.
 
 ### AI Assistants
 
 `chlog ai setup` injects a marked block (`<!-- chlog:start -->` ... `<!-- chlog:end -->`) into
 `CLAUDE.md` and `.github/copilot-instructions.md` telling the assistant to write a fragment on every
 change and never to touch `CHANGELOG.md`. Re-running the command updates the block in place, so it
-is safe to run again after an upgrade.
+is safe to run again after an upgrade. The injected block is conditional on the repository actually
+using chlog, so it is harmless in a repository that has not adopted it yet.
+
+## Changelog without chlog
+
+A project that has not adopted chlog keeps the same file, written by hand. Everything a change adds
+goes under `[Unreleased]`, grouped by category:
+
+```markdown
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- added new feature X that does Y
+
+### Changed
+- changed behavior of Z to handle edge case W
+
+### Fixed
+- fixed a bug where A caused B
+
+## [1.0.0] - 2026-01-15
+
+### Added
+- added initial project setup with Clean Architecture
+```
+
+### Change Categories
+
+The categories are the same ones chlog calls kinds:
+
+| Category       | When to Use                                       |
+|----------------|---------------------------------------------------|
+| **Added**      | New features, new files, new capabilities         |
+| **Changed**    | Modifications to existing functionality           |
+| **Deprecated** | Features that will be removed in a future version |
+| **Removed**    | Features that were removed                        |
+| **Fixed**      | Bug fixes                                         |
+| **Security**   | Vulnerability fixes                               |
+
+A backward-incompatible change is marked in the entry itself, since there is no `--breaking` flag to
+carry it:
+
+```markdown
+- **BREAKING CHANGE:** changed `Input` to take its value from props
+```
+
+### The `[Unreleased]` Section
+
+All in-progress changes go under `[Unreleased]`. When a release is cut:
+
+1. Create a branch `chore/bump-x.y.z`.
+2. Move the entries from `[Unreleased]` to a new version heading with the release date.
+3. Open a Pull Request targeting `main`.
+4. After merge, create a Git tag for the version.
+
+### CI Enforcement
+
+With no `.chlog.yaml` at the root, the basic-checks gate falls back to requiring that the PR touch
+`CHANGELOG.md`. A "CHANGELOG.md was NOT modified" failure therefore means the project is in this
+mode: add the entry under `[Unreleased]` rather than reaching for `chlog new`.
+
+## Writing Rules
+
+These govern the text of the entry -- the `--body` of a fragment, or the bullet typed under
+`[Unreleased]`. They are identical in both modes:
+
+- **Write for humans, not machines.** Describe *what changed and why*, not implementation details.
+- **Use simple past tense.** "added", "changed", "fixed", "removed" -- consistent with the commit message standard.
+- **Start each entry with a lowercase verb.** Example: `added automatic Dockerfile image tag update`.
+- **Be specific.** Bad: `updated dependencies`. Good: `added JavaScript updater supporting npm, yarn, and pnpm projects`.
+- **Link to issues or PRs** when the change is non-trivial.
+- **Group related changes** in a single entry rather than listing every file touched.
+- **One entry per change, not per commit.** A branch that does one thing carries one entry.
+
+See CHANGELOG Formatting for capitalization
+and backtick rules.
+
+## Adopting chlog
+
+Moving a project from the hand-written file to fragments:
+
+1. Release or carry over whatever sits under `[Unreleased]`. Anything left there is invisible to
+   `chlog batch`, which only reads fragments -- so either cut a release first, or re-create each
+   pending entry with `chlog new`.
+2. Add `.chlog.yaml` at the root, as spelled out in [Configuration](#configuration). This is the step
+   that flips CI; without it the gate keeps asking for a `CHANGELOG.md` diff.
+3. Leave the released sections of `CHANGELOG.md` untouched -- chlog appends above them.
+4. Add the header note to `CHANGELOG.md` saying the file is generated, so the next contributor does
+   not hand-edit it.
+5. Run `chlog ai setup` to update `CLAUDE.md` and `.github/copilot-instructions.md`.
+6. Update `CONTRIBUTING.md`: add chlog to the prerequisites and replace the "update CHANGELOG.md"
+   step with `chlog new`.
 
 ## README Standard
 
@@ -5498,7 +5677,9 @@ Update this file whenever the development workflow, architecture, or key command
 Documentation updates must be part of the same commit or PR that introduces the change:
 
 1. **Write the code change.**
-2. **Write a changelog fragment** -- `chlog new --kind <Kind> --body "..."` describing what changed. Never edit `CHANGELOG.md`.
+2. **Record the change in the changelog** -- `chlog new --kind <Kind> --body "..."` when the project
+   uses chlog, or a bullet under `[Unreleased]` in `CHANGELOG.md` when it does not. See
+   [Deciding Which Mode Applies](#deciding-which-mode-applies).
 3. **Update `README.md`** -- if the change affects usage, setup, or architecture.
 4. **Update `.github/copilot-instructions.md`** -- if the change affects build commands, project structure, or development workflow.
 5. **Commit everything together.** Documentation and code ship as one unit.
@@ -5507,11 +5688,17 @@ Documentation updates must be part of the same commit or PR that introduces the 
 
 ## Automation with AutoBump
 
-[AutoBump](https://github.com/rios0rios0/autobump) is a CLI tool that automates the release step of the changelog workflow. When the pending fragments are ready to ship, AutoBump detects the project language, reads the fragments under `.changes/unreleased/` directly, compiles them into a new versioned section with the current date, updates language-specific version files (e.g., `go.mod`, `package.json`, `pyproject.toml`, `build.gradle`), commits, pushes, and opens a merge/pull request -- all in a single command. Adopting chlog therefore changes nothing about the release flow.
+[AutoBump](https://github.com/rios0rios0/autobump) is a CLI tool that automates the release step of the changelog workflow. When the pending changes are ready to ship, AutoBump detects the project language, compiles the pending entries into a new versioned section with the current date, updates language-specific version files (e.g., `go.mod`, `package.json`, `pyproject.toml`, `build.gradle`), commits, pushes, and opens a merge/pull request -- all in a single command.
+
+It handles both modes: it detects the chlog layout (a `.chlog.yaml` or the fragment directory), reads the fragments under `.changes/unreleased/` directly, and consumes them -- otherwise it reads the `[Unreleased]` section. Adopting chlog therefore changes nothing about the release flow.
 
 It supports Go, Java, Python, TypeScript, and C# projects, with automatic language detection, and works across GitHub, GitLab, and Azure DevOps.
 
-**AutoBump does not replace the discipline of writing changelog fragments.** The fragments, `README.md`, and other documentation files must already exist and be maintained by the team as part of every change. AutoBump only automates the versioning and release ceremony -- not the content creation.
+**AutoBump does not replace the discipline of writing changelog entries.** The fragments (or the `[Unreleased]` bullets), `README.md`, and other documentation files must already exist and be maintained by the team as part of every change. AutoBump only automates the versioning and release ceremony -- not the content creation.
+
+Because AutoBump opens its own release pull requests, those commits are exempt from the ticket
+reference every other commit carries -- see
+[Ticket Reference](Git-Flow.md#ticket-reference) in the Git Flow guide.
 
 ---
 
@@ -5686,7 +5873,15 @@ Use the prerequisite block that matches your project:
 | **Python**                | Python 3.12+, PDM, Make                                                                |
 | **JavaScript/TypeScript** | Node.js 20+, npm, Make                                                                 |
 
-Every project additionally needs [chlog](https://github.com/luizjhonata/chlog) to write changelog fragments. It is a single self-contained binary, so the project itself never gains a Go dependency -- but `go install github.com/luizjhonata/chlog@latest` builds it from source and therefore needs a Go toolchain locally. On a Java, Python, or JavaScript project, point contributors at the prebuilt binary for their platform on the [releases page](https://github.com/luizjhonata/chlog/releases) (Linux, macOS, and Windows; amd64 and arm64) and keep the toolchain out of the prerequisites.
+A project that uses [chlog](https://github.com/luizjhonata/chlog) -- one with a `.chlog.yaml` at its
+root -- additionally needs the tool to write changelog fragments. It is a single self-contained
+binary, so the project itself never gains a Go dependency -- but `go install github.com/luizjhonata/chlog@latest`
+builds it from source and therefore needs a Go toolchain locally. On a Java, Python, or JavaScript
+project, point contributors at the prebuilt binary for their platform on the
+[releases page](https://github.com/luizjhonata/chlog/releases) (Linux, macOS, and Windows; amd64 and
+arm64) and keep the toolchain out of the prerequisites. A project that does not use chlog drops the
+prerequisite entirely and edits `CHANGELOG.md` by hand -- see
+Documentation & Change Control.
 
 ## Template
 
@@ -5702,6 +5897,7 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 
 - {LANGUAGE}
 - [Make](https://www.gnu.org/software/make/)
+<!-- Projects that use chlog (a `.chlog.yaml` at the root) -- drop this line if the project edits CHANGELOG.md by hand: -->
 - [chlog](https://github.com/luizjhonata/chlog) -- `go install github.com/luizjhonata/chlog@latest` (needs a Go toolchain), or a prebuilt binary from the [releases page](https://github.com/luizjhonata/chlog/releases)
 <!-- Add any other tools required by your project -->
 <!-- Java projects: -->
@@ -5724,11 +5920,15 @@ development practices, refer to the **[Development Guide](https://github.com/rio
    make test
    make sast
    ```
-6. Add a changelog fragment -- never edit `CHANGELOG.md`, which is generated from them:
+6. Record the change in the changelog.
+   <!-- Projects that use chlog -- never edit CHANGELOG.md, which is generated from the fragments: -->
    ```bash
    chlog new --kind Added --body "added the thing that was not there before"
    ```
-7. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Git-Flow)
+   <!-- Projects without chlog -- add the bullet under `[Unreleased]` in `CHANGELOG.md` instead. -->
+7. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Git-Flow) --
+   use the ticket ID as the commit scope
+   ([exceptions](https://github.com/rios0rios0/guide/wiki/Git-Flow#ticket-reference))
 8. Open a pull request against `main`
 
 <!-- OPTIONAL: only when the project requires environment variables or local services -->
@@ -5761,7 +5961,7 @@ docker compose -f compose.dev.yaml up -d
 2. Implement the required interface/contract
 3. Register it in the dependency injection wiring
 4. Add tests following the [testing guide](https://github.com/rios0rios0/guide/wiki/Tests)
-5. Add a changelog fragment: `chlog new --kind Added --body "added ..."`
+5. Record the change in the changelog: `chlog new --kind Added --body "added ..."`, or a bullet under `[Unreleased] > Added` in `CHANGELOG.md` when the project does not use chlog
 -->
 ````
 
@@ -5773,14 +5973,27 @@ docker compose -f compose.dev.yaml up -d
 
 ## Scope
 
-`CHANGELOG.md` is generated by [chlog](https://github.com/luizjhonata/chlog) and is never edited
-by hand -- see Documentation & Change Control. The rules
-below therefore govern the **body of a fragment**: the text passed to `--body`, which becomes one
-bullet in the compiled file.
+The rules below govern the text of a changelog entry, wherever the project writes it -- see
+Documentation & Change Control for which of the two modes
+applies to a given repository.
+
+**When the project uses chlog**, the entry is the **body of a fragment**: the text passed to
+`--body`, which becomes one bullet in the compiled file.
 
 ```bash
 chlog new --kind Fixed --body "fixed SQL injection in `handleLogin`"
 ```
+
+**When it does not**, the entry is the bullet typed directly under `[Unreleased]` in `CHANGELOG.md`.
+
+```markdown
+## [Unreleased]
+
+### Fixed
+- fixed SQL injection in `handleLogin`
+```
+
+Either way the rules are the same, because the released file is the same.
 
 ## Rules
 
@@ -5852,29 +6065,31 @@ Dependency names, package names, and module names must be wrapped in backticks.
 
 **Bad:**
 
-```bash
-chlog new --kind Added --body "added createUser endpoint using express framework"
-chlog new --kind Changed --body "upgraded golang to v1.23"
-chlog new --kind Fixed --body "fixed sql injection in handleLogin"
-chlog new --kind Added --body "integrated with github actions for ci/cd"
+```markdown
+- added createUser endpoint using express framework
+- upgraded golang to v1.23
+- fixed sql injection in handleLogin
+- integrated with github actions for ci/cd
 ```
 
 **Good:**
-
-```bash
-chlog new --kind Added --body "added `CreateUser` endpoint using `express` framework"
-chlog new --kind Changed --body "upgraded Go to `v1.23`"
-chlog new --kind Fixed --body "fixed SQL injection in `handleLogin`"
-chlog new --kind Added --body "integrated with GitHub Actions for CI/CD"
-```
-
-which compile into exactly the bullets you would have written by hand:
 
 ```markdown
 - added `CreateUser` endpoint using `express` framework
 - upgraded Go to `v1.23`
 - fixed SQL injection in `handleLogin`
 - integrated with GitHub Actions for CI/CD
+```
+
+Those four bullets are what a project without chlog types under `[Unreleased]` directly. A project
+with chlog passes the same text to `--body`, and `chlog merge` compiles it into exactly the same
+bullets:
+
+```bash
+chlog new --kind Added --body "added `CreateUser` endpoint using `express` framework"
+chlog new --kind Changed --body "upgraded Go to `v1.23`"
+chlog new --kind Fixed --body "fixed SQL injection in `handleLogin`"
+chlog new --kind Added --body "integrated with GitHub Actions for CI/CD"
 ```
 
 ---

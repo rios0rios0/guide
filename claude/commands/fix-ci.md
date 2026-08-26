@@ -68,7 +68,8 @@ For each failing check, classify and plan the fix:
 | **Lint errors** | `golangci-lint`, `eslint`, `flake8`, `revive` | Read the referenced files, apply fixes |
 | **Test failures** | `make test`, `go test`, `pytest` | Read failing test and source code, fix the bug or update the test |
 | **Build errors** | `go build`, `npm build`, type errors | Read the referenced files, fix compilation/type errors |
-| **Changelog fragment missing** | `basic-checks`, "no new changelog fragment" / "CHANGELOG.md was NOT modified" | Run `chlog new --kind <Kind> --body "..."`. On a `bump/*` branch the gate wants the compiled `CHANGELOG.md` instead -- `chlog batch auto && chlog merge` |
+| **Changelog fragment missing** (chlog project) | `basic-checks`, "no new changelog fragment" | The project uses chlog: run `chlog new --kind <Kind> --body "..."`. On a `chore/bump-*` (or `bump/*`) branch the gate wants the compiled `CHANGELOG.md` instead -- `chlog batch auto && chlog merge` |
+| **Changelog entry missing** (gate wants `CHANGELOG.md`) | `basic-checks`, "CHANGELOG.md was NOT modified" | The gate found no `.chlog.yaml` -- check the root before fixing. If `.changes/` exists anyway, the project uses chlog without the marker the gate keys on: add `.chlog.yaml` and keep writing fragments. If neither exists, the project does not use chlog: add the entry by hand under `[Unreleased]` in `CHANGELOG.md` |
 | **Formatting** | `gofmt`, `prettier`, `black` | Run the formatter on the affected files |
 | **SAST findings** | `semgrep`, `trivy`, `hadolint`, `gitleaks` | Read the finding, fix the security issue or add a justified suppression |
 | **Infrastructure/flaky** | Network timeouts, runner issues, rate limits | Report to user -- cannot fix from code |
@@ -150,7 +151,7 @@ After processing all failures, print a summary:
 | Check | Failure | Action | Status |
 |-------|---------|--------|--------|
 | golangci-lint | gochecknoglobals in clear_history.go | Moved globals into function scope | Fixed |
-| basic-checks | no changelog fragment | Added a fragment with `chlog new` | Fixed |
+| basic-checks | no changelog entry | Added a fragment with `chlog new` (chlog project) | Fixed |
 | test:all | TestFoo assertion failure | Fixed expected value | Fixed |
 | sast:semgrep | SQL injection finding | Cannot fix -- infrastructure issue | Reported |
 
