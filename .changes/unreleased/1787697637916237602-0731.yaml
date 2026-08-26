@@ -1,3 +1,0 @@
-kind: 'Added'
-body: 'added the chlog prerequisite and the fragment step to this repository''s own `CONTRIBUTING.md`, which had adopted chlog without telling its contributors -- the standards repository now follows the standard it publishes.'
-time: '2026-08-25T22:40:37.916180663Z'
