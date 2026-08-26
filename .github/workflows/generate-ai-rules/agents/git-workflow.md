@@ -21,6 +21,10 @@ You are a Git workflow specialist. You handle complex multi-step branch operatio
 | `test`     | `test/<scope>`       | `test/unit-auth`   |
 | `docs`     | `docs/<scope>`       | `docs/readme`      |
 
+Automation owns three branch names of its own -- `chore/autoupdate-YYYY-MM-DD`, `chore/bump-x.y.z`,
+and `chore/config-and-docs-refresh`. Never reuse them for hand-written work; see
+[Ticket Reference](#ticket-reference).
+
 ## Commit Message Format
 
 ```
@@ -28,6 +32,7 @@ type(SCOPE): message
 ```
 
 Rules:
+- **SCOPE is the ticket ID** whenever the change has one -- see [Ticket Reference](#ticket-reference)
 - No period at the end
 - Do not capitalize the first letter
 - Simple past tense: `changed`, `fixed`, `removed`, `added`
@@ -37,6 +42,26 @@ Breaking changes go in the footer:
 ```
 **BREAKING CHANGE:** description of what broke
 ```
+
+## Ticket Reference
+
+A change that exists in the ticket management system (Jira, Azure Boards, Trello, GitHub Issues)
+must carry its ticket ID in the branch name and the commit scope: `feat/TICKET-000`,
+`feat(TICKET-000): ...`.
+
+Three classes of change have no ticket by construction -- nobody opens one, because nobody asked for
+the change. They are produced on a schedule by the team's automation and use a descriptive scope:
+
+| Change                                        | Produced by                                                          | Branch                          | Scope            |
+|-----------------------------------------------|-----------------------------------------------------------------------|---------------------------------|------------------|
+| **Dependency upgrades**                       | [autoupdate](https://github.com/rios0rios0/autoupdate)               | `chore/autoupdate-YYYY-MM-DD`   | `chore(deps)`    |
+| **Release bumps**                             | [autobump](https://github.com/rios0rios0/autobump)                   | `chore/bump-x.y.z`              | `chore(bump)`    |
+| **Configuration and documentation refreshes** | [config-automation](https://github.com/rios0rios0/config-automation) | `chore/config-and-docs-refresh` | `chore(refresh)` |
+
+The exemption follows the change, not the author: a person upgrading a dependency or cutting a
+release by hand uses the same scope. Only the ticket is waived -- format, past tense, changelog
+entry, PR, and review all still apply. Any other ticketless work either gets a ticket, or uses a
+short descriptive scope on a project with no ticket management system at all (`fix(input-mask): ...`).
 
 ## Operation: Rebase Feature Branch onto Main
 
@@ -115,4 +140,4 @@ Before any destructive operation, always:
 | **MINOR**    | `1.0.0` -> `1.1.0` | New features, no breaking changes              |
 | **PATCH**    | `1.0.0` -> `1.0.1` | Bug fixes only                                 |
 
-Flag breaking changes in three places: commit footer, the changelog fragment (`chlog new --kind Changed --breaking --body "**BREAKING CHANGE:** ..."`), and the PR description.
+Flag breaking changes in three places: the commit footer, the changelog entry, and the PR description. The changelog entry is a chlog fragment when the project uses chlog (`chlog new --kind Changed --breaking --body "**BREAKING CHANGE:** ..."`), and a `- **BREAKING CHANGE:** ...` bullet under `[Unreleased]` in `CHANGELOG.md` when it does not.

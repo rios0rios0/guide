@@ -41,6 +41,31 @@ func TestReplaceLinks(t *testing.T) {
 			expected: "- [Docs](https://example.com/page.md)",
 		},
 		{
+			name:     "link with anchor keeps the anchor",
+			input:    "See [Ticket Reference](Life-Cycle/Git-Flow.md#ticket-reference).",
+			expected: "See [Ticket Reference](Git-Flow#ticket-reference).",
+		},
+		{
+			name:     "relative link with anchor keeps the anchor",
+			input:    "Use the [operations vocabulary](../../Code-Style.md#operations-vocabulary).",
+			expected: "Use the [operations vocabulary](Code-Style#operations-vocabulary).",
+		},
+		{
+			name:     "external link with anchor unchanged",
+			input:    "- [Docs](https://example.com/page.md#section)",
+			expected: "- [Docs](https://example.com/page.md#section)",
+		},
+		{
+			name:     "anchor-only link unchanged",
+			input:    "See [Writing Rules](#writing-rules).",
+			expected: "See [Writing Rules](#writing-rules).",
+		},
+		{
+			name:     "filename with parentheses and anchor",
+			input:    "- [PEP 8](Code-Style/Python/Styling-and-Formatting-(PEP-8).md#imports)",
+			expected: "- [PEP 8](Styling-and-Formatting-(PEP-8)#imports)",
+		},
+		{
 			name:     "multiple links on one line",
 			input:    "See [Home](Home.md) and [Tests](Life-Cycle/Tests.md) for details.",
 			expected: "See [Home](Home) and [Tests](Tests) for details.",

@@ -46,7 +46,7 @@ The generated rule directories (`claude/`, `cursor/`, `codex/`, `copilot/`) do *
 
 ### Go Tools
 
-- **`update-wiki`** (`.github/workflows/update-wiki/main.go`): Converts relative markdown links to Wiki-flat format and resolves image paths to GitHub raw content URLs.
+- **`update-wiki`** (`.github/workflows/update-wiki/main.go`): Converts relative markdown links to Wiki-flat format (preserving any `#anchor` fragment) and resolves image paths to GitHub raw content URLs.
 - **`generate-ai-rules`** (`.github/workflows/generate-ai-rules/`): Parses documentation, extracts sections, and formats them into AI-assistant-specific rule files. Has separate `config.go`, `parser.go`, and `formatter.go` modules with corresponding tests.
 
 ### Static Assets (on `main`)
