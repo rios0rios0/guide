@@ -1,3 +1,0 @@
-kind: 'Changed'
-body: 'changed the chlog install guidance to say what `go install` actually costs: it builds from source and so needs a Go toolchain on the machine, which a Java, Python, or TypeScript project has no reason to require. Those projects are now pointed at the prebuilt binaries chlog publishes for Linux, macOS, and Windows on amd64 and arm64. Both the Documentation & Change Control standard and the CONTRIBUTING template carry the alternative.'
-time: '2026-08-25T22:40:37.91174462Z'

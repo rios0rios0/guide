@@ -13,6 +13,26 @@ nothing.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-26
+
+### Added
+
+- added a `Ticket Reference` section to `Git Flow` making the ticket ID mandatory in branch names and commit scopes, and enumerating the three changes exempt from it because no human opens a ticket for them: dependency upgrades from [autoupdate](https://github.com/rios0rios0/autoupdate) (`chore/autoupdate-YYYY-MM-DD`, `chore(deps)`), release bumps from [autobump](https://github.com/rios0rios0/autobump) (`chore/bump-x.y.z`, `chore(bump)`), and configuration and documentation refreshes from [config-automation](https://github.com/rios0rios0/config-automation) (`chore/config-and-docs-refresh`, `chore(refresh)`). The exemption follows the change rather than the author, waives only the ticket, and is mirrored in the `git-workflow` agent and the `CONTRIBUTING` template.
+- added a tailored `code-review` skill under `.github/skills/` so GitHub Copilot reviews changes against the [rios0rios0/guide](https://github.com/rios0rios0/guide/wiki) standards and this repository's own load-bearing invariants
+- added the chlog prerequisite and the fragment step to this repository's own `CONTRIBUTING.md`, which had adopted chlog without telling its contributors -- the standards repository now follows the standard it publishes.
+
+### Changed
+
+- changed the `.chlog.yaml` example to follow the [YAML conventions](https://github.com/rios0rios0/guide/wiki/YAML) it publishes -- every string is single-quoted, with a note that the double quotes inside `versionFormat` belong to the Go template and survive a single-quoted YAML scalar.
+- changed the changelog standard itself: `Documentation & Change Control` now documents the chlog fragment flow (one fragment per change, `CHANGELOG.md` generated at release time, `--breaking` as the only major bump), `CHANGELOG Formatting` now governs the body of a fragment, and the `CONTRIBUTING` template, `Git Flow`, the `changelog-enforcer` agent, the `git-workflow` agent, `fix-ci`, `fix-guardrails`, and the `changelog-guard` hook were retargeted to match — so every repository consuming these standards is told to write a fragment rather than edit `CHANGELOG.md` by hand
+- changed the changelog standard to apply chlog **when the project uses it** rather than unconditionally: `Documentation & Change Control` now documents both modes side by side -- a chlog project writes a fragment under `.changes/unreleased/`, a project without it edits `[Unreleased]` in `CHANGELOG.md` by hand -- with a detection table (`.chlog.yaml`/`.chlog.yml`/`.changes/`) matching the one the shared pipelines basic-checks gate uses, shared writing rules, and an adoption checklist. `CHANGELOG Formatting`, the `CONTRIBUTING` template, `Git Flow`, the `changelog-enforcer` and `git-workflow` agents, `fix-ci`, `fix-guardrails`, and the `changelog-guard` hook all branch the same way, so a repository that has not adopted chlog is no longer told to run a tool it does not have.
+- changed the changelog to [chlog](https://github.com/luizjhonata/chlog) fragments: a change now writes its own YAML file under `.changes/unreleased/` through `chlog new --kind <Kind> --body "..."`, and `CHANGELOG.md` is GENERATED from them at release time by `chlog batch auto && chlog merge`. That is the one thing a single shared file cannot do — two branches each adding an entry no longer touch the same lines, so a rebase that used to conflict on `CHANGELOG.md` now conflicts on nothing. The `[Unreleased]` section was empty, so nothing had to be carried across. AutoBump already reads the fragments directly, so the release flow is unchanged.
+- changed the chlog install guidance to say what `go install` actually costs: it builds from source and so needs a Go toolchain on the machine, which a Java, Python, or TypeScript project has no reason to require. Those projects are now pointed at the prebuilt binaries chlog publishes for Linux, macOS, and Windows on amd64 and arm64. Both the Documentation & Change Control standard and the CONTRIBUTING template carry the alternative.
+
+### Fixed
+
+- fixed the wiki link transformer dropping `#anchor` fragments: `](Life-Cycle/Git-Flow.md#ticket-reference)` matched no rewrite rule and reached the Wiki as a broken relative path. It now flattens to `](Git-Flow#ticket-reference)`, repairing the existing cross-page anchor in the Python conventions guide as well.
+
 ## [0.4.3] - 2026-07-16
 
 ### Fixed
