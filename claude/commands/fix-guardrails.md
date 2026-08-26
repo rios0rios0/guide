@@ -186,20 +186,26 @@ make sast   # if SAST had findings
 
 If new findings appear, fix them. Repeat until all three gates pass. If you cannot resolve a finding after 2 attempts, document it and proceed -- the PR description should note unresolved items.
 
-### Step 7 -- Update CHANGELOG.md
+### Step 7 -- Write a changelog fragment
 
-Read the existing `CHANGELOG.md`. Under `## [Unreleased]`, add entries in the appropriate category. Follow the Documentation rule for changelog conventions:
+**Never edit `CHANGELOG.md`** -- it is generated from fragments by [chlog](https://github.com/luizjhonata/chlog). Write one fragment for the fixes:
+
+```bash
+chlog new --kind Fixed --body "fixed the `gochecknoglobals` findings in `clear_history.go`"
+```
+
+Follow the Documentation rule for changelog conventions:
 
 - Use **simple past tense**: "fixed", "removed", "replaced"
-- Start each entry with a **lowercase verb**
-- Use [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) categories
+- Start each body with a **lowercase verb**
+- Use the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) kinds: Added, Changed, Deprecated, Removed, Fixed, Security
 
 ### Step 8 -- Stage and commit
 
 Stage only the files you changed:
 
 ```bash
-git add <file1> <file2> ... CHANGELOG.md
+git add <file1> <file2> ... .changes/unreleased/
 ```
 
 Follow the Git Flow rule for commit message format:

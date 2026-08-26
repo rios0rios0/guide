@@ -76,7 +76,7 @@ while IFS= read -r line; do
 done <<< "$DIFF"
 
 if [ -n "$VIOLATION_LINES" ]; then
-  MSG="CHANGELOG entries are being added to an already-released version section. Released sections are immutable. Move these entries under [Unreleased]:${VIOLATION_LINES}"
+  MSG="CHANGELOG entries are being added to an already-released version section. Released sections are immutable. CHANGELOG.md is generated from chlog fragments -- record the change with 'chlog new --kind <Kind> --body \"...\"' instead of editing it:${VIOLATION_LINES}"
   echo '{"decision": "block", "reason": "'"$(echo "$MSG" | sed 's/"/\\"/g' | tr '\n' ' ')"'"}' >&2
   exit 2
 fi
