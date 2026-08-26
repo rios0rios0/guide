@@ -76,7 +76,15 @@ while IFS= read -r line; do
 done <<< "$DIFF"
 
 if [ -n "$VIOLATION_LINES" ]; then
-  MSG="CHANGELOG entries are being added to an already-released version section. Released sections are immutable. CHANGELOG.md is generated from chlog fragments -- record the change with 'chlog new --kind <Kind> --body \"...\"' instead of editing it:${VIOLATION_LINES}"
+  # The remedy depends on how this project records changes: a chlog project
+  # generates CHANGELOG.md from fragments, one without chlog is edited by hand.
+  ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+  if [ -f "$ROOT/.chlog.yaml" ] || [ -f "$ROOT/.chlog.yml" ] || [ -d "$ROOT/.changes" ]; then
+    ADVICE="This project uses chlog, so CHANGELOG.md is generated from fragments -- record the change with 'chlog new --kind <Kind> --body \"...\"' instead of editing it."
+  else
+    ADVICE="Add the entry under the [Unreleased] section instead."
+  fi
+  MSG="CHANGELOG entries are being added to an already-released version section. Released sections are immutable. ${ADVICE} Offending lines:${VIOLATION_LINES}"
   echo '{"decision": "block", "reason": "'"$(echo "$MSG" | sed 's/"/\\"/g' | tr '\n' ' ')"'"}' >&2
   exit 2
 fi

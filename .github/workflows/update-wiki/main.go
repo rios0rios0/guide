@@ -16,13 +16,14 @@ const wikiDir = "wiki"
 // imageRegex matches markdown images: ![alt](path)
 var imageRegex = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
 
-// mdLinkTargetRegex matches markdown link targets ending in .md: ](path.md)
+// mdLinkTargetRegex matches markdown link targets ending in .md, with an optional
+// #anchor fragment: ](path.md) and ](path.md#section).
 // Uses a lazy quantifier (.+?) to correctly handle filenames containing parentheses
 // (e.g., "Styling-and-Formatting-(PEP-8).md"). This works for all occurrences on a line
 // and for both [text](path.md) and ![alt](path.md). Since images are processed first
 // (converting to HTML <img> tags), image paths will no longer match by the time this
 // regex runs.
-var mdLinkTargetRegex = regexp.MustCompile(`\]\((.+?\.md)\)`)
+var mdLinkTargetRegex = regexp.MustCompile(`\]\((.+?\.md)(#[^)]*)?\)`)
 
 func main() {
 	// GITHUB_REPOSITORY is automatically set by GitHub Actions (e.g., "rios0rios0/guide")
@@ -150,6 +151,7 @@ func replaceImages(text string, fileDir string, rawBaseURL string) string {
 //	[Onboarding](Onboarding.md)                  -> [Onboarding](Onboarding)
 //	[Git Flow](Life-Cycle/Git-Flow.md)           -> [Git Flow](Git-Flow)
 //	[Backend](Life-Cycle/Architecture/Backend.md) -> [Backend](Backend)
+//	[Ticket](Life-Cycle/Git-Flow.md#ticket)       -> [Ticket](Git-Flow#ticket)
 //	[Google](https://google.com)                  -> [Google](https://google.com)  (unchanged)
 func replaceLinks(text string) string {
 	return mdLinkTargetRegex.ReplaceAllStringFunc(text, func(match string) string {
@@ -164,10 +166,17 @@ func replaceLinks(text string) string {
 			return match
 		}
 
+		// preserve the #anchor fragment, if any: the page is flattened but the
+		// section it points at keeps its own anchor on the Wiki page
+		fragment := ""
+		if len(groups) > 2 {
+			fragment = groups[2]
+		}
+
 		// extract the base name and remove the .md extension
 		// filepath.Base flattens "Life-Cycle/Git-Flow.md" -> "Git-Flow.md"
 		linkName := filepath.Base(linkPath)
 		linkName = strings.TrimSuffix(linkName, ".md")
-		return "](" + linkName + ")"
+		return "](" + linkName + fragment + ")"
 	})
 }

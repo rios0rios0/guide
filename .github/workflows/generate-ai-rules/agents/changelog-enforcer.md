@@ -1,10 +1,11 @@
 ---
 name: changelog-enforcer
 description: >
-  Documentation compliance enforcer. Use after making code changes to ensure a
-  chlog changelog fragment is written and README.md and CONTRIBUTING.md are
+  Documentation compliance enforcer. Use after making code changes to ensure the
+  changelog entry is written -- a chlog fragment when the project uses chlog, an
+  [Unreleased] bullet when it does not -- and README.md and CONTRIBUTING.md are
   updated following the Documentation & Change Control standard. Checks git diff,
-  categorizes changes, and writes the appropriate fragment.
+  categorizes changes, and writes the appropriate entry.
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: inherit
 ---
@@ -19,7 +20,7 @@ Run `git diff --cached --stat` for staged changes, or `git diff HEAD~1 --stat` i
 
 ### Step 2: Categorize Changes
 
-Map each change to the appropriate chlog kind:
+Map each change to the appropriate category (chlog calls these *kinds*):
 
 | Kind           | When to Use                                       | Infers  |
 |----------------|---------------------------------------------------|---------|
@@ -30,17 +31,24 @@ Map each change to the appropriate chlog kind:
 | **Fixed**      | Bug fixes                                         | `patch` |
 | **Security**   | Vulnerability fixes                               | `patch` |
 
-No kind infers a major -- a backward-incompatible change is flagged per fragment with `--breaking`.
+No kind infers a major -- a backward-incompatible change is flagged on the entry itself (with `--breaking` under chlog, or the `**BREAKING CHANGE:**` prefix without it).
 
-### Step 3: Write a Changelog Fragment
+### Step 3: Write the Changelog Entry
+
+First determine which mode the repository is in, by looking at its root:
+
+| Signal                                        | Mode                                                  |
+|-----------------------------------------------|-------------------------------------------------------|
+| `.chlog.yaml` (or `.chlog.yml`) exists        | **chlog** -- write a fragment                         |
+| No config file, but `.changes/` exists        | **chlog** -- write a fragment, and flag the missing config |
+| Neither exists                                | **No chlog** -- edit `[Unreleased]` in `CHANGELOG.md` |
+
+#### When the repository uses chlog
 
 **Never edit `CHANGELOG.md`.** It is generated from fragments by
 [chlog](https://github.com/luizjhonata/chlog); its only writer is `chlog merge`, at release time.
 
-1. Confirm the repository uses chlog -- a `.chlog.yaml` (or `.chlog.yml`) file, or a `.changes/`
-   directory, at the project root. If neither exists, the repository has not adopted chlog yet:
-   report that rather than hand-editing `CHANGELOG.md`.
-2. Write one fragment per change:
+1. Write one fragment per change:
 
 ```bash
 chlog new --kind Added --body "added JavaScript updater supporting npm, yarn, and pnpm projects"
@@ -53,13 +61,33 @@ chlog new --kind Added --body "added JavaScript updater supporting npm, yarn, an
 chlog new --kind Changed --breaking --body "**BREAKING CHANGE:** changed `Input` to take its value from props"
 ```
 
-3. Follow these writing rules for the `--body`:
-   - **Simple past tense**: "added", "changed", "fixed", "removed"
-   - **Start with a lowercase verb**: `added automatic Dockerfile image tag update`
-   - **No period** at the end
-   - **Be specific**: Bad: `updated dependencies`. Good: `added JavaScript updater supporting npm, yarn, and pnpm projects`
-   - **Group related changes** in a single fragment rather than listing every file touched
-4. Stage the new file under `.changes/unreleased/` along with the code change.
+2. Stage the new file under `.changes/unreleased/` along with the code change.
+
+#### When the repository does not use chlog
+
+Edit `CHANGELOG.md` directly: add the entry as a bullet under `[Unreleased]`, inside the heading for
+its category, creating that heading if it is not there yet. Never touch a released version section.
+
+```markdown
+## [Unreleased]
+
+### Added
+- added JavaScript updater supporting npm, yarn, and pnpm projects
+```
+
+A backward-incompatible change is marked in the text, since there is no `--breaking` flag to carry
+it: `- **BREAKING CHANGE:** changed \`Input\` to take its value from props`.
+
+Do not install chlog or migrate the project on your own initiative -- adopting it is a deliberate
+decision, documented in the Documentation rule.
+
+#### Writing rules (both modes)
+
+- **Simple past tense**: "added", "changed", "fixed", "removed"
+- **Start with a lowercase verb**: `added automatic Dockerfile image tag update`
+- **No period** at the end
+- **Be specific**: Bad: `updated dependencies`. Good: `added JavaScript updater supporting npm, yarn, and pnpm projects`
+- **Group related changes** in a single entry rather than listing every file touched
 
 ### Step 4: Check README.md
 
@@ -85,7 +113,7 @@ List all documentation files you updated and summarize the entries added.
 ## Rules
 
 - Documentation and code ship as one unit -- never merge a PR without the corresponding documentation update
-- Every change gets a changelog fragment. README and other docs are updated only when relevant
-- **Never edit `CHANGELOG.md` directly** -- it is generated from the fragments
+- Every change gets a changelog entry. README and other docs are updated only when relevant
+- **Check the mode before writing anything.** In a chlog repository, editing `CHANGELOG.md` by hand is wrong -- the file is generated. In a repository without chlog, `chlog new` is wrong -- there is nothing to compile the fragment
 - Do not duplicate the commit message verbatim -- write for humans, describing *what changed and why*
-- If the change is backward-incompatible, pass `--breaking` **and** prefix the body with `**BREAKING CHANGE:**`
+- If the change is backward-incompatible, prefix the entry with `**BREAKING CHANGE:**` -- and in a chlog repository pass `--breaking` as well

@@ -1,6 +1,6 @@
 # Git Flow
 
-> **TL;DR:** Use a feature-branch model with `main` always deployable. Synchronize branches with `git rebase` (never merge). Follow the `type(TASK-ID): message` commit format in simple past tense. Use Semantic Versioning (MAJOR.MINOR.PATCH) for releases. Flag breaking changes in commits, in the changelog fragment, and in PRs.
+> **TL;DR:** Use a feature-branch model with `main` always deployable. Synchronize branches with `git rebase` (never merge). Follow the `type(SCOPE): message` commit format in simple past tense, using the ticket ID as the scope -- the only changes exempt from that are the ones the team's automation produces (dependency upgrades, release bumps, configuration refreshes). Use Semantic Versioning (MAJOR.MINOR.PATCH) for releases. Flag breaking changes in commits, in the changelog, and in PRs.
 
 ## Overview
 
@@ -25,7 +25,7 @@ The workflow follows a feature-branch model with these principles:
 5. **Create a Pull Request** targeting `main`, adding reviewers.
 6. After code review approval, **merge** the feature branch into `main`.
 7. The CI pipeline builds `main` and deploys to the QA environment.
-8. After QA approval, cut a `bump/x.y.z` branch and compile the pending changelog fragments into a version section -- see [Documentation & Change Control](Documentation-&-Change-Control.md).
+8. After QA approval, cut a `chore/bump-x.y.z` branch and compile the pending changelog entries into a version section -- see [Documentation & Change Control](Documentation-&-Change-Control.md).
 9. The CI pipeline deploys the release to production.
 
 ## Naming Conventions
@@ -43,6 +43,9 @@ fix/TICKET-990
 feat/add-logs
 fix/input-mask
 ```
+
+A ticketless branch is the exception, not the default -- see [Ticket Reference](#ticket-reference)
+for when it is allowed.
 
 ### Branch Types
 
@@ -63,10 +66,12 @@ fix/input-mask
 type(SCOPE): message
 ```
 
-Where **SCOPE** is the task ID (if available) or a short descriptive scope.
+Where **SCOPE** is the ticket ID, or -- for the changes listed in
+[Ticket Reference](#ticket-reference) -- a short descriptive scope.
 
 ### Rules
 
+- **Use the ticket ID as the scope** whenever the change has one. See [Ticket Reference](#ticket-reference).
 - **No period** at the end of the subject line.
 - **Do not capitalize** the first letter.
 - Use **simple past tense**: `changed`, `fixed`, `removed`, `added` (not present continuous).
@@ -122,6 +127,53 @@ git log <last tag> HEAD --pretty=format:%s
 git log <last release> HEAD --grep feature
 ```
 
+## Ticket Reference
+
+A change that exists in the ticket management system -- Jira, Azure Boards, Trello, GitHub Issues,
+whichever the project uses -- **must carry its ticket ID** in the branch name and in the commit
+scope:
+
+```
+feat/TICKET-000
+feat(TICKET-000): added the endpoint the ticket asked for
+```
+
+The ticket is what ties a line of code to the reason it exists. Recovering that link months later
+costs far more than typing it now, so "it is linked from the pull request" is not a substitute.
+
+### Exceptions -- Automated Changes
+
+Three classes of change have no ticket **by construction**: nobody opens one, because nobody asked
+for the change. They are produced on a schedule by the team's automation, and they carry a short
+descriptive scope in place of a ticket ID:
+
+| Change                                        | Produced by                                                          | Branch                        | Scope            |
+|-----------------------------------------------|-----------------------------------------------------------------------|-------------------------------|------------------|
+| **Dependency upgrades**                       | [autoupdate](https://github.com/rios0rios0/autoupdate)               | `chore/autoupdate-YYYY-MM-DD` | `chore(deps)`    |
+| **Release bumps**                             | [autobump](https://github.com/rios0rios0/autobump)                   | `chore/bump-x.y.z`            | `chore(bump)`    |
+| **Configuration and documentation refreshes** | [config-automation](https://github.com/rios0rios0/config-automation) | `chore/config-and-docs-refresh` | `chore(refresh)` |
+
+Exactly as the automation writes them:
+
+```
+chore(deps): bumped dependencies via autoupdate
+chore(bump): bumped version to 1.4.0
+chore(refresh): refreshed configuration and documentation
+```
+
+### What the Exception Covers
+
+- **It follows the change, not the author.** A person who upgrades a dependency or cuts a release by
+  hand writes `chore(deps)` / `chore(bump)` for the same reason the bot does -- there is no ticket to
+  reference. The reverse holds too: an automated branch carrying anything beyond its remit stops
+  being an exempt change, so split that work out and give it a ticket.
+- **Only the ticket is waived.** The `type(SCOPE): message` format, simple past tense, the changelog
+  entry, the pull request, and review all still apply -- an automated PR is reviewed and merged like
+  any other.
+- **Nothing else is exempt by default.** Other ticketless work either gets a ticket opened for it,
+  or -- on a project with no ticket management system at all -- uses a short descriptive scope, as
+  in `fix/input-mask` and `fix(input-mask): fixed the phone mask on paste`.
+
 ## Semantic Versioning
 
 Follow [Semantic Versioning (SemVer)](https://semver.org/) for all releases:
@@ -156,10 +208,16 @@ When code changes alter public interfaces, flag the breaking change in **three p
    **BREAKING CHANGE:** input behavior now must be implemented by the peer, including value and handleChange
    ```
 
-2. **Changelog fragment** -- the `--breaking` flag is what bumps the major; the prefix is what the reader sees:
+2. **Changelog entry** -- when the project uses chlog, the `--breaking` flag is what bumps the major
+   and the prefix is what the reader sees:
    ```bash
    chlog new --kind Changed --breaking \
      --body "**BREAKING CHANGE:** updated input to use props for state management"
+   ```
+
+   When it does not, the prefix carries both jobs, under `[Unreleased] > Changed`:
+   ```markdown
+   - **BREAKING CHANGE:** updated input to use props for state management
    ```
 
 3. **Pull Request description:**
