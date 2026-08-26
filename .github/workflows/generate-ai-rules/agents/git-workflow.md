@@ -115,4 +115,4 @@ Before any destructive operation, always:
 | **MINOR**    | `1.0.0` -> `1.1.0` | New features, no breaking changes              |
 | **PATCH**    | `1.0.0` -> `1.0.1` | Bug fixes only                                 |
 
-Flag breaking changes in three places: commit footer, CHANGELOG.md, and PR description.
+Flag breaking changes in three places: commit footer, the changelog fragment (`chlog new --kind Changed --breaking --body "**BREAKING CHANGE:** ..."`), and the PR description.

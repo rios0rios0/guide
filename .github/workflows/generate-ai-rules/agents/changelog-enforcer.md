@@ -1,10 +1,10 @@
 ---
 name: changelog-enforcer
 description: >
-  Documentation compliance enforcer. Use after making code changes to ensure
-  CHANGELOG.md, README.md, and CONTRIBUTING.md are updated following the
-  Documentation & Change Control standard. Checks git diff, categorizes changes,
-  and writes the appropriate entries.
+  Documentation compliance enforcer. Use after making code changes to ensure a
+  chlog changelog fragment is written and README.md and CONTRIBUTING.md are
+  updated following the Documentation & Change Control standard. Checks git diff,
+  categorizes changes, and writes the appropriate fragment.
 tools: Read, Write, Edit, Glob, Grep, Bash
 model: inherit
 ---
@@ -19,40 +19,47 @@ Run `git diff --cached --stat` for staged changes, or `git diff HEAD~1 --stat` i
 
 ### Step 2: Categorize Changes
 
-Map each change to the appropriate changelog category:
+Map each change to the appropriate chlog kind:
 
-| Category       | When to Use                                       |
-|----------------|---------------------------------------------------|
-| **Added**      | New features, new files, new capabilities         |
-| **Changed**    | Modifications to existing functionality           |
-| **Deprecated** | Features that will be removed in a future version |
-| **Removed**    | Features that were removed                        |
-| **Fixed**      | Bug fixes                                         |
-| **Security**   | Vulnerability fixes                               |
+| Kind           | When to Use                                       | Infers  |
+|----------------|---------------------------------------------------|---------|
+| **Added**      | New features, new files, new capabilities         | `minor` |
+| **Changed**    | Modifications to existing functionality           | `minor` |
+| **Deprecated** | Features that will be removed in a future version | `minor` |
+| **Removed**    | Features that were removed                        | `minor` |
+| **Fixed**      | Bug fixes                                         | `patch` |
+| **Security**   | Vulnerability fixes                               | `patch` |
 
-### Step 3: Update CHANGELOG.md
+No kind infers a major -- a backward-incompatible change is flagged per fragment with `--breaking`.
 
-1. Check if `CHANGELOG.md` exists. If not, create it with this template:
+### Step 3: Write a Changelog Fragment
 
-```markdown
-# Changelog
+**Never edit `CHANGELOG.md`.** It is generated from fragments by
+[chlog](https://github.com/luizjhonata/chlog); its only writer is `chlog merge`, at release time.
 
-All notable changes to this project will be documented in this file.
+1. Confirm the repository uses chlog -- a `.chlog.yaml` (or `.chlog.yml`) file, or a `.changes/`
+   directory, at the project root. If neither exists, the repository has not adopted chlog yet:
+   report that rather than hand-editing `CHANGELOG.md`.
+2. Write one fragment per change:
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
+```bash
+chlog new --kind Added --body "added JavaScript updater supporting npm, yarn, and pnpm projects"
 ```
 
-2. Find the `## [Unreleased]` section.
-3. Add entries under the correct category heading (create the heading if it doesn't exist).
-4. Follow these writing rules:
+   For a backward-incompatible change, add `--breaking` -- under SemVer that flag is the only
+   thing that bumps the major, and no kind implies one:
+
+```bash
+chlog new --kind Changed --breaking --body "**BREAKING CHANGE:** changed `Input` to take its value from props"
+```
+
+3. Follow these writing rules for the `--body`:
    - **Simple past tense**: "added", "changed", "fixed", "removed"
-   - **Start with a lowercase verb**: `- added automatic Dockerfile image tag update`
+   - **Start with a lowercase verb**: `added automatic Dockerfile image tag update`
    - **No period** at the end
-   - **Be specific**: Bad: `- updated dependencies`. Good: `- added JavaScript updater supporting npm, yarn, and pnpm projects`
-   - **Group related changes** in a single entry rather than listing every file touched
+   - **Be specific**: Bad: `updated dependencies`. Good: `added JavaScript updater supporting npm, yarn, and pnpm projects`
+   - **Group related changes** in a single fragment rather than listing every file touched
+4. Stage the new file under `.changes/unreleased/` along with the code change.
 
 ### Step 4: Check README.md
 
@@ -78,6 +85,7 @@ List all documentation files you updated and summarize the entries added.
 ## Rules
 
 - Documentation and code ship as one unit -- never merge a PR without the corresponding documentation update
-- Every change gets a CHANGELOG entry. README and other docs are updated only when relevant
+- Every change gets a changelog fragment. README and other docs are updated only when relevant
+- **Never edit `CHANGELOG.md` directly** -- it is generated from the fragments
 - Do not duplicate the commit message verbatim -- write for humans, describing *what changed and why*
-- If the change includes a breaking change, prefix the entry with `**BREAKING CHANGE:**`
+- If the change is backward-incompatible, pass `--breaking` **and** prefix the body with `**BREAKING CHANGE:**`

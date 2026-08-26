@@ -1,0 +1,3 @@
+kind: 'Changed'
+body: 'changed the changelog standard itself: `Documentation & Change Control` now documents the chlog fragment flow (one fragment per change, `CHANGELOG.md` generated at release time, `--breaking` as the only major bump), `CHANGELOG Formatting` now governs the body of a fragment, and the `CONTRIBUTING` template, `Git Flow`, the `changelog-enforcer` agent, the `git-workflow` agent, `fix-ci`, `fix-guardrails`, and the `changelog-guard` hook were retargeted to match — so every repository consuming these standards is told to write a fragment rather than edit `CHANGELOG.md` by hand'
+time: '2026-08-25T21:40:28.445023873Z'
