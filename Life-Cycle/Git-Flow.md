@@ -130,7 +130,7 @@ git log <last release> HEAD --grep feature
 ## Ticket Reference
 
 A change that exists in the ticket management system -- Jira, Azure Boards, Trello, GitHub Issues,
-whichever the project uses -- **must carry its ticket ID** in the branch name and in the commit
+or whatever the project uses -- **must carry its ticket ID** in the branch name and in the commit
 scope:
 
 ```

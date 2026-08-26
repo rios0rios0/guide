@@ -69,7 +69,7 @@ For each failing check, classify and plan the fix:
 | **Test failures** | `make test`, `go test`, `pytest` | Read failing test and source code, fix the bug or update the test |
 | **Build errors** | `go build`, `npm build`, type errors | Read the referenced files, fix compilation/type errors |
 | **Changelog fragment missing** (chlog project) | `basic-checks`, "no new changelog fragment" | The project uses chlog: run `chlog new --kind <Kind> --body "..."`. On a `chore/bump-*` (or `bump/*`) branch the gate wants the compiled `CHANGELOG.md` instead -- `chlog batch auto && chlog merge` |
-| **Changelog entry missing** (no chlog) | `basic-checks`, "CHANGELOG.md was NOT modified" | The project does **not** use chlog (no `.chlog.yaml` at the root): add the entry by hand under `[Unreleased]` in `CHANGELOG.md` |
+| **Changelog entry missing** (gate wants `CHANGELOG.md`) | `basic-checks`, "CHANGELOG.md was NOT modified" | The gate found no `.chlog.yaml` -- check the root before fixing. If `.changes/` exists anyway, the project uses chlog without the marker the gate keys on: add `.chlog.yaml` and keep writing fragments. If neither exists, the project does not use chlog: add the entry by hand under `[Unreleased]` in `CHANGELOG.md` |
 | **Formatting** | `gofmt`, `prettier`, `black` | Run the formatter on the affected files |
 | **SAST findings** | `semgrep`, `trivy`, `hadolint`, `gitleaks` | Read the finding, fix the security issue or add a justified suppression |
 | **Infrastructure/flaky** | Network timeouts, runner issues, rate limits | Report to user -- cannot fix from code |
