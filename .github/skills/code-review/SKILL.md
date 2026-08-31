@@ -76,9 +76,15 @@ them before the generic ones.
 ### Commands a reviewer should be able to quote
 
 ```bash
-# documentation repository — no build step
-# check that no two Markdown files share a base name:
+# the docs themselves have no build step; check that no two Markdown files
+# share a base name (a wiki page-name collision):
 find . -name '*.md' -not -path './.git/*' -printf '%f\n' | sort | uniq -d
+
+# the two Go tools under .github/workflows/ ARE built and tested — run these
+# when a change touches update-wiki/ or generate-ai-rules/ (Go source, config,
+# parser, or formatter). There is no Makefile and no sast target:
+cd .github/workflows/update-wiki && go build -o update-wiki ./... && go test ./...
+cd .github/workflows/generate-ai-rules && go build -o generate-ai-rules ./... && go test ./...
 ```
 
 ### YAML
@@ -90,7 +96,7 @@ and YAML blocks inside Markdown.
 
 ## Tests
 
-The wiki sync and the rule generator are the verification path: `update-wiki.yml` publishes the pages and `generate-ai-rules.yaml` builds the `generated` branch. A structural change should be checked against both workflows before merging.
+The wiki sync and the rule generator are the verification path: `update-wiki.yml` publishes the pages and `generate-ai-rules.yaml` builds the `generated` branch. A structural change should be checked against both workflows before merging. Each Go tool carries `*_test.go` unit tests (`update-wiki`; `generate-ai-rules` splits `config`, `parser`, and `formatter`) — a change to either tool that does not keep `go test ./...` green is a finding.
 
 ## Documentation and change control
 
