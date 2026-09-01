@@ -13,6 +13,12 @@ nothing.
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-09-01
+
+### Changed
+
+- refreshed `CLAUDE.md` and `.github/copilot-instructions.md` to rename the Claude workflows from `claude-code-review.yaml`/`claude.yaml` to `claude-review.yaml`/`claude-mention.yaml` and note they call the reusable workflows in `rios0rios0/pipelines`, and refreshed `.github/skills/code-review/SKILL.md` to replace the "no build step" claim with the `go build`/`go test` commands for the `update-wiki` and `generate-ai-rules` tools
+
 ## [0.5.1] - 2026-08-28
 
 ### Changed
