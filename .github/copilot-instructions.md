@@ -47,8 +47,8 @@ Six workflows are defined under `.github/workflows/`:
 | `update-wiki.yml` | Push to `main`, manual dispatch | Syncs docs to GitHub Wiki |
 | `generate-ai-rules.yaml` | Push to `main` (docs paths), manual dispatch | Regenerates AI rules on `generated` branch |
 | `sync-docs.yaml` | Pull request (any `.md` change) | Validates TOC sync across README.md, Home.md, _Sidebar.md |
-| `claude-code-review.yaml` | PR opened/synchronize/ready_for_review/reopened | AI-assisted PR review via Claude Code |
-| `claude.yaml` | Issue/PR comments, issue events, PR reviews | Claude Code automation for issues and PRs |
+| `claude-review.yaml` | PR opened/synchronize/ready_for_review/reopened | AI-assisted PR review; calls a reusable workflow in `rios0rios0/pipelines` |
+| `claude-mention.yaml` | Issue/PR comments, issue events, PR reviews | Claude Code automation for issues and PRs; calls a reusable workflow in `rios0rios0/pipelines` |
 | `release.yaml` | Push to `main` | Automated release via reusable workflow |
 
 **NEVER CANCEL**: Full workflow takes ~2-3 minutes including setup. Set timeout to 10+ minutes.
