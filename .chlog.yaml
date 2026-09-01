@@ -1,0 +1,27 @@
+# chlog — fragment-based changelog management (https://github.com/luizjhonata/chlog).
+#
+# Committed because the published standard keys the CI changelog gate on this file
+# specifically (Life-Cycle/Documentation-&-Change-Control): the fragment directory alone
+# happens to satisfy the current detector, but a repository that relies on that is one
+# upstream narrowing away from every pull request demanding a hand-written CHANGELOG.md.
+#
+# Every value below is chlog's own default, spelled out on purpose.
+changesDir: .changes
+unreleasedDir: unreleased
+changelogPath: CHANGELOG.md
+versionFormat: '## [{{.Version}}] - {{.Time.Format "2006-01-02"}}'
+kindFormat: '### {{.Kind}}'
+changeFormat: '- {{.Body}}'
+kinds:
+  - label: Added
+    auto: minor
+  - label: Changed
+    auto: minor
+  - label: Deprecated
+    auto: minor
+  - label: Removed
+    auto: minor
+  - label: Fixed
+    auto: patch
+  - label: Security
+    auto: patch
