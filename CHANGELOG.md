@@ -13,6 +13,16 @@ nothing.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-02
+
+### Added
+
+- added the `checks` workflow, so pull requests here run the shared `code-check > quality:basic-checks` gate (rebase status and the changelog rule) that every repository with a language pipeline already gets as that pipeline's first job. This repository has no build to attach it to, so it had no changelog enforcement at all — which is how the weekly configuration and documentation refresh hand-edited a generated `CHANGELOG.md` across the fleet before anything objected
+
+### Removed
+
+- removed the `.chlog.yaml` added alongside the `checks` workflow. It carried nothing but chlog's own defaults, and the changelog gate this repository now runs already detects chlog from the `.changes/unreleased/` directory — so the file was a second copy of the defaults with nothing to say and another place to drift
+
 ## [0.5.2] - 2026-09-01
 
 ### Changed
