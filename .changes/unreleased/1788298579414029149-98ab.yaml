@@ -1,3 +1,0 @@
-kind: 'Removed'
-body: 'removed the `.chlog.yaml` added alongside the `checks` workflow. It carried nothing but chlog''s own defaults, and the changelog gate this repository now runs already detects chlog from the `.changes/unreleased/` directory — so the file was a second copy of the defaults with nothing to say and another place to drift'
-time: '2026-09-01T21:36:19.41394942Z'
