@@ -1,0 +1,3 @@
+kind: 'Security'
+body: 'pinned third-party GitHub Actions (actions/checkout, actions/setup-go) to full commit SHAs of their latest releases instead of floating major tags'
+time: '2026-09-05T20:11:10.119160737Z'
