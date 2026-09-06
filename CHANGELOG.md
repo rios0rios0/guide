@@ -13,6 +13,12 @@ nothing.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-09-06
+
+### Security
+
+- pinned third-party GitHub Actions to full commit SHAs instead of floating major tags, which also moves actions/checkout from v6 to v7.0.1 and actions/setup-go from v6 to v7.0.0 (both ESM/node24 majors, no input changes for the inputs used here)
+
 ## [0.6.0] - 2026-09-02
 
 ### Added
