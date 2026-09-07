@@ -40,13 +40,14 @@ Generates AI assistant rule files for Claude Code, Cursor, Codex, and GitHub Cop
 **NEVER CANCEL BUILD COMMANDS** - Even though builds are fast (~1s), set timeouts of 30+ seconds.
 
 ### GitHub Actions Workflows
-Six workflows are defined under `.github/workflows/`:
+Seven workflows are defined under `.github/workflows/`:
 
 | File | Trigger | Purpose |
 |------|---------|---------|
 | `update-wiki.yml` | Push to `main`, manual dispatch | Syncs docs to GitHub Wiki |
 | `generate-ai-rules.yaml` | Push to `main` (docs paths), manual dispatch | Regenerates AI rules on `generated` branch |
 | `sync-docs.yaml` | Pull request (any `.md` change) | Validates TOC sync across README.md, Home.md, _Sidebar.md |
+| `checks.yaml` | Pull request to `main` | Runs shared checks via a reusable workflow in `rios0rios0/pipelines` |
 | `claude-review.yaml` | PR opened/synchronize/ready_for_review/reopened | AI-assisted PR review; calls a reusable workflow in `rios0rios0/pipelines` |
 | `claude-mention.yaml` | Issue/PR comments, issue events, PR reviews | Claude Code automation for issues and PRs; calls a reusable workflow in `rios0rios0/pipelines` |
 | `release.yaml` | Push to `main` | Automated release via reusable workflow |
@@ -221,7 +222,7 @@ Always complete this checklist when making changes:
 1. ✅ Verify file structure with `ls` commands
 2. ✅ Run `go build` in both workflow tool directories
 3. ✅ Run `bash .github/workflows/sync-docs/check-toc-sync.sh` after any TOC change
-4. ✅ Check Markdown file count matches expected (~79 files)
+4. ✅ Check Markdown file count matches expected (80+ files)
 5. ✅ Manually verify key navigation links work
 6. ✅ Confirm .editorconfig compliance (2-space indents, LF endings)
 7. ✅ Test that modified files render correctly as Markdown
