@@ -174,6 +174,13 @@ gh api graphql -f query='
 
 Do **not** resolve threads where you declined the suggestion or asked for clarification — those need the reviewer's response.
 
+## Parallel runs
+
+Several resolvers often run at once, one per pull request, and they share a single scratchpad directory. Two rules keep an instance from acting on another instance's data:
+
+- Never write an intermediate file under a generic name such as `threads.json` or `reply.txt`. Pipe `gh api` output straight into the command that consumes it, or prefix every file with the repository and PR number (`<repo>-<pr>-threads.json`).
+- Before acting on a fetched payload, assert that it belongs to this task: the repository and PR number in the response, and the `path` and `databaseId` of every thread you were asked to handle. A mismatch means the file was written by another instance — discard it and fetch again.
+
 ## Reply Templates
 
 | Outcome | Template |
