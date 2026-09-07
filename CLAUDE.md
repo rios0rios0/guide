@@ -97,6 +97,7 @@ Documentation files use hyphens (e.g., `Backend-Design.md`). Directories use `&`
 | `update-wiki.yml` | Push to `main`, manual | Syncs docs to GitHub Wiki |
 | `generate-ai-rules.yaml` | Push to `main` (doc paths), manual | Regenerates AI rules on `generated` branch |
 | `sync-docs.yaml` | PR with `.md` changes | Validates TOC sync |
+| `checks.yaml` | PR to `main` | Runs shared checks via reusable workflow in `rios0rios0/pipelines` |
 | `claude-review.yaml` | PR opened/synchronize/ready_for_review/reopened | AI-assisted PR review; calls `reusable-claude-review.yaml` in `rios0rios0/pipelines` |
 | `claude-mention.yaml` | Issue/PR comments, issue events, PR reviews | Claude Code automation for issues and PRs; calls `reusable-claude-mention.yaml` in `rios0rios0/pipelines` |
 | `release.yaml` | Push to `main` | Automated release via reusable workflow |
