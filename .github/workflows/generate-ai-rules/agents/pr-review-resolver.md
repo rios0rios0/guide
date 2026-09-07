@@ -42,7 +42,9 @@ Use the GitHub GraphQL API to retrieve all unresolved threads:
 gh api graphql -f query='
   query($owner: String!, $repo: String!, $pr: Int!) {
     repository(owner: $owner, name: $repo) {
+      nameWithOwner
       pullRequest(number: $pr) {
+        number
         reviewThreads(first: 100) {
           nodes {
             id
@@ -179,7 +181,7 @@ Do **not** resolve threads where you declined the suggestion or asked for clarif
 Several resolvers often run at once, one per pull request, and they share a single scratchpad directory. Two rules keep an instance from acting on another instance's data:
 
 - Never write an intermediate file under a generic name such as `threads.json` or `reply.txt`. Pipe `gh api` output straight into the command that consumes it, or prefix every file with the repository and PR number (`<repo>-<pr>-threads.json`).
-- Before acting on a fetched payload, assert that it belongs to this task: the repository and PR number in the response, and the `path` and `databaseId` of every thread you were asked to handle. A mismatch means the file was written by another instance — discard it and fetch again.
+- Before acting on a fetched payload, assert that it belongs to this task: `repository.nameWithOwner` must match the repository detected in Step 1, and `pullRequest.number` must match the PR number you were given. The Step 3 query selects both fields so that every payload is self-identifying. When the caller supplied an expected thread list (as an orchestrator running several instances does), also assert the `path` and `databaseId` of every thread you were asked to handle. A mismatch means the file was written by another instance — discard it and fetch again.
 
 ## Reply Templates
 

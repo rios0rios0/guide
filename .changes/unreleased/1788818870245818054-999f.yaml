@@ -1,3 +1,0 @@
-kind: 'Changed'
-body: 'added a "Parallel runs" section to the `pr-review-resolver` agent: concurrent instances share one scratchpad directory, so they must not write generically named intermediate files and must assert that a fetched payload belongs to their own pull request before acting on it — three of thirty-one parallel resolvers read another repository''s thread dump on 2026-09-07 and caught it only because their tasks listed the expected thread ids'
-time: '2026-09-07T22:07:50.245744773Z'
