@@ -13,6 +13,24 @@ nothing.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-08
+
+### Added
+
+- added a "Parallel runs" section to the `pr-review-resolver` agent: concurrent instances share one scratchpad directory, so they must not write generically named intermediate files and must assert that a fetched payload belongs to their own pull request before acting on it — three of thirty-one parallel resolvers read another repository's thread dump on 2026-09-07 and caught it only because their tasks listed the expected thread IDs
+
+### Changed
+
+- changed both `chlog new` examples in the AI-assistant instruction block of `CLAUDE.md` and `.github/copilot-instructions.md` to `--body '<past-tense description>'`: changelog bodies here are written in simple past tense, and the body is single-quoted because it carries backticks that a double-quoted shell argument would command-substitute, and added the line telling the reader to write an apostrophe inside the single-quoted body as `'\''`, since bodies here carry possessives, and switched the 2 other hand-written `chlog new` examples in `CONTRIBUTING.md` and `.github/skills/code-review/SKILL.md` to the same single-quoted body argument
+- re-wrapped the secret-hygiene bullet of the `code-review` skill to the fleet-standard five-line form the weekly refresh prescribes, without changing a word of it
+- refreshed `.github/copilot-instructions.md` to add the `checks.yaml` workflow and correct the workflow count and Markdown file count
+- refreshed `.github/skills/code-review/SKILL.md` to use inert secret-shape placeholders in the secret-hygiene bullet
+- refreshed `CLAUDE.md` to document the `checks.yaml` PR workflow
+
+### Fixed
+
+- regenerated 3 hand-written changelog fragments with `chlog new`, keeping their kind and body, so the filename prefix and the `time` field come from chlog's own clock like every other fragment's
+
 ## [0.6.1] - 2026-09-07
 
 ### Security
