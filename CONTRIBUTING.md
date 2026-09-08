@@ -30,7 +30,7 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 6. Preview your Markdown changes locally (e.g., using VS Code Markdown preview or a local Markdown renderer)
 7. Add a changelog fragment -- never edit `CHANGELOG.md`, which is generated from them:
    ```bash
-   chlog new --kind Changed --body "changed the testing standard to ban mock libraries"
+   chlog new --kind Changed --body 'changed the testing standard to ban mock libraries'
    ```
 8. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Life-Cycle/Git-Flow)
 9. Open a pull request against `main`
