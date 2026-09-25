@@ -157,8 +157,10 @@ func TestEndToEnd(t *testing.T) {
 	// then - verify Codex AGENTS.md under codex/
 	agentsFile := filepath.Join(outputDir, "codex", "AGENTS.md")
 	assertFileExists(t, agentsFile)
-	assertFileContains(t, agentsFile, "Naming conventions")
-	assertFileContains(t, agentsFile, "feature branches")
+	assertFileContains(t, agentsFile, "instructions/code-style.md")
+	assertFileContains(t, filepath.Join(outputDir, "codex", "instructions", "code-style.md"), "Naming conventions")
+	assertFileContains(t, agentsFile, "instructions/git-flow.md")
+	assertFileContains(t, filepath.Join(outputDir, "codex", "instructions", "git-flow.md"), "feature branches")
 
 	// then - verify Codex rules under codex/rules/
 	codexRulesFile := filepath.Join(outputDir, "codex", "rules", "default.rules")

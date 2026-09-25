@@ -9,8 +9,6 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-const codexMaxSize = 32 * 1024 // 32 KiB
-
 // writeClaude writes a rule file in Claude Code format to claude/rules/<name>.md.
 func writeClaude(outputDir string, group RuleGroup, content string) error {
 	dir := filepath.Join(outputDir, "claude", "rules")
@@ -64,38 +62,34 @@ func writeCursor(outputDir string, group RuleGroup, content string) error {
 	return nil
 }
 
-// writeCodex writes a single AGENTS.md file for Codex by concatenating all rule groups.
+// writeCodex writes a small routing file and complete, separately loaded standards.
 func writeCodex(outputDir string, groups []RuleGroup, contents []string) error {
-	var sb strings.Builder
-	for i := range groups {
-		if i > 0 {
-			sb.WriteString("\n---\n\n")
-		}
-		sb.WriteString(contents[i])
-	}
-
-	body := sb.String()
-	if len(body) > codexMaxSize {
-		logger.WithFields(logger.Fields{
-			"size_bytes":  len(body),
-			"limit_bytes": codexMaxSize,
-		}).Warn("AGENTS.md size exceeds Codex limit")
-	}
-
-	dir := filepath.Join(outputDir, "codex")
+	dir := filepath.Join(outputDir, "codex", "instructions")
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("creating directory %s: %w", dir, err)
+		return fmt.Errorf("creating instruction directory: %w", err)
 	}
-
-	path := filepath.Join(dir, "AGENTS.md")
-	if err := os.WriteFile(path, []byte(body), 0644); err != nil {
-		return err
+	var sb strings.Builder
+	sb.WriteString("# Personal engineering standards\n\n")
+	sb.WriteString("Before project changes, read documentation and git-flow; before code changes also read architecture, code-style, security, testing, and the relevant language. Read ci-cd before validation or Git operations. Resolve the paths below relative to this AGENTS.md file.\n\n")
+	sb.WriteString("New Go projects use manual constructor injection in container.go. Existing Wire migrations belong in dedicated service PRs; encourage Dig migrations. Preserve project-specific loggers. Unit tests are untagged; mocking libraries require the narrow documented external-abstraction exception in testing.md.\n\n")
+	sb.WriteString("Invoke Codex skills with $skill-name. Claude slash commands and CLAUDE.md are tool-specific; Codex uses AGENTS.md. Project instructions refine these defaults. Preserve existing authorization safeguards.\n\n")
+	sb.WriteString("| Applies to | Full standard |\n| --- | --- |\n")
+	for i, group := range groups {
+		if contents[i] == "" {
+			continue
+		}
+		name := group.Name + ".md"
+		content := strings.ReplaceAll(contents[i], "CLAUDE.md", "AGENTS.md")
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0644); err != nil {
+			return fmt.Errorf("writing instruction %s: %w", name, err)
+		}
+		scope := group.Globs
+		if scope == "" {
+			scope = group.Name
+		}
+		fmt.Fprintf(&sb, "| %s | [%s](instructions/%s) |\n", scope, group.Name, name)
 	}
-	logger.WithFields(logger.Fields{
-		"path":  path,
-		"bytes": len(body),
-	}).Debug("wrote Codex AGENTS.md")
-	return nil
+	return os.WriteFile(filepath.Join(outputDir, "codex", "AGENTS.md"), []byte(sb.String()), 0644)
 }
 
 // CodexRule represents a single prefix_rule entry for Codex command execution policies.

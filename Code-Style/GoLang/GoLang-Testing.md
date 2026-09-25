@@ -1,6 +1,6 @@
 # Go Testing Conventions
 
-> **TL;DR:** Unit tests need **no build tag** — Go runs `_test.go` files by default, so a tag would be redundant. Use build flags (`//go:build integration`, `//go:build e2e`, etc.) **only** on non-unit test files that require external infrastructure. Place test files next to production code with the `_test.go` suffix. Use `stretchr/testify` for suites and assertions. Test packages must be **external** to the production package. All tests must follow the BDD pattern with `// given`, `// when`, `// then` comment blocks. Unit tests must run in **parallel** using `t.Parallel()` + `t.Run()`. Integration tests use **suites** with setup/teardown and are NOT parallel.
+> **TL;DR:** Unit tests need **no build tag** — Go runs `_test.go` files by default, tagged unit tests are prohibited. Use build flags (`//go:build integration`, `//go:build e2e`, etc.) **only** on non-unit test files that require external infrastructure. Place test files next to production code with the `_test.go` suffix. Use `stretchr/testify` for suites and assertions. Test packages must be **external** to the production package. All tests must follow the BDD pattern with `// given`, `// when`, `// then` comment blocks. Unit tests must run in **parallel** using `t.Parallel()` + `t.Run()`. Integration tests use **suites** with setup/teardown and are NOT parallel.
 
 ## Overview
 
@@ -28,7 +28,7 @@ test/
 
 ## General Conventions
 
-1. **Build flags for non-unit tests only.** Unit tests do **not** use build tags — Go discovers and runs `_test.go` files by default, so a `//go:build unit` tag is redundant. Build flags are required only for tests that depend on external infrastructure (databases, APIs, containers, etc.):
+1. **Build flags for non-unit tests only.** Unit tests do **not** use build tags — Go discovers and runs `_test.go` files by default, both `//go:build unit` and legacy `// +build unit` are prohibited, including combined forms. Build flags are required only for tests that depend on external infrastructure (databases, APIs, containers, etc.):
    ```go
    //go:build integration
    ```
@@ -37,7 +37,7 @@ test/
    ```
    Running `go test ./...` executes only untagged (unit) tests. To include integration tests: `go test -tags=integration ./...`.
 2. **External test packages.** The test package must be outside the production code package. For example, if the production code is in `package commands`, the test file must use `package commands_test`.
-3. **Testing framework.** Use [`stretchr/testify`](https://github.com/stretchr/testify) for test suites and assertions.
+3. **Testing framework.** Mocking libraries require the narrow external-abstraction exception in [Testing Standards](../../Life-Cycle/Tests.md#mocking-libraries). Use [`stretchr/testify`](https://github.com/stretchr/testify) for test suites and assertions.
 4. **File naming.** Test files use the `_test` suffix (e.g., `sqlx_items_repository_test.go`).
 5. **File placement.** Test files are placed next to the corresponding production file.
 6. **BDD structure.** Every test must use `// given`, `// when`, `// then` comment blocks to separate preconditions, actions, and assertions.
@@ -70,6 +70,7 @@ func TestDeleteItemCommand(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should call OnSuccess when the item is deleted", func(t *testing.T) {
+		t.Parallel()
 		// given
 		repository := doubles.NewItemRepositoryStub()
 		command := commands.NewDeleteItemCommand(repository)
@@ -88,6 +89,7 @@ func TestDeleteItemCommand(t *testing.T) {
 	})
 
 	t.Run("should call OnNotFound when the item is not found", func(t *testing.T) {
+		t.Parallel()
 		// given
 		repository := doubles.NewItemRepositoryStub().WithOnError(domainErrors.ErrRecordNotFound)
 		command := commands.NewDeleteItemCommand(repository)
@@ -106,6 +108,7 @@ func TestDeleteItemCommand(t *testing.T) {
 	})
 
 	t.Run("should call OnError when there is an error processing the delete", func(t *testing.T) {
+		t.Parallel()
 		// given
 		dbProcessErr := errors.New("test error")
 		repository := doubles.NewItemRepositoryStub().WithOnError(dbProcessErr)
@@ -123,7 +126,7 @@ func TestDeleteItemCommand(t *testing.T) {
 ```
 
 **Key points:**
-- `t.Parallel()` is called at the top of `TestDeleteItemCommand`, enabling all `t.Run()` sub-tests to execute concurrently.
+- Each concurrent subtest calls `t.Parallel()` itself; calling it only in the parent does not parallelize children.
 - Each sub-test is self-contained -- it creates its own doubles, command, and listeners.
 - Listeners pattern reflects all possible controller responses: `OnSuccess`, `OnNotFound`, `OnError`.
 
@@ -147,6 +150,7 @@ func TestListItemsController(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should respond 200 (OK) when items are listed successfully", func(t *testing.T) {
+		t.Parallel()
 		// given
 		command := doubles.NewListItemsCommandStub()
 		ctrl := controllers.NewListItemsController(command)
@@ -161,6 +165,7 @@ func TestListItemsController(t *testing.T) {
 	})
 
 	t.Run("should respond 500 (Internal Server Error) when command fails", func(t *testing.T) {
+		t.Parallel()
 		// given
 		command := doubles.NewListItemsCommandStub().WithOnError()
 		ctrl := controllers.NewListItemsController(command)
@@ -189,6 +194,8 @@ Group sub-tests by outcome or feature using `suite.Run()`.
 ### Repository Tests
 
 ```go
+//go:build integration
+
 package repositories_test
 
 import (

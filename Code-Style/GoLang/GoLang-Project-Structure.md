@@ -12,23 +12,23 @@ This page defines the standard directory layout and dependency management practi
 cmd/
   <app>/
     main.go                   application entry point
-    dig.go                    DI container creation and injection functions
+    container.go              DI container creation and injection functions
 internal/
   container.go              top-level DI provider orchestrator
   domain/                   (contracts)
     commands/
-      container.go            DI registration for commands (or no-op)
+      container.go            typed constructor assembly for commands when useful
     entities/
-      container.go            DI registration for entities (or no-op)
+      container.go            typed constructor assembly for entities when useful
     repositories/
   infrastructure/           (implementations)
     controllers/
-      container.go            DI registration for controllers
+      container.go            typed constructor assembly for controllers
       mappers/
       requests/
       responses/
     repositories/             prefixed with the tool name; returns database models
-      container.go            DI registration for repositories
+      container.go            typed constructor assembly for repositories
       mappers/
       models/
 test/
@@ -92,7 +92,6 @@ require (
     github.com/gorilla/mux v1.8.1
     github.com/sirupsen/logrus v1.9.3
     github.com/stretchr/testify v1.9.0
-    go.uber.org/dig v1.18.0
 )
 ```
 
@@ -106,17 +105,17 @@ The `go.sum` file contains cryptographic checksums for all dependencies and must
 
 ```bash
 # Build the binary
-go build -o bin/app ./main
+go build -o bin/app ./cmd/app
 
 # Build with version information
-go build -ldflags "-X main.version=1.0.0" -o bin/app ./main
+go build -ldflags "-X main.version=1.0.0" -o bin/app ./cmd/app
 ```
 
 ### Running
 
 ```bash
 # Run directly
-go run ./main
+go run ./cmd/app
 
 # Run the compiled binary
 ./bin/app
@@ -132,7 +131,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o /bin/app ./main
+RUN go build -o /bin/app ./cmd/app
 
 FROM alpine:3.19
 COPY --from=builder /bin/app /bin/app
@@ -146,7 +145,7 @@ ENTRYPOINT ["/bin/app"]
 | `go.mod`        | Module path and dependency declarations                  |
 | `go.sum`        | Dependency checksums (auto-generated, must be committed) |
 | `.golangci.yml` | golangci-lint configuration                              |
-| `container.go`  | Dig provider registration (one per architectural layer)  |
+| `container.go`  | typed dependency assembly where needed  |
 | `.editorconfig` | Editor standardization                                   |
 
 ## References

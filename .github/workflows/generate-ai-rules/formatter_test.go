@@ -292,14 +292,17 @@ func TestWriteCodex(t *testing.T) {
 		t.Fatalf("reading AGENTS.md: %v", err)
 	}
 	content := string(data)
-	if !strings.Contains(content, "# Code Style") {
-		t.Error("AGENTS.md should contain code-style content")
+	for i, group := range groups {
+		if !strings.Contains(content, "instructions/"+group.Name+".md") {
+			t.Errorf("missing instruction route for %s", group.Name)
+		}
+		full, err := os.ReadFile(filepath.Join(tmpDir, "codex", "instructions", group.Name+".md"))
+		if err != nil || string(full) != contents[i] {
+			t.Errorf("incomplete instruction %s: %v", group.Name, err)
+		}
 	}
-	if !strings.Contains(content, "# Go") {
-		t.Error("AGENTS.md should contain golang content")
-	}
-	if !strings.Contains(content, "---") {
-		t.Error("AGENTS.md should contain separator between groups")
+	if len(data) >= 32*1024 {
+		t.Fatal("routing file exceeds default instruction budget")
 	}
 }
 
