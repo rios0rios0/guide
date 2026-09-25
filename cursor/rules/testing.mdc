@@ -51,17 +51,18 @@ it('should render Content when not loading', () => {
 ```go
 func (s *CommandSuite) TestCreateUserCommand() {
     // given
-    s.repository.On("Save", mock.Anything).Return(nil)
+    repository := doubles.NewInMemoryUsersRepository()
+    command := commands.NewCreateUserCommand(repository)
     user := &cmd.User{
         Name:  "John Doe",
         Email: "johndoe@example.com",
     }
 
     // when
-    err := s.command.Run(user)
+    err := command.Run(user)
 
     // then
-    s.repository.AssertExpectations(s.T())
+    assert.Equal(s.T(), user, repository.FindByID(user.ID))
     assert.Nil(s.T(), err)
 }
 ```
@@ -122,6 +123,22 @@ Based on [Martin Fowler's taxonomy](https://martinfowler.com/bliki/TestDouble.ht
 | **In-memory** | Implements logic in memory without external modules   | Use for lightweight simulations of repositories or services          |
 | **Faker**     | Generates realistic fake data via an external library | Use libraries like Faker.js or Go Faker                              |
 | **Mock**      | Records and verifies method calls                     | **Avoid when possible.** Use only when no other double type suffices |
+
+## Mocking Libraries
+
+Write lightweight stubs, dummies, in-memory implementations, and recording doubles by hand. Use composition or interface embedding in Go (Go has no class inheritance). Test observable behavior. Assertions and suites from `testify/assert`, `testify/require`, and `testify/suite` are allowed; `testify/mock` is a mocking library.
+
+Mocking libraries are prohibited by default. The only exception is an externally owned abstraction that cannot be tested with a handwritten double, consumer-owned interface, adapter, or interface extension/composition. Document the external constraint, the alternatives attempted, and why each fails beside the test or in its review. Convenience, a large interface, or call verification alone is insufficient. Keep any exception narrowly scoped and reviewable.
+
+Examples requiring review include `testify/mock`, `golang/mock`, `go.uber.org/mock`, `mockery`, `go-sqlmock`, `httpmock`, and `gock`. The restriction covers the category, not only these packages. A checker reports a candidate violation; an exception marker does not prove the exception is justified.
+
+Unit-test consumers against their own ports. Integration-test database adapters against a real database and migrations. Use `httptest.NewServer` for HTTP behavior; it is a real server under test control. A handwritten repository double is valid for command tests and does not replace integration coverage of SQL or transactions.
+
+## Go Test Build Tags
+
+Unit tests and helpers they import must be untagged. Both `//go:build unit` and legacy `// +build unit`, including combined or negated forms, are prohibited. Ordinary `go test ./...` must discover unit tests.
+
+Keep `//go:build integration` for tests and helpers requiring external infrastructure. Dedicated end-to-end tags may gate genuine end-to-end tests. Do not require a unit tag in Makefiles, generators, or CI. Use `go test ./...` for units and `go test -tags=integration ./...` for the suite including integration tests.
 
 ## Builders
 

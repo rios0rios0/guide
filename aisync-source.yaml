@@ -19,5 +19,7 @@ mappings:
     target: 'shared/copilot/instructions'
   - source: 'codex/rules'
     target: 'shared/codex/rules'
+  - source: 'codex/instructions'
+    target: 'shared/codex/instructions'
   - source: 'codex/AGENTS.md'
     target: 'shared/codex/AGENTS.md'

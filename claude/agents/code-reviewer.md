@@ -60,7 +60,7 @@ Files and classes must use the standard operations vocabulary:
   - Commands: `"should call <LISTENER> when ..."`
   - Controllers: `"should respond <HTTP_STATUS_CODE> when ..."`
   - Services/Repos: `"should ... when ..."` with at least one success and one failure test
-- **Test doubles**: Prefer stubs, dummies, and in-memory doubles over mocks. Use mocks only when no other double type suffices.
+- **Test doubles**: Prefer stubs, dummies, and in-memory doubles over mocks. Mocking libraries are prohibited except for externally owned abstractions that cannot be wrapped, extended, or doubled manually; require the documented constraint and failed alternatives.
 - **Builders**: Complex test objects should use the Builder pattern (`NewItemBuilder().WithID(1).Build()`)
 - **Go-specific**: Unit tests must use `t.Parallel()` + `t.Run()`. Integration tests use `suite.Suite` and are NOT parallel.
 

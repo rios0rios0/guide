@@ -111,7 +111,7 @@ Read the affected files, understand the context, and apply a **minimal, targeted
 |---------------------------|------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
 | Assertion mismatch        | Code behavior changed but test not updated           | Update the test expectation to match the new correct behavior, or fix the code if the test was correct |
 | Compilation error in test | Test references a removed/renamed symbol             | Update the test to use the new symbol                                                                  |
-| Timeout                   | Test relies on external service or has infinite loop | Fix the logic or add proper mocking                                                                    |
+| Timeout                   | Test relies on external service or has infinite loop | Fix the logic, use a handwritten double, or gate a real integration test                                                                    |
 | Race condition            | Shared state across parallel tests                   | Add proper synchronization or use `t.Parallel()` correctly                                             |
 
 **Important:** Tests must follow BDD structure (`// given`, `// when`, `// then`). If you modify a test, preserve or add this structure.

@@ -5,7 +5,7 @@ paths:
 
 # Go
 
-> **TL;DR:** Use `snake_case` for file names, a short abbreviation of the type as the method receiver (e.g., `c` for `Client`), [Dig](https://github.com/uber-go/dig) for dependency injection, [golangci-lint](https://golangci-lint.run/) for linting, [Logrus](https://github.com/sirupsen/logrus) for logging, and [testify](https://github.com/stretchr/testify) for testing. Entities must be framework-agnostic.
+> **TL;DR:** Use `snake_case` for file names, a short abbreviation of the type as the method receiver (e.g., `c` for `Client`), manual constructor injection with compile-time checks, [golangci-lint](https://golangci-lint.run/) for linting, [Logrus](https://github.com/sirupsen/logrus) for logging, and [testify](https://github.com/stretchr/testify) for testing. Entities must be framework-agnostic.
 
 ## Overview
 
@@ -28,7 +28,7 @@ The [Go Proverbs](https://go-proverbs.github.io/) capture the language's design 
 
 # Go Conventions
 
-> **TL;DR:** Use `snake_case` for file names, a short abbreviation of the type as the method receiver name (e.g., `c` for `Command`), and follow the strict naming patterns for Commands, Controllers, Repositories, and Mappers. Entities must be framework-agnostic. Use [Dig](https://github.com/uber-go/dig) for dependency injection.
+> **TL;DR:** Use `snake_case` for file names, a short abbreviation of the type as the method receiver name (e.g., `c` for `Command`), and follow the strict naming patterns for Commands, Controllers, Repositories, and Mappers. Entities must be framework-agnostic. Use manual constructor injection with compile-time checks.
 
 ## Overview
 
@@ -177,141 +177,34 @@ Each model is prefixed with the name of the external tool it communicates with:
 
 ## Dependency Injection
 
-Use [Uber Dig](https://github.com/uber-go/dig) for runtime dependency injection via constructor injection. Dig resolves dependencies automatically by matching types from registered provider functions, requiring no code generation or manual wiring.
+Use explicit constructor calls for compile-time checked dependency injection. Keep the composition root in `cmd/<app>/container.go`; use `container.go` for module assembly where useful. These are ordinary typed functions, not a runtime container or generated provider registry.
 
-### Container File Convention
+Wire is no longer maintained. New projects must not introduce Wire or Dig. Migrate existing Wire services in a dedicated PR per service; encourage the same migration for Dig services. Preserve their current build during unrelated changes. Manual wiring removes runtime dependency resolution and catches missing arguments and incompatible types at compilation; do not claim a performance improvement without measuring the application.
 
-Each architectural layer must have a `container.go` file that registers its own providers. A top-level orchestrator calls each layer's registration function in dependency order.
-
-| File                                                | Purpose                                      |
-|-----------------------------------------------------|----------------------------------------------|
-| `cmd/<app>/dig.go`                                  | Creates the container and invokes root types |
-| `internal/container.go`                             | Orchestrates registration across all layers  |
-| `internal/domain/entities/container.go`             | Registers entity providers (or no-op)        |
-| `internal/domain/commands/container.go`             | Registers command providers (or no-op)       |
-| `internal/infrastructure/controllers/container.go`  | Registers controller providers               |
-| `internal/infrastructure/repositories/container.go` | Registers repository providers               |
-
-### Orchestrator Pattern
-
-The top-level orchestrator registers providers in bottom-up dependency order:
+### Composition Root
 
 ```go
-package internal
-
-import "go.uber.org/dig"
-
-func RegisterProviders(container *dig.Container) error {
-    if err := repositories.RegisterProviders(container); err != nil {
-        return err
-    }
-    if err := entities.RegisterProviders(container); err != nil {
-        return err
-    }
-    if err := commands.RegisterProviders(container); err != nil {
-        return err
-    }
-    if err := controllers.RegisterProviders(container); err != nil {
-        return err
-    }
-    if err := container.Provide(NewAppInternal); err != nil {
-        return err
-    }
-    return nil
-}
-```
-
-### Layer Registration
-
-Each layer registers its constructors. Dig resolves dependencies by matching constructor parameter types to previously registered providers:
-
-```go
-package controllers
-
-import "go.uber.org/dig"
-
-func RegisterProviders(container *dig.Container) error {
-    if err := container.Provide(NewListUsersController); err != nil {
-        return err
-    }
-    if err := container.Provide(NewDeleteUserController); err != nil {
-        return err
-    }
-    return nil
-}
-```
-
-For layers with no providers, maintain the function as a no-op for architectural consistency:
-
-```go
-package commands
-
-import "go.uber.org/dig"
-
-func RegisterProviders(_ *dig.Container) error {
-    return nil
-}
-```
-
-### Injection Functions
-
-Create injection functions in `cmd/<app>/dig.go` that build the container and invoke the desired root type:
-
-```go
+// cmd/app/container.go
 package main
 
 import (
-    "go.uber.org/dig"
-    "myapp/internal"
-    "myapp/internal/infrastructure/controllers"
+    "example.com/app/internal/domain/commands"
+    "example.com/app/internal/infrastructure/controllers"
+    "example.com/app/internal/infrastructure/repositories"
 )
 
-func injectController() *controllers.ListUsersController {
-    container := dig.New()
-    if err := internal.RegisterProviders(container); err != nil {
-        panic(err)
-    }
-
-    var controller *controllers.ListUsersController
-    if err := container.Invoke(func(c *controllers.ListUsersController) {
-        controller = c
-    }); err != nil {
-        panic(err)
-    }
-    return controller
+func initializeController() *controllers.ListUsersController {
+    repository := repositories.NewInMemoryUsersRepository()
+    command := commands.NewListUsersCommand(repository)
+    return controllers.NewListUsersController(command)
 }
 ```
 
-### Anonymous Providers for Complex Initialization
+The compiler checks that the repository satisfies the command's interface. Constructors return concrete types or the project's established interfaces. Aggregate dependencies with typed structs and explicit field assignments. Avoid reflection, service locators, global registries, no-op registration functions, and generated wiring.
 
-When a provider requires post-construction setup (e.g., registering adapters), use an anonymous function:
+Keep infrastructure imports in the outer composition root. Domain constructors accept domain interfaces and must not import infrastructure. Create shared clients once, propagate construction errors, and release acquired resources in reverse order on startup failure and shutdown.
 
-```go
-if err := container.Provide(func() *ServiceRegistry {
-    registry := NewServiceRegistry()
-    registry.Register("github", github.NewAdapter())
-    registry.Register("gitlab", gitlab.NewAdapter())
-    return registry
-}); err != nil {
-    return err
-}
-```
-
-### Type Aggregation
-
-Collect multiple concrete types into a slice for bulk injection:
-
-```go
-func NewControllers(
-    listController *ListUsersController,
-    deleteController *DeleteUserController,
-) *[]entities.Controller {
-    return &[]entities.Controller{
-        listController,
-        deleteController,
-    }
-}
-```
+Logging remains a separate choice: general projects use Logrus; projects with an established shared logging abstraction retain it. Selecting manual DI does not require changing the logger.
 
 ---
 
@@ -590,15 +483,15 @@ Using `any` (`interface{}`) as a function parameter defeats the purpose of stati
 
 # Go Logging
 
-> **TL;DR:** Use **[Logrus](https://github.com/sirupsen/logrus)** for all logging. Do not use Go's standard `log` package or `fmt.Println` for application logging. Always import with the alias `logger`. Use structured logging with `WithFields()` instead of string interpolation.
+> **TL;DR:** Use **[Logrus](https://github.com/sirupsen/logrus)** for general-project logging. Do not use Go's standard `log` package or `fmt.Println` for application logging. Always import with the alias `logger`. Use structured logging with `WithFields()` instead of string interpolation.
 
 ## Overview
 
-Consistent, structured logging is essential for production observability. This page defines the mandatory logging library and patterns for all Go projects.
+Consistent, structured logging is essential for production observability. This page defines the mandatory logging library and patterns for general Go projects. Projects with an established shared logging abstraction retain their project-specific logger; do not impose two logging conventions.
 
 ## Mandatory Library: Logrus
 
-**Use [Logrus](https://github.com/sirupsen/logrus) for all logging.** Logrus provides structured logging, consistent log levels, JSON output support, and field-based contextual logging -- all of which are essential for production observability.
+**Use [Logrus](https://github.com/sirupsen/logrus) for general-project logging.** Logrus provides structured logging, consistent log levels, JSON output support, and field-based contextual logging -- all of which are essential for production observability.
 
 ### Installation
 
@@ -675,7 +568,7 @@ import "github.com/Sirupsen/logrus"
 
 # Go Testing Conventions
 
-> **TL;DR:** Unit tests need **no build tag** — Go runs `_test.go` files by default, so a tag would be redundant. Use build flags (`//go:build integration`, `//go:build e2e`, etc.) **only** on non-unit test files that require external infrastructure. Place test files next to production code with the `_test.go` suffix. Use `stretchr/testify` for suites and assertions. Test packages must be **external** to the production package. All tests must follow the BDD pattern with `// given`, `// when`, `// then` comment blocks. Unit tests must run in **parallel** using `t.Parallel()` + `t.Run()`. Integration tests use **suites** with setup/teardown and are NOT parallel.
+> **TL;DR:** Unit tests need **no build tag** — Go runs `_test.go` files by default, tagged unit tests are prohibited. Use build flags (`//go:build integration`, `//go:build e2e`, etc.) **only** on non-unit test files that require external infrastructure. Place test files next to production code with the `_test.go` suffix. Use `stretchr/testify` for suites and assertions. Test packages must be **external** to the production package. All tests must follow the BDD pattern with `// given`, `// when`, `// then` comment blocks. Unit tests must run in **parallel** using `t.Parallel()` + `t.Run()`. Integration tests use **suites** with setup/teardown and are NOT parallel.
 
 ## Overview
 
@@ -703,7 +596,7 @@ test/
 
 ## General Conventions
 
-1. **Build flags for non-unit tests only.** Unit tests do **not** use build tags — Go discovers and runs `_test.go` files by default, so a `//go:build unit` tag is redundant. Build flags are required only for tests that depend on external infrastructure (databases, APIs, containers, etc.):
+1. **Build flags for non-unit tests only.** Unit tests do **not** use build tags — Go discovers and runs `_test.go` files by default, both `//go:build unit` and legacy `// +build unit` are prohibited, including combined forms. Build flags are required only for tests that depend on external infrastructure (databases, APIs, containers, etc.):
    ```go
    //go:build integration
    ```
@@ -712,7 +605,7 @@ test/
    ```
    Running `go test ./...` executes only untagged (unit) tests. To include integration tests: `go test -tags=integration ./...`.
 2. **External test packages.** The test package must be outside the production code package. For example, if the production code is in `package commands`, the test file must use `package commands_test`.
-3. **Testing framework.** Use [`stretchr/testify`](https://github.com/stretchr/testify) for test suites and assertions.
+3. **Testing framework.** Mocking libraries require the narrow external-abstraction exception in [Testing Standards](../../Life-Cycle/Tests.md#mocking-libraries). Use [`stretchr/testify`](https://github.com/stretchr/testify) for test suites and assertions.
 4. **File naming.** Test files use the `_test` suffix (e.g., `sqlx_items_repository_test.go`).
 5. **File placement.** Test files are placed next to the corresponding production file.
 6. **BDD structure.** Every test must use `// given`, `// when`, `// then` comment blocks to separate preconditions, actions, and assertions.
@@ -745,6 +638,7 @@ func TestDeleteItemCommand(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should call OnSuccess when the item is deleted", func(t *testing.T) {
+		t.Parallel()
 		// given
 		repository := doubles.NewItemRepositoryStub()
 		command := commands.NewDeleteItemCommand(repository)
@@ -763,6 +657,7 @@ func TestDeleteItemCommand(t *testing.T) {
 	})
 
 	t.Run("should call OnNotFound when the item is not found", func(t *testing.T) {
+		t.Parallel()
 		// given
 		repository := doubles.NewItemRepositoryStub().WithOnError(domainErrors.ErrRecordNotFound)
 		command := commands.NewDeleteItemCommand(repository)
@@ -781,6 +676,7 @@ func TestDeleteItemCommand(t *testing.T) {
 	})
 
 	t.Run("should call OnError when there is an error processing the delete", func(t *testing.T) {
+		t.Parallel()
 		// given
 		dbProcessErr := errors.New("test error")
 		repository := doubles.NewItemRepositoryStub().WithOnError(dbProcessErr)
@@ -798,7 +694,7 @@ func TestDeleteItemCommand(t *testing.T) {
 ```
 
 **Key points:**
-- `t.Parallel()` is called at the top of `TestDeleteItemCommand`, enabling all `t.Run()` sub-tests to execute concurrently.
+- Each concurrent subtest calls `t.Parallel()` itself; calling it only in the parent does not parallelize children.
 - Each sub-test is self-contained -- it creates its own doubles, command, and listeners.
 - Listeners pattern reflects all possible controller responses: `OnSuccess`, `OnNotFound`, `OnError`.
 
@@ -822,6 +718,7 @@ func TestListItemsController(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should respond 200 (OK) when items are listed successfully", func(t *testing.T) {
+		t.Parallel()
 		// given
 		command := doubles.NewListItemsCommandStub()
 		ctrl := controllers.NewListItemsController(command)
@@ -836,6 +733,7 @@ func TestListItemsController(t *testing.T) {
 	})
 
 	t.Run("should respond 500 (Internal Server Error) when command fails", func(t *testing.T) {
+		t.Parallel()
 		// given
 		command := doubles.NewListItemsCommandStub().WithOnError()
 		ctrl := controllers.NewListItemsController(command)
@@ -864,6 +762,8 @@ Group sub-tests by outcome or feature using `suite.Run()`.
 ### Repository Tests
 
 ```go
+//go:build integration
+
 package repositories_test
 
 import (
@@ -1261,23 +1161,23 @@ This page defines the standard directory layout and dependency management practi
 cmd/
   <app>/
     main.go                   application entry point
-    dig.go                    DI container creation and injection functions
+    container.go              DI container creation and injection functions
 internal/
   container.go              top-level DI provider orchestrator
   domain/                   (contracts)
     commands/
-      container.go            DI registration for commands (or no-op)
+      container.go            typed constructor assembly for commands when useful
     entities/
-      container.go            DI registration for entities (or no-op)
+      container.go            typed constructor assembly for entities when useful
     repositories/
   infrastructure/           (implementations)
     controllers/
-      container.go            DI registration for controllers
+      container.go            typed constructor assembly for controllers
       mappers/
       requests/
       responses/
     repositories/             prefixed with the tool name; returns database models
-      container.go            DI registration for repositories
+      container.go            typed constructor assembly for repositories
       mappers/
       models/
 test/
@@ -1341,7 +1241,6 @@ require (
     github.com/gorilla/mux v1.8.1
     github.com/sirupsen/logrus v1.9.3
     github.com/stretchr/testify v1.9.0
-    go.uber.org/dig v1.18.0
 )
 ```
 
@@ -1355,17 +1254,17 @@ The `go.sum` file contains cryptographic checksums for all dependencies and must
 
 ```bash
 # Build the binary
-go build -o bin/app ./main
+go build -o bin/app ./cmd/app
 
 # Build with version information
-go build -ldflags "-X main.version=1.0.0" -o bin/app ./main
+go build -ldflags "-X main.version=1.0.0" -o bin/app ./cmd/app
 ```
 
 ### Running
 
 ```bash
 # Run directly
-go run ./main
+go run ./cmd/app
 
 # Run the compiled binary
 ./bin/app
@@ -1381,7 +1280,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o /bin/app ./main
+RUN go build -o /bin/app ./cmd/app
 
 FROM alpine:3.19
 COPY --from=builder /bin/app /bin/app
@@ -1395,5 +1294,5 @@ ENTRYPOINT ["/bin/app"]
 | `go.mod`        | Module path and dependency declarations                  |
 | `go.sum`        | Dependency checksums (auto-generated, must be committed) |
 | `.golangci.yml` | golangci-lint configuration                              |
-| `container.go`  | Dig provider registration (one per architectural layer)  |
+| `container.go`  | typed dependency assembly where needed  |
 | `.editorconfig` | Editor standardization                                   |
