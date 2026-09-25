@@ -1,4 +1,4 @@
-Scaffold a new Go backend project following Clean Architecture with domain/infrastructure separation, Dig DI, testify testing, and standard naming conventions.
+Scaffold a new Go backend project following Clean Architecture with domain/infrastructure separation, manual constructor DI, testify testing, and standard naming conventions.
 
 For detailed Go conventions, refer to the Go rule. For architecture patterns, refer to the Architecture rule. For testing standards, refer to the Testing rule. For Makefile setup, refer to the CI/CD rule.
 
@@ -11,7 +11,7 @@ Create the following layout:
 ├── cmd/
 │   └── <app>/
 │       ├── main.go
-│       └── dig.go
+│       └── container.go
 ├── internal/
 │   ├── container.go
 │   ├── domain/
@@ -77,8 +77,6 @@ import "module/internal/domain/entities"
 
 type UsersRepository interface {
     FindAll() ([]entities.User, error)
-    FindByID(id string) (*entities.User, error)
-    Insert(entity *entities.User) error
 }
 ```
 
@@ -109,21 +107,21 @@ func (c *ListUsersCommand) Execute() ([]entities.User, error) {
 ### 5. Create infrastructure implementations (prefixed with library name)
 
 ```go
-// internal/infrastructure/repositories/pgx_users_repository.go
+// internal/infrastructure/repositories/in_memory_users_repository.go
 package repositories
 
 import "module/internal/domain/entities"
 
-type PgxUsersRepository struct {
-    // db connection
+type InMemoryUsersRepository struct {
+    users []entities.User
 }
 
-func NewPgxUsersRepository() *PgxUsersRepository {
-    return &PgxUsersRepository{}
+func NewInMemoryUsersRepository() *InMemoryUsersRepository {
+    return &InMemoryUsersRepository{}
 }
 
-func (r *PgxUsersRepository) FindAll() ([]entities.User, error) {
-    // implementation
+func (r *InMemoryUsersRepository) FindAll() ([]entities.User, error) {
+    return r.users, nil
 }
 ```
 
@@ -152,87 +150,58 @@ func (c *ListUsersController) Execute(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-### 7. Set up Dig for dependency injection
+### 7. Assemble dependencies manually
 
-Create `container.go` files per layer. Each layer registers its own providers:
+Use explicit constructor calls for compile-time checked dependency injection. Keep the composition root in `cmd/<app>/container.go`; use `container.go` for module assembly where useful. These are ordinary typed functions, not a runtime container or generated provider registry.
 
-```go
-// internal/infrastructure/repositories/container.go
-package repositories
+Wire is no longer maintained. New projects must not introduce Wire or Dig. Migrate existing Wire services in a dedicated PR per service; encourage the same migration for Dig services. Preserve their current build during unrelated changes. Manual wiring removes runtime dependency resolution and catches missing arguments and incompatible types at compilation; do not claim a performance improvement without measuring the application.
 
-import "go.uber.org/dig"
-
-func RegisterProviders(container *dig.Container) error {
-    if err := container.Provide(NewPgxUsersRepository); err != nil {
-        return err
-    }
-    return nil
-}
-```
+### Composition Root
 
 ```go
-// internal/domain/commands/container.go
-package commands
-
-import "go.uber.org/dig"
-
-func RegisterProviders(container *dig.Container) error {
-    if err := container.Provide(NewListUsersCommand); err != nil {
-        return err
-    }
-    return nil
-}
-```
-
-```go
-// internal/container.go
-package internal
+// cmd/app/container.go
+package main
 
 import (
-    "go.uber.org/dig"
-
     "module/internal/domain/commands"
     "module/internal/infrastructure/controllers"
     "module/internal/infrastructure/repositories"
 )
 
-func RegisterProviders(container *dig.Container) error {
-    if err := repositories.RegisterProviders(container); err != nil {
-        return err
-    }
-    if err := commands.RegisterProviders(container); err != nil {
-        return err
-    }
-    if err := controllers.RegisterProviders(container); err != nil {
-        return err
-    }
-    return nil
+func initializeController() *controllers.ListUsersController {
+    repository := repositories.NewInMemoryUsersRepository()
+    command := commands.NewListUsersCommand(repository)
+    return controllers.NewListUsersController(command)
 }
 ```
 
+The compiler checks that the repository satisfies the command's interface. Constructors return concrete types or the project's established interfaces. Aggregate dependencies with typed structs and explicit field assignments. Avoid reflection, service locators, global registries, no-op registration functions, and generated wiring.
+
+Keep infrastructure imports in the outer composition root. Domain constructors accept domain interfaces and must not import infrastructure. Create shared clients once, propagate construction errors, and release acquired resources in reverse order on startup failure and shutdown.
+
+Logging remains a separate choice: general projects use Logrus; projects with an established shared logging abstraction retain it. Selecting manual DI does not require changing the logger.
+
+### Entry point
+
 ```go
-// cmd/<app>/dig.go
+// cmd/app/main.go
 package main
 
 import (
-    "go.uber.org/dig"
-    "module/internal"
-    "module/internal/infrastructure/controllers"
+    "net/http"
+    "time"
+
+    logger "github.com/sirupsen/logrus"
 )
 
-func injectController() *controllers.ListUsersController {
-    container := dig.New()
-    if err := internal.RegisterProviders(container); err != nil {
-        panic(err)
+func main() {
+    controller := initializeController()
+    router := http.NewServeMux()
+    router.HandleFunc("/users", controller.Execute)
+    server := &http.Server{Addr: ":8080", Handler: router, ReadHeaderTimeout: 5 * time.Second}
+    if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+        logger.WithField("error", err).Error("server stopped")
     }
-
-    var ctrl *controllers.ListUsersController
-    if err := container.Invoke(func(c *controllers.ListUsersController) {
-        ctrl = c
-    }); err != nil {
-        panic(err)
-    }
-    return ctrl
 }
 ```
 
@@ -246,9 +215,55 @@ func injectController() *controllers.ListUsersController {
 - Every test must use `// given`, `// when`, `// then` comment blocks
 - Unit tests must call `t.Parallel()` at the top
 
+Mocking libraries are prohibited unless an externally owned abstraction cannot be wrapped or doubled manually; document the constraint and rejected alternatives.
+
+Provide working `test` and `test-unit` targets running `go test ./...`, and `test-integration` running `go test -tags=integration ./...`. Compile the complete scaffold and run both test targets before handing it off.
+
 Refer to the Go rule (Testing section) and the Testing rule for full conventions.
 
+### Example unit test
+
+```go
+// internal/domain/commands/list_users_command_test.go
+package commands_test
+
+import (
+    "testing"
+    "module/internal/domain/commands"
+    "module/internal/domain/entities"
+)
+
+type usersStub struct { users []entities.User }
+func (s usersStub) FindAll() ([]entities.User, error) { return s.users, nil }
+
+func TestListUsersCommand_ReturnsUsers_WhenRepositorySucceeds(t *testing.T) {
+    t.Parallel()
+    // given
+    command := commands.NewListUsersCommand(usersStub{users: []entities.User{{ID: "fixture-user"}}})
+    // when
+    users, err := command.Execute()
+    // then
+    if err != nil || len(users) != 1 || users[0].ID != "fixture-user" {
+        t.Fatalf("unexpected users: %v, error: %v", users, err)
+    }
+}
+```
+
 ### 9. Create Makefile
+
+Provide these local targets, keeping integration tests gated:
+
+```makefile
+test:
+	go test ./...
+
+test-unit: test
+
+test-integration:
+	go test -tags=integration ./...
+
+.PHONY: test test-unit test-integration
+```
 
 The project Makefile must import from the shared [pipelines repository](https://github.com/rios0rios0/pipelines) and expose `lint`, `test`, and `sast` targets. Refer to the CI/CD rule for details.
 
@@ -261,7 +276,7 @@ The project Makefile must import from the shared [pipelines repository](https://
 | Repository (contract) | `<entity>_repository.go`       | `<Entity>Repository`      | varies                            |
 | Repository (impl)     | `<lib>_<entity>_repository.go` | `<Lib><Entity>Repository` | varies                            |
 | Mapper                | `<entity>_mapper.go`           | `<Entity>Mapper`          | `ToEntity`/`ToModel`/`ToResponse` |
-| Container             | `container.go`                 | --                        | `RegisterProviders`               |
+| Container             | `container.go`                 | --                        | typed assembly functions               |
 
 ## Key Rules
 
@@ -269,5 +284,5 @@ The project Makefile must import from the shared [pipelines repository](https://
 - Only attach methods to a struct when the method mutates state
 - Entities MUST be free of framework tags -- pure business logic only
 - No Services layer in Go projects
-- Use **Logrus** (`github.com/sirupsen/logrus`) for ALL logging with alias `logger`
+- Use **Logrus** (`github.com/sirupsen/logrus`) with alias `logger` in general projects; preserve a project-specific shared logger
 - All file names use **snake_case**

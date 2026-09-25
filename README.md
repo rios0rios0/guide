@@ -118,3 +118,9 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
 ## License
 
 This project is licensed under the terms specified in the [LICENSE](LICENSE) file.
+
+## Go standards and Codex output
+
+New Go projects use explicit constructor calls in `container.go`; existing Wire and Dig services migrate in separate, focused PRs. General projects use Logrus, while established project-specific logging abstractions remain valid. Unit tests and shared helpers are untagged; integration tests retain their gates. Mocking libraries require a documented external abstraction that cannot be wrapped or doubled manually.
+
+The rule generator emits a small `codex/AGENTS.md` index plus complete `codex/instructions/*.md` files. Distribute both together. Codex uses `$skill-name` invocations; Claude slash commands remain specific to Claude. Existing command-execution policies are preserved.

@@ -1,14 +1,14 @@
 # Go Logging
 
-> **TL;DR:** Use **[Logrus](https://github.com/sirupsen/logrus)** for all logging. Do not use Go's standard `log` package or `fmt.Println` for application logging. Always import with the alias `logger`. Use structured logging with `WithFields()` instead of string interpolation.
+> **TL;DR:** Use **[Logrus](https://github.com/sirupsen/logrus)** for general-project logging. Do not use Go's standard `log` package or `fmt.Println` for application logging. Always import with the alias `logger`. Use structured logging with `WithFields()` instead of string interpolation.
 
 ## Overview
 
-Consistent, structured logging is essential for production observability. This page defines the mandatory logging library and patterns for all Go projects.
+Consistent, structured logging is essential for production observability. This page defines the mandatory logging library and patterns for general Go projects. Projects with an established shared logging abstraction retain their project-specific logger; do not impose two logging conventions.
 
 ## Mandatory Library: Logrus
 
-**Use [Logrus](https://github.com/sirupsen/logrus) for all logging.** Logrus provides structured logging, consistent log levels, JSON output support, and field-based contextual logging -- all of which are essential for production observability.
+**Use [Logrus](https://github.com/sirupsen/logrus) for general-project logging.** Logrus provides structured logging, consistent log levels, JSON output support, and field-based contextual logging -- all of which are essential for production observability.
 
 ### Installation
 

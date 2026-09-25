@@ -68,7 +68,7 @@ The `generated` branch contains the distributable rule files:
 - `cursor/rules/` — 15 rule files (`.mdc`) — auto-generated from docs
 - `cursor/skills/` — 5 skills — copied from static assets
 - `copilot/instructions/` — 15 instruction files (`.instructions.md`) — auto-generated with `applyTo` frontmatter
-- `codex/` — `AGENTS.md` and `rules/default.rules` — auto-generated
+- `codex/` — a small `AGENTS.md` index, complete `instructions/*.md`, and `rules/default.rules` — auto-generated
 - `aisync-source.yaml` — source definition for aisync users
 
 ### Distribution
