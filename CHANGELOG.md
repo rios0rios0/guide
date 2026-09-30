@@ -13,6 +13,12 @@ nothing.
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-09-30
+
+### Fixed
+
+- reconciled manual Go dependency injection, testing rules, scaffolds, and assistant guidance
+
 ## [0.7.0] - 2026-09-08
 
 ### Added
