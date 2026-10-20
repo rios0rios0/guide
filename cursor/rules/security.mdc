@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Security Practices
 
-> **TL;DR:** Follow OWASP Top 10 and MITRE ATT&CK guidelines. Run `make sast` before every push to detect secrets (Gitleaks), code vulnerabilities (CodeQL, Semgrep), IaC misconfigurations (Trivy), and Dockerfile issues (Hadolint). Never hard-code secrets -- use environment variables or secret managers.
+> **TL;DR:** Follow OWASP Top 10 and MITRE ATT&CK guidelines. Run `make sast` before every push to detect secrets (Gitleaks), code vulnerabilities (CodeQL, Semgrep), Dockerfile issues (Hadolint), shell-script bugs (ShellCheck), and, on Terraform projects, IaC misconfigurations (Checkov). Scan dependency changes with the language's SCA scanner (e.g., `govulncheck` for Go). Never hard-code secrets -- use environment variables or secret managers.
 
 ## Overview
 
@@ -87,11 +87,18 @@ The pipeline is invoked locally via `make sast`, which runs the following tools 
 |------------------------------------------------------|-----------|-----------------------------------------------------------------------------------------------------|
 | **[CodeQL](https://codeql.github.com/)**             | SAST      | SQL injection, XSS, path traversal, insecure deserialization, and other vulnerability patterns      |
 | **[Semgrep](https://semgrep.dev/)**                  | SAST      | OWASP Top 10 patterns, hardcoded secrets, language-specific anti-patterns, best practice violations |
-| **[Trivy](https://trivy.dev/)**                      | IaC / SCA | Infrastructure-as-Code misconfigurations and dependency vulnerabilities                             |
 | **[Hadolint](https://github.com/hadolint/hadolint)** | Linting   | Dockerfile best practice violations (unpinned base images, running as root, missing health checks)  |
+| **[ShellCheck](https://www.shellcheck.net/)**        | Linting   | Shell script bugs: unsafe word splitting, unchecked `cd`, masked exit codes, portability issues     |
 | **[Gitleaks](https://gitleaks.io/)**                 | Secrets   | API keys, tokens, passwords, private keys, and other secrets committed to Git history               |
+| **[Checkov](https://www.checkov.io/)**               | IaC       | Terraform misconfigurations: public access, missing encryption, overly broad IAM (Terraform only)   |
 
-Beyond SAST, the pipelines repository also provides **SCA (Software Composition Analysis)** tools such as `govulncheck` (Go), `Safety` (Python), `OWASP Dependency-Check` (Java), and `yarn npm audit` (JavaScript). See the [full tool reference](https://github.com/rios0rios0/pipelines?tab=readme-ov-file#-available-tools--scripts) for details.
+Beyond SAST, the pipelines repository also provides **SCA (Software Composition Analysis)** tools such as `govulncheck` (Go), `Safety` (Python), `OWASP Dependency-Check` (Java), `yarn npm audit` (JavaScript), and `OSV-Scanner` (Dart). Of these, only Dart's OSV-Scanner runs inside `make sast`. See the [full tool reference](https://github.com/rios0rios0/pipelines?tab=readme-ov-file#-available-tools--scripts) for details.
+
+Before committing a dependency manifest change (`go.mod`, `package.json`, `pyproject.toml`, and the like):
+
+- Run the language's SCA scanner the way the pipelines repository runs it. For Go that is its `global/scripts/languages/golang/govulncheck/run.sh`, which writes `build/reports/govulncheck/govulncheck.json` and exits 0 even when it finds something, so read the report: a finding whose trace reaches a function is real, and one whose trace stops at the module or package is informational.
+- When a vulnerable dependency has a fixed version, **bump it** rather than suppressing the finding.
+- Suppress only when no fixed version exists, with a dated comment and a link to the upstream advisory.
 
 ### Running Locally
 

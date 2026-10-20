@@ -5,7 +5,7 @@ alwaysApply: true
 
 # CI/CD Pipeline
 
-> **TL;DR:** A complete CI/CD pipeline consists of 10 stages, from source control to continuous feedback. All projects use a shared Makefile with `make lint`, `make test`, and `make sast` targets. The SAST suite runs CodeQL, Semgrep, Trivy, Hadolint, and Gitleaks. Always run these locally before pushing code.
+> **TL;DR:** A complete CI/CD pipeline consists of 10 stages, from source control to continuous feedback. All projects use a shared Makefile with `make lint`, `make test`, and `make sast` targets. The SAST suite runs CodeQL, Semgrep, Hadolint, ShellCheck, and Gitleaks, plus Checkov on Terraform projects. Always run these locally before pushing code.
 
 ## Overview
 
@@ -39,10 +39,11 @@ make sast    # Run the complete SAST security suite
 Individual SAST tools can also be run separately when you only need to check a specific category:
 
 ```bash
-make semgrep   # Run Semgrep pattern-based analysis only
-make trivy     # Run Trivy IaC/dependency scanning only
-make hadolint  # Run Hadolint Dockerfile linting only
-make gitleaks  # Run Gitleaks secret detection only
+make semgrep     # Run Semgrep pattern-based analysis only
+make hadolint    # Run Hadolint Dockerfile linting only
+make shellcheck  # Run ShellCheck shell-script analysis only
+make gitleaks    # Run Gitleaks secret detection only
+make checkov     # Run Checkov Terraform misconfiguration scanning only
 ```
 
 **Never call tool binaries (e.g., `golangci-lint`, `pytest`, `eslint`, `semgrep`) directly.** Always use the Makefile targets (`make lint`, `make test`, `make sast`, or the per-tool SAST targets above), which invoke the [pipelines repository](https://github.com/rios0rios0/pipelines) scripts to load the correct configuration before running each tool.
@@ -51,29 +52,35 @@ make gitleaks  # Run Gitleaks secret detection only
 
 All SAST, SCA, and quality tools are provided by the [Pipelines repository](https://github.com/rios0rios0/pipelines). For the full list of available tools, configurations, and usage instructions, see the [Available Tools & Scripts](https://github.com/rios0rios0/pipelines?tab=readme-ov-file#-available-tools--scripts) section of the pipelines README.
 
-The `make sast` target orchestrates five security tools that run both locally and in CI pipelines:
+The `make sast` target orchestrates five security tools that run both locally and in CI pipelines, plus Checkov, which `terra.mk` and `terraform.mk` add on Terraform projects:
 
 | Tool                                                 | Purpose                                                                                                     | Output              |
 |------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|---------------------|
 | **[CodeQL](https://codeql.github.com/)**             | Static Application Security Testing -- detects SQL injection, XSS, path traversal, insecure deserialization | SARIF report        |
 | **[Semgrep](https://semgrep.dev/)**                  | Pattern-based static analysis with OWASP Top 10, secrets, and best-practice rule sets                       | JSON report         |
-| **[Trivy](https://trivy.dev/)**                      | Infrastructure-as-Code misconfiguration scanning and dependency vulnerability scanning                      | SARIF / JSON report |
 | **[Hadolint](https://github.com/hadolint/hadolint)** | Dockerfile linting and best practice enforcement                                                            | SARIF report        |
+| **[ShellCheck](https://www.shellcheck.net/)**        | Shell script analysis -- unsafe word splitting, unchecked `cd`, masked exit codes, portability issues       | JSON report         |
 | **[Gitleaks](https://gitleaks.io/)**                 | Secret and credential detection across the entire Git history                                               | JSON report         |
+| **[Checkov](https://www.checkov.io/)**               | Terraform misconfiguration scanning -- Terraform projects only, advisory until `CHECKOV_BLOCKING = true`    | SARIF / JSON report |
 
 All reports are generated in the `build/reports/` directory.
+
+Dependency vulnerability scanning (SCA) runs per language from the [pipelines repository](https://github.com/rios0rios0/pipelines) scripts rather than in `make sast`: `govulncheck` for Go, Safety for Python, OWASP Dependency-Check for Java, and `npm audit` / `yarn npm audit` for JavaScript. Dart is the exception: `dart.mk` adds its OSV-Scanner `sca` target to `make sast`.
 
 ### False Positive Management
 
 Each tool supports project-level configuration for suppressing false positives:
 
-| Tool     | Configuration File                       |
-|----------|------------------------------------------|
-| CodeQL   | `.codeql-false-positives`                |
-| Semgrep  | `.semgrepignore`, `.semgrepexcluderules` |
-| Trivy    | `.trivyignore`                           |
-| Hadolint | `.hadolint.yaml`                         |
-| Gitleaks | `.gitleaks.toml`                         |
+| Tool       | Configuration File                       |
+|------------|------------------------------------------|
+| CodeQL     | `.codeql-false-positives`                |
+| Semgrep    | `.semgrepignore`, `.semgrepexcluderules` |
+| Hadolint   | `.hadolint.yaml`                         |
+| ShellCheck | `.shellcheckrc`                          |
+| Gitleaks   | `.gitleaks.toml`                         |
+| Checkov    | `.checkov.yaml`                          |
+
+ShellCheck and Checkov also take an inline suppression beside the flagged code: `# shellcheck disable=SC<code>` and `#checkov:skip=<ID>:<reason>`. Checkov counts a skip without a reason as a finding, and a `skip-check` entry in `.checkov.yaml` records no reason at all, so record a deliberate Checkov exception inline.
 
 ## Pre-Commit Hooks
 

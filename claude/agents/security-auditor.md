@@ -102,15 +102,17 @@ Remediation: Use environment variables or secret managers (1Password, HashiCorp 
 
 ## SAST Tool Output Interpretation
 
-When `build/reports/` contains SAST output, interpret it:
+When `build/reports/` contains SAST or SCA output, interpret it:
 
 | Tool | Report Format | Key Fields |
 |------|---------------|------------|
 | **Semgrep** | JSON | `results[].check_id`, `results[].path`, `results[].start.line`, `results[].extra.message` |
-| **Trivy** | SARIF/JSON | `Results[].Vulnerabilities[].VulnerabilityID`, `Results[].Vulnerabilities[].Severity` |
+| **Checkov** | SARIF/JSON | `results.failed_checks[].check_id`, `results.failed_checks[].file_path`, `results.failed_checks[].file_line_range`; an entry in `results.skipped_checks[]` without a reason is a finding too |
 | **Gitleaks** | JSON | `[].Description`, `[].File`, `[].StartLine`, `[].Secret` (redacted) |
 | **Hadolint** | SARIF | `runs[].results[].ruleId`, `runs[].results[].message.text` |
+| **ShellCheck** | JSON (`json1`) | `comments[].code` (the `SC` number), `comments[].file`, `comments[].line`, `comments[].level`, `comments[].message` |
 | **CodeQL** | SARIF | `runs[].results[].ruleId`, `runs[].results[].locations[].physicalLocation` |
+| **govulncheck** (SCA) | JSON stream | `finding.osv`, `finding.fixed_version`, `finding.trace[]`; real only when the trace reaches a `function` -- a trace that stops at the module or package is informational |
 
 ## Output Format
 

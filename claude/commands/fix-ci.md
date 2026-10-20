@@ -71,7 +71,8 @@ For each failing check, classify and plan the fix:
 | **Changelog fragment missing** (chlog project) | `basic-checks`, "no new changelog fragment" | The project uses chlog: run `chlog new --kind <Kind> --body "..."`. On a `chore/bump-*` (or `bump/*`) branch the gate wants the compiled `CHANGELOG.md` instead -- `chlog batch auto && chlog merge` |
 | **Changelog entry missing** (gate wants `CHANGELOG.md`) | `basic-checks`, "CHANGELOG.md was NOT modified" | The gate found no `.chlog.yaml` -- check the root before fixing. If `.changes/` exists anyway, the project uses chlog without the marker the gate keys on: add `.chlog.yaml` and keep writing fragments. If neither exists, the project does not use chlog: add the entry by hand under `[Unreleased]` in `CHANGELOG.md` |
 | **Formatting** | `gofmt`, `prettier`, `black` | Run the formatter on the affected files |
-| **SAST findings** | `semgrep`, `trivy`, `hadolint`, `gitleaks` | Read the finding, fix the security issue or add a justified suppression |
+| **SAST findings** | `semgrep`, `hadolint`, `shellcheck`, `gitleaks`, `checkov` | Read the finding, fix the security issue or add a justified suppression |
+| **Dependency vulnerabilities (SCA)** | `govulncheck`, `safety`, `dependency-check`, `osv-scanner`, `yarn npm audit` | Bump the flagged dependency to its fixed version; suppress only when no fix exists, with a dated comment and a link to the advisory. A failing `govulncheck` job means the scan itself broke -- it exits 0 on findings -- so fix the cause in its log |
 | **Infrastructure/flaky** | Network timeouts, runner issues, rate limits | Report to user -- cannot fix from code |
 
 ### Step 7 -- Implement fixes
@@ -92,6 +93,7 @@ Run the relevant verification commands based on what failed:
 - If tests failed: run `make test` (or the project's test command)
 - If build failed: run `make build` (or the project's build command)
 - If SAST failed: run `make sast` (or the specific SAST tool)
+- If SCA failed: re-run the language's scanner the way the pipelines repository runs it (for Go, its `global/scripts/languages/golang/govulncheck/run.sh`, then read `build/reports/govulncheck/govulncheck.json`, since its exit code ignores findings)
 
 If local verification still fails, iterate on the fix. If the failure cannot be resolved, report it to the user with the error details.
 
