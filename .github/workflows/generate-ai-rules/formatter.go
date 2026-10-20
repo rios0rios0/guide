@@ -108,9 +108,10 @@ func codexRules() []CodexRule {
 		{Pattern: []string{"make", "test"}, Decision: "allow", Justification: "Testing through Makefile is the approved approach"},
 		{Pattern: []string{"make", "sast"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
 		{Pattern: []string{"make", "semgrep"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
-		{Pattern: []string{"make", "trivy"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
 		{Pattern: []string{"make", "hadolint"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
+		{Pattern: []string{"make", "shellcheck"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
 		{Pattern: []string{"make", "gitleaks"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
+		{Pattern: []string{"make", "checkov"}, Decision: "allow", Justification: "SAST through Makefile is the approved approach"},
 
 		// Forbid direct linter/test runner invocation — Go
 		{Pattern: []string{"golangci-lint"}, Decision: "forbidden", Justification: "Do not call golangci-lint directly; use `make lint` which loads the correct configuration through the pipelines repository scripts"},
@@ -130,9 +131,10 @@ func codexRules() []CodexRule {
 
 		// SAST tools — must go through their respective Makefile targets
 		{Pattern: []string{"semgrep"}, Decision: "forbidden", Justification: "Do not call semgrep directly; use `make semgrep` which loads the correct configuration through the pipelines repository scripts"},
-		{Pattern: []string{"trivy"}, Decision: "forbidden", Justification: "Do not call trivy directly; use `make trivy` which loads the correct configuration through the pipelines repository scripts"},
 		{Pattern: []string{"gitleaks"}, Decision: "forbidden", Justification: "Do not call gitleaks directly; use `make gitleaks` which loads the correct configuration through the pipelines repository scripts"},
 		{Pattern: []string{"hadolint"}, Decision: "forbidden", Justification: "Do not call hadolint directly; use `make hadolint` which loads the correct configuration through the pipelines repository scripts"},
+		{Pattern: []string{"shellcheck"}, Decision: "forbidden", Justification: "Do not call shellcheck directly; use `make shellcheck` which loads the correct configuration through the pipelines repository scripts"},
+		{Pattern: []string{"checkov"}, Decision: "forbidden", Justification: "Do not call checkov directly; use `make checkov` which loads the correct configuration through the pipelines repository scripts"},
 
 		// Git safety (Git Flow: force-push requires caution)
 		{Pattern: []string{"git", "push", "--force"}, Decision: "prompt", Justification: "Force pushing rewrites remote history. Confirm this is intentional."},

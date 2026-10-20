@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -399,5 +400,54 @@ func TestWriteCodexRules(t *testing.T) {
 	}
 	if !strings.Contains(content, "prompt") {
 		t.Error("default.rules should contain prompt decisions for git force-push")
+	}
+}
+
+// The per-tool SAST rules are copied by hand from the CI/CD page, so a tool
+// that leaves the pipelines repository must leave both places together.
+func TestCodexRulesMatchDocumentedSASTTargets(t *testing.T) {
+	// given
+	source, err := os.ReadFile(filepath.Join("..", "..", "..", "Life-Cycle", "CI-&-CD.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	fence := strings.Repeat(string(rune(96)), 3)
+	block := regexp.MustCompile("(?s)Individual SAST tools[^\n]*\n\n" + fence + "bash\n(.*?)" + fence).FindStringSubmatch(string(source))
+	if len(block) != 2 {
+		t.Fatal("Life-Cycle/CI-&-CD.md should list the per-tool SAST targets in a bash block")
+	}
+	documented := map[string]bool{}
+	for _, match := range regexp.MustCompile(`(?m)^make ([a-z-]+)`).FindAllStringSubmatch(block[1], -1) {
+		documented[match[1]] = true
+	}
+
+	// when
+	allowed := map[string]bool{}
+	forbidden := map[string]string{}
+	for _, rule := range codexRules() {
+		switch {
+		case rule.Decision == "allow" && len(rule.Pattern) == 2 && rule.Pattern[0] == "make":
+			allowed[rule.Pattern[1]] = true
+		case rule.Decision == "forbidden" && len(rule.Pattern) == 1:
+			forbidden[rule.Pattern[0]] = rule.Justification
+		}
+	}
+
+	// then
+	if len(documented) == 0 {
+		t.Fatal("Life-Cycle/CI-&-CD.md should document at least one per-tool SAST target")
+	}
+	for tool := range documented {
+		if !allowed[tool] {
+			t.Errorf("codexRules() should allow the documented `make %s`", tool)
+		}
+		if !strings.Contains(forbidden[tool], "`make "+tool+"`") {
+			t.Errorf("codexRules() should forbid calling %s directly in favor of `make %s`", tool, tool)
+		}
+	}
+	for tool := range allowed {
+		if tool != "lint" && tool != "test" && tool != "sast" && !documented[tool] {
+			t.Errorf("codexRules() should not allow `make %s`, which Life-Cycle/CI-&-CD.md does not document", tool)
+		}
 	}
 }
