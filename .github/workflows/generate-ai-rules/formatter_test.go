@@ -404,9 +404,39 @@ func TestWriteCodexRules(t *testing.T) {
 }
 
 // The per-tool SAST rules are copied by hand from the CI/CD page, so a tool
-// that leaves the pipelines repository must leave both places together.
+// that leaves the pipelines repository must leave both places together --
+// including the ban that would otherwise keep sending agents to its target.
 func TestCodexRulesMatchDocumentedSASTTargets(t *testing.T) {
 	// given
+	documented := documentedSASTTargets(t)
+
+	// when
+	allowed, redirects := codexMakeTargets(codexRules())
+
+	// then
+	for tool := range documented {
+		if !allowed[tool] {
+			t.Errorf("codexRules() should allow the documented `make %s`", tool)
+		}
+		if redirects[tool] != tool {
+			t.Errorf("codexRules() should forbid calling %s directly in favor of `make %s`", tool, tool)
+		}
+	}
+	for target := range allowed {
+		if !isGeneralMakeTarget(target) && !documented[target] {
+			t.Errorf("codexRules() should not allow `make %s`, which Life-Cycle/CI-&-CD.md does not document", target)
+		}
+	}
+	for tool, target := range redirects {
+		if !isGeneralMakeTarget(target) && !documented[target] {
+			t.Errorf("codexRules() should not send %s to `make %s`, which Life-Cycle/CI-&-CD.md does not document", tool, target)
+		}
+	}
+}
+
+// documentedSASTTargets returns the per-tool SAST targets Life-Cycle/CI-&-CD.md lists.
+func documentedSASTTargets(t *testing.T) map[string]bool {
+	t.Helper()
 	source, err := os.ReadFile(filepath.Join("..", "..", "..", "Life-Cycle", "CI-&-CD.md"))
 	if err != nil {
 		t.Fatal(err)
@@ -416,38 +446,35 @@ func TestCodexRulesMatchDocumentedSASTTargets(t *testing.T) {
 	if len(block) != 2 {
 		t.Fatal("Life-Cycle/CI-&-CD.md should list the per-tool SAST targets in a bash block")
 	}
-	documented := map[string]bool{}
+	targets := map[string]bool{}
 	for _, match := range regexp.MustCompile(`(?m)^make ([a-z-]+)`).FindAllStringSubmatch(block[1], -1) {
-		documented[match[1]] = true
+		targets[match[1]] = true
 	}
-
-	// when
-	allowed := map[string]bool{}
-	forbidden := map[string]string{}
-	for _, rule := range codexRules() {
-		switch {
-		case rule.Decision == "allow" && len(rule.Pattern) == 2 && rule.Pattern[0] == "make":
-			allowed[rule.Pattern[1]] = true
-		case rule.Decision == "forbidden" && len(rule.Pattern) == 1:
-			forbidden[rule.Pattern[0]] = rule.Justification
-		}
-	}
-
-	// then
-	if len(documented) == 0 {
+	if len(targets) == 0 {
 		t.Fatal("Life-Cycle/CI-&-CD.md should document at least one per-tool SAST target")
 	}
-	for tool := range documented {
-		if !allowed[tool] {
-			t.Errorf("codexRules() should allow the documented `make %s`", tool)
+	return targets
+}
+
+// codexMakeTargets returns the Makefile targets the rules allow and, for every
+// forbidden command, the Makefile target its justification sends the agent to.
+func codexMakeTargets(rules []CodexRule) (map[string]bool, map[string]string) {
+	allowed := map[string]bool{}
+	redirects := map[string]string{}
+	target := regexp.MustCompile("`make ([a-z-]+)`")
+	for _, rule := range rules {
+		if rule.Decision == "allow" && len(rule.Pattern) == 2 && rule.Pattern[0] == "make" {
+			allowed[rule.Pattern[1]] = true
 		}
-		if !strings.Contains(forbidden[tool], "`make "+tool+"`") {
-			t.Errorf("codexRules() should forbid calling %s directly in favor of `make %s`", tool, tool)
+		if match := target.FindStringSubmatch(rule.Justification); rule.Decision == "forbidden" && match != nil {
+			redirects[strings.Join(rule.Pattern, " ")] = match[1]
 		}
 	}
-	for tool := range allowed {
-		if tool != "lint" && tool != "test" && tool != "sast" && !documented[tool] {
-			t.Errorf("codexRules() should not allow `make %s`, which Life-Cycle/CI-&-CD.md does not document", tool)
-		}
-	}
+	return allowed, redirects
+}
+
+// isGeneralMakeTarget reports whether target is one every project has rather
+// than a per-tool SAST target.
+func isGeneralMakeTarget(target string) bool {
+	return target == "lint" || target == "test" || target == "sast"
 }
