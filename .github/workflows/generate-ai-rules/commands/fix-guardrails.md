@@ -63,7 +63,7 @@ make test
 make sast
 ```
 
-- Timeout: **10 minutes** -- SAST is the slowest gate (it runs CodeQL, Semgrep, Trivy, Hadolint, and Gitleaks).
+- Timeout: **10 minutes** -- SAST is the slowest gate (it runs CodeQL, Semgrep, Hadolint, ShellCheck, and Gitleaks, plus Checkov on Terraform projects).
 - Parse the output. Record every finding with **tool name**, **rule ID**, **file path**, **line number**, and **description**.
 - NEVER invoke SAST tools directly. Always use `make sast`.
 
@@ -135,13 +135,15 @@ Read the affected files, understand the context, and apply a **minimal, targeted
 | OWASP rule violation          | Insecure coding pattern (e.g., weak crypto, missing input validation) | Apply the recommendation from the Semgrep rule description |
 | Anti-pattern                  | Code smell flagged by Semgrep rules                                   | Refactor to the recommended pattern                        |
 
-**Trivy (IaC scanning):**
+**Checkov (Terraform IaC scanning, Terraform projects only):**
 
-| Finding                     | Root Cause                                           | Fix                                                        |
-|-----------------------------|------------------------------------------------------|------------------------------------------------------------|
-| Dockerfile misconfiguration | Running as root, unpinned base image, etc.           | Pin image tags, add `USER nonroot`, use multi-stage builds |
-| Kubernetes misconfiguration | Missing resource limits, privileged containers, etc. | Add resource limits, set `securityContext` properly        |
-| Terraform misconfiguration  | Missing encryption, overly permissive IAM, etc.      | Enable encryption, restrict IAM policies                   |
+| Finding                        | Root Cause                                                             | Fix                                                             |
+|--------------------------------|------------------------------------------------------------------------|-----------------------------------------------------------------|
+| Terraform misconfiguration     | Missing encryption, public network access, overly permissive IAM, etc. | Enable encryption, restrict network access, narrow IAM policies |
+| Check skipped without a reason | `#checkov:skip=<ID>` with nothing after the ID                         | Add the reason: `#checkov:skip=<ID>:<reason>`                   |
+| File Checkov could not parse   | Syntax Checkov does not understand -- the file was never scanned       | Fix the syntax so the file is scanned                           |
+
+Checkov is advisory until the project sets `CHECKOV_BLOCKING = true`: its findings are printed and kept in `build/reports/checkov/`, but they do not fail `make sast`.
 
 **Hadolint (Dockerfile):**
 
@@ -151,6 +153,17 @@ Read the affected files, understand the context, and apply a **minimal, targeted
 | `DL3008` | Unpinned `apt-get install`          | Pin package versions                  |
 | `DL3025` | Using `CMD` instead of `ENTRYPOINT` | Use `ENTRYPOINT` for the main command |
 | `SC2086` | Unquoted variable in `RUN`          | Quote the variable                    |
+
+**ShellCheck (shell scripts):**
+
+| Rule     | Root Cause                                                           | Fix                                                |
+|----------|----------------------------------------------------------------------|----------------------------------------------------|
+| `SC2046` | Unquoted command substitution is split into words                    | Quote it: `"$(command)"`                           |
+| `SC2155` | `local` or `export` combined with `$(command)` masks its exit status | Declare and assign on separate lines               |
+| `SC2164` | `cd` without handling a missing directory                            | Exit or return when `cd` fails                     |
+| `SC2034` | Variable assigned but never used                                     | Remove it, or `export` it if it is used externally |
+
+ShellCheck reports warnings and errors only. Record a deliberate exception beside the line as `# shellcheck disable=SC<code>`, with a comment saying why.
 
 **Gitleaks (secrets):**
 

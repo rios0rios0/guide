@@ -147,9 +147,10 @@ See [Security](https://github.com/rios0rios0/guide/wiki/Security).
   prefixes, JWT-shaped strings, or the dashed `BEGIN …` banners). Gitleaks matches
   the shape, not the value, so a placeholder that merely *looks* like a credential
   fails the pipeline. Use inert placeholders such as `fixture-token-placeholder`.
-- **Suppressions must be justified.** Entries in `.gitleaksignore`, `.trivyignore`,
-  `.semgrepignore`, or `.codeql-false-positives` need a fingerprint, a dated comment, and a
-  reason. A suppression added to silence a real finding is a Critical.
+- **Suppressions must be justified.** Entries in `.gitleaksignore`, `.semgrepignore`, or
+  `.codeql-false-positives` need a fingerprint, a dated comment, and a reason; an inline
+  `#checkov:skip=<ID>:<reason>` or `# shellcheck disable=SC<code>` needs its reason beside it.
+  A suppression added to silence a real finding is a Critical.
 - Validate and sanitise every external input; use parameterised queries; apply least
   privilege; keep secrets out of logs.
 - Dependency manifest changes are reviewed for new transitive vulnerabilities. When a fix
