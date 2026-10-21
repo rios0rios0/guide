@@ -13,6 +13,12 @@ nothing.
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-10-21
+
+### Removed
+
+- removed Trivy, which the pipelines repository no longer ships, from the CI/CD and Security standards, the `security-auditor` agent, the `fix-ci` and `fix-guardrails` commands and skill, the `code-review` skill, and the Codex command rules, and described the current toolchain in its place: `make sast` runs CodeQL, Semgrep, Hadolint, ShellCheck, and Gitleaks, plus Checkov on Terraform projects; ShellCheck and Checkov take inline suppressions; and dependency vulnerabilities are caught by the per-language SCA scanners (`govulncheck`, Safety, OWASP Dependency-Check, `npm audit`, OSV-Scanner). A new test fails when the Codex rules drift from the per-tool targets the CI/CD page documents, including a ban left pointing at a target that no longer exists
+
 ## [0.7.1] - 2026-09-30
 
 ### Fixed
