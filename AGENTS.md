@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents (Claude Code, Codex, Cursor, GitHub Copilot) when working with code in this repository.
 
 ## Project Overview
 
@@ -25,7 +25,7 @@ go test ./...
 bash .github/workflows/sync-docs/check-toc-sync.sh
 ```
 
-Build times are ~1 second each. Set timeouts to 60+ seconds for safety.
+Run the built `generate-ai-rules` binary from the repository root, not its own directory: it reads docs relative to `--source` (default `.`) and writes the git-ignored `claude/`, `cursor/`, `codex/`, `copilot/` directories to `--output` (default `.`).
 
 ## Architecture
 
@@ -47,7 +47,7 @@ The generated rule directories (`claude/`, `cursor/`, `codex/`, `copilot/`) do *
 ### Go Tools
 
 - **`update-wiki`** (`.github/workflows/update-wiki/main.go`): Converts relative markdown links to Wiki-flat format (preserving any `#anchor` fragment) and resolves image paths to GitHub raw content URLs.
-- **`generate-ai-rules`** (`.github/workflows/generate-ai-rules/`): Parses documentation, extracts sections, and formats them into AI-assistant-specific rule files. Has separate `config.go`, `parser.go`, and `formatter.go` modules with corresponding tests.
+- **`generate-ai-rules`** (`.github/workflows/generate-ai-rules/`): Parses documentation, extracts sections, and formats them into AI-assistant-specific rule files. `config.go` lists each rule file's source docs by path, so renaming or moving one of those docs means updating it. Tests cover the parser, formatter, and `main`; `scaffold_test.go` compiles and runs the Go examples in `commands/scaffold-go-project.md`, so `go test ./...` fails when those examples break.
 
 ### Static Assets (on `main`)
 

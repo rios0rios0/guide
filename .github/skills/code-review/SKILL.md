@@ -20,7 +20,7 @@ The canonical engineering standards live in the
 repo-tailored index into that guide plus the rules that only apply here. Precedence, highest
 first:
 
-1. This repository's `.github/copilot-instructions.md`, `CLAUDE.md`, and `CONTRIBUTING.md` —
+1. This repository's `.github/copilot-instructions.md`, `AGENTS.md`, and `CONTRIBUTING.md` —
    they describe *this* codebase and its load-bearing invariants.
 2. The **rios0rios0/guide** wiki — the shared standard.
 3. General language idiom.
@@ -64,7 +64,7 @@ These are the checks that catch real defects in this repository. Work through
 them before the generic ones.
 
 - **Wiki pages are flat — the base file name is the page name, so it must be unique across the whole tree.** `Life-Cycle/Git-Flow.md` publishes as the page `Git-Flow`. Two files sharing a base name collide and one silently overwrites the other. This is a **Critical** finding, and `README.md` says so explicitly.
-- **A new page is not done until it is listed in `README.md`, `_Sidebar.md`, and its parent index page.** An orphaned page is unreachable from the wiki navigation.
+- **A new page is not done until it is listed in `README.md`, `Home.md`, `_Sidebar.md`, and its parent index page.** An orphaned page is unreachable from the wiki navigation.
 - **Internal links are flattened by the generator** — it rewrites a link target to the base name. Use a link shape the generator can resolve, and check relative image paths resolve from the file's own directory.
 - **The rule text must be actionable.** Every rule states what to do, why, and what a violation looks like. "Prefer clean code" is not a rule; it becomes noise in seventy repositories' reviews.
 - **A change to a rule is a change to every repository.** Say in the pull-request description which repositories are already non-compliant and whether they need follow-up — a rule nobody follows is worse than no rule.
@@ -96,7 +96,7 @@ and YAML blocks inside Markdown.
 
 ## Tests
 
-The wiki sync and the rule generator are the verification path: `update-wiki.yml` publishes the pages and `generate-ai-rules.yaml` builds the `generated` branch. A structural change should be checked against both workflows before merging. Each Go tool carries `*_test.go` unit tests (`update-wiki`; `generate-ai-rules` splits `config`, `parser`, and `formatter`) — a change to either tool that does not keep `go test ./...` green is a finding.
+The wiki sync and the rule generator are the verification path: `update-wiki.yml` publishes the pages and `generate-ai-rules.yaml` builds the `generated` branch. A structural change should be checked against both workflows before merging. Each Go tool carries `*_test.go` unit tests (`update-wiki`; `generate-ai-rules` has `parser`, `formatter`, `main`, and `scaffold` tests, the last of which compiles and runs the examples in `commands/scaffold-go-project.md`) — a change that does not keep `go test ./...` green is a finding.
 
 ## Documentation and change control
 
@@ -116,8 +116,9 @@ hand.
 - Fragment bodies start with a lowercase verb in simple past tense, capitalise proper nouns
   (GitHub, Go, Docker), and wrap code identifiers and versions in backticks.
 - `README.md` is updated whenever usage, setup, configuration, or architecture changes;
-  `.github/copilot-instructions.md` and `CLAUDE.md` whenever the workflow, commands, or
-  structure changes. Documentation and code ship in one commit.
+  `.github/copilot-instructions.md` and `AGENTS.md` whenever the workflow, commands, or
+  structure changes (`CLAUDE.md` stays the single line `@AGENTS.md`). Documentation and
+  code ship in one commit.
 
 ## Git Flow and pull-request hygiene
 
@@ -181,7 +182,7 @@ A review that raises noise gets ignored. Do not report these:
 ### Change-control checklist
 - [ ] Changelog entry present for every behavioural change
 - [ ] `README.md` updated if usage, setup, or architecture changed
-- [ ] `.github/copilot-instructions.md` and `CLAUDE.md` updated if the workflow, commands, or structure changed
+- [ ] `.github/copilot-instructions.md` and `AGENTS.md` updated if the workflow, commands, or structure changed
 - [ ] Commit messages follow `type(SCOPE): message` in simple past tense
 - [ ] Breaking changes flagged in the commit footer, the changelog, and the PR description
 
