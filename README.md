@@ -100,7 +100,7 @@ These community sources complement the guide's rules. Add any combination to you
 
 | Source | Repository | Description |
 |--------|-----------|-------------|
-| **Guide** | `rios0rios0/guide@generated` | 14 engineering standard rules, 7 agents, 8 commands, 5 skills |
+| **Guide** | `rios0rios0/guide@generated` | 15 engineering standard rules, 7 agents, 8 commands, 5 skills |
 | **Agents** | `wshobson/agents@main` | 112+ specialized agents (docs, TDD, CI/CD) |
 | **Everything Claude Code** | `affaan-m/everything-claude-code@main` | Anthropic Hackathon winner. 28 agents, 125 skills, 60 commands |
 | **Power Platform** | `microsoft/power-platform-skills@main` | Official Microsoft Power Platform plugins |

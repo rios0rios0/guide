@@ -32,5 +32,5 @@ development practices, refer to the **[Development Guide](https://github.com/rio
    ```bash
    chlog new --kind Changed --body 'changed the testing standard to ban mock libraries'
    ```
-8. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Life-Cycle/Git-Flow)
+8. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Git-Flow)
 9. Open a pull request against `main`
