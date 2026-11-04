@@ -13,6 +13,12 @@ nothing.
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-11-04
+
+### Changed
+
+- moved the agent instructions from `CLAUDE.md` to `AGENTS.md`, keeping a `CLAUDE.md` that imports it, and refreshed `AGENTS.md`, `.github/copilot-instructions.md`, and the `code-review` skill to run `generate-ai-rules` from the repository root, add `go test ./...` to the validation sequence, describe the `scaffold_test.go` coupling, point at `AGENTS.md` instead of `CLAUDE.md`, and drop the timeout boilerplate, and corrected the rule count in `README.md` and the Git Flow wiki link in `CONTRIBUTING.md`
+
 ## [0.7.2] - 2026-10-21
 
 ### Removed
