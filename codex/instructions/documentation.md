@@ -17,8 +17,8 @@ Every project must contain at minimum:
 | **`README.md`**                       | Describes the project, its usage, setup, and architecture                                                   | Always                            | When behavior, configuration, CLI, or setup changes   |
 | **`CONTRIBUTING.md`**                 | Guides contributors on prerequisites, workflow, and standards                                               | Always                            | When prerequisites, workflow, or structure changes    |
 | **`CHANGELOG.md`**                    | Records all notable changes, organized by version                                                           | Always                            | See [Changelog Standard](#changelog-standard)         |
-| **`.chlog.yaml`**                     | chlog's configuration -- the kinds and the bump each infers, and the marker CI detects                      | When the project uses chlog       | When the kinds change (rarely)                        |
-| **`.changes/unreleased/`**            | One YAML changelog fragment per change, written by `chlog new`                                              | When the project uses chlog       | **Every change** (always)                             |
+| **`.chlog.yaml`**                     | Optional chlog configuration -- only to change one of chlog's defaults                                      | Only to override a default        | When an override changes (rarely)                     |
+| **`.changes/unreleased/`**            | One YAML changelog fragment per change, written by `chlog new`; marks the project as chlog                  | When the project uses chlog       | **Every change** (always)                             |
 | **`.github/copilot-instructions.md`** | AI assistant context for the project structure and workflows                                                | Always                            | When architecture, commands, or workflow changes      |
 
 **Templates are available for standardized project setup:**
@@ -44,40 +44,34 @@ Look at the project root:
 
 | Signal at the project root                       | Mode                                                       |
 |--------------------------------------------------|-------------------------------------------------------------|
+| `.changes/unreleased/` exists                    | **chlog** -- write a fragment                               |
 | `.chlog.yaml` (or `.chlog.yml`) exists           | **chlog** -- write a fragment                               |
-| No config file, but `.changes/` exists           | **chlog** -- write a fragment, and add the missing config   |
 | Neither exists                                   | **No chlog** -- edit `[Unreleased]` in `CHANGELOG.md`       |
 
-The shared [`rios0rios0/pipelines`](https://github.com/rios0rios0/pipelines) basic-checks gate
-decides the same way, and it keys on **`.chlog.yaml` specifically**. A project that adopts chlog
-must therefore commit that file: with the fragments in place but no config, CI still asks for a
-`CHANGELOG.md` diff and the fragment does not satisfy it. Its values repeating chlog's built-in
-defaults is not a reason to delete it -- the file is the marker that flips the gate, whatever it
-contains.
+The shared [`rios0rios0/pipelines`](https://github.com/rios0rios0/pipelines) basic-checks gate,
+[AutoBump](https://github.com/rios0rios0/autobump) and [AutoUpdate](https://github.com/rios0rios0/autoupdate)
+all decide the same way: the fragment directory alone marks a project as a chlog user, and a
+configuration file is optional (see [Configuration](#configuration)). Keep the directory in Git
+with a `.changes/unreleased/.gitkeep`, so it survives a release that consumes every fragment.
 
 ## Changelog with chlog
 
-[chlog](https://github.com/luizjhonata/chlog) is a single Go binary that compiles per-change
-fragments into `CHANGELOG.md`:
-
-```bash
-go install github.com/luizjhonata/chlog@latest
-```
-
-`go install` builds from source, so it needs a Go toolchain on the contributor's machine -- which a
-Java, Python, or TypeScript project has no reason to require. Those projects should take the
-prebuilt binary for their platform from the
-[releases page](https://github.com/luizjhonata/chlog/releases) instead; chlog publishes one for
-Linux, macOS, and Windows on both amd64 and arm64. Either way the tool is a single self-contained
-binary, and the project itself never gains a Go dependency.
+[chlog](https://github.com/luizjhonata/chlog) is a single self-contained binary that compiles
+per-change fragments into `CHANGELOG.md`. Install the prebuilt binary for your platform from the
+[releases page](https://github.com/luizjhonata/chlog/releases) -- chlog publishes one for Linux,
+macOS, and Windows on both amd64 and arm64. It is quicker and lighter than building the tool from
+source and needs no Go toolchain, so it is the install path every project documents, whatever its
+language.
+`go install github.com/luizjhonata/chlog@latest` also works for a contributor who already has Go,
+but it is never a prerequisite. Either way the project itself never gains a Go dependency.
 
 ### One Fragment per Change
 
 Every change writes its **own** YAML file under `.changes/unreleased/`:
 
 ```bash
-chlog new --kind Added --body "added JavaScript updater supporting npm, yarn, and pnpm projects"
-chlog new --kind Changed --breaking --body "**BREAKING CHANGE:** changed `Input` to take its value from props"
+chlog new --kind Added --body 'added JavaScript updater supporting npm, yarn, and pnpm projects'
+chlog new --kind Changed --breaking --body '**BREAKING CHANGE:** changed `Input` to take its value from props'
 ```
 
 which produces a file the tool names for you:
@@ -91,6 +85,10 @@ time: '2026-01-15T09:41:02.117823941Z'
 This buys the one thing a single shared file cannot give: two branches each adding an entry no
 longer touch the same lines, so a rebase that used to conflict on `CHANGELOG.md` now conflicts on
 nothing.
+
+**Single-quote the body.** Inside double quotes the shell treats every backtick span as a command
+substitution: it runs it and silently drops it from the entry. Inside single quotes the backticks
+reach chlog as text. Write an apostrophe inside the body as `'\''`.
 
 **Never edit `CHANGELOG.md` by hand in this mode.** The only writer is `chlog merge`, at release time.
 
@@ -114,10 +112,13 @@ the body as well: the flag drives the version, the prefix tells the reader.
 
 ### Configuration
 
-Every project that uses chlog carries a `.chlog.yaml` at its root. Spell chlog's defaults out rather
-than relying on them: the file is what CI detects, and it makes the kinds and their bump levels
-readable without going to the tool. It follows the YAML conventions like
-every other YAML file -- the `.yaml` extension, and single quotes around every string:
+chlog's built-in defaults are this standard -- the `.changes/unreleased/` directory, `CHANGELOG.md`,
+the Keep a Changelog headings, and the six kinds below in this order with these bump levels -- so a
+project that follows it carries no configuration file. Add a `.chlog.yaml` only to change one of
+those defaults: a file that merely repeats them adds nothing, because the fragment directory, not the
+file, is what CI detects. When a project does need one, write it whole, as below, following the
+YAML conventions like every other YAML file -- the `.yaml` extension, and
+single quotes around every string:
 
 ```yaml
 changesDir: '.changes'
@@ -186,19 +187,22 @@ The pending fragments become a version section at release time:
 ### CI Enforcement
 
 The shared [`rios0rios0/pipelines`](https://github.com/rios0rios0/pipelines) basic-checks gate is
-chlog-aware: when `.chlog.yaml` is present it requires a **new fragment** on an ordinary branch, and
-flips to requiring an updated `CHANGELOG.md` on a `chore/bump-*` (or `bump/*`) branch, where
+chlog-aware: when the project uses chlog (see [Deciding Which Mode Applies](#deciding-which-mode-applies)),
+it requires a **new fragment** on an ordinary branch, and flips to requiring an updated
+`CHANGELOG.md` on a `chore/bump-*` (or `bump/*`) branch, where
 `chlog merge` has already consumed the fragments. No per-repository CI job is needed.
 `chlog hook install --local` runs the same check on every commit in a local clone, and `chlog check`
 runs it on demand.
 
 ### AI Assistants
 
-`chlog ai setup` injects a marked block (`<!-- chlog:start -->` ... `<!-- chlog:end -->`) into
-`AGENTS.md` and `.github/copilot-instructions.md` telling the assistant to write a fragment on every
-change and never to touch `CHANGELOG.md`. Re-running the command updates the block in place, so it
-is safe to run again after an upgrade. The injected block is conditional on the repository actually
-using chlog, so it is harmless in a repository that has not adopted it yet.
+State the rule in the project's own agent instructions (`AGENTS.md`, `AGENTS.md`,
+`.github/copilot-instructions.md`): write a fragment with `chlog new` on every change, never touch
+`CHANGELOG.md`, and word the body by the [Writing Rules](#writing-rules) -- simple past tense, in
+single quotes. The `<!-- chlog:start -->` block in this guide's own `AGENTS.md` is the model.
+`chlog ai setup` injects a block for the same purpose, but its wording asks for an imperative,
+double-quoted body, which contradicts both rules: copy the model block instead, or correct those
+lines after running it.
 
 ## Changelog without chlog
 
@@ -261,9 +265,10 @@ All in-progress changes go under `[Unreleased]`. When a release is cut:
 
 ### CI Enforcement
 
-With no `.chlog.yaml` at the root, the basic-checks gate falls back to requiring that the PR touch
-`CHANGELOG.md`. A "CHANGELOG.md was NOT modified" failure therefore means the project is in this
-mode: add the entry under `[Unreleased]` rather than reaching for `chlog new`.
+With neither a `.changes/unreleased/` directory nor a chlog configuration file at the root, the
+basic-checks gate falls back to requiring that the PR touch `CHANGELOG.md`. A "CHANGELOG.md was NOT
+modified" failure therefore means the project is in this mode: add the entry under `[Unreleased]`
+rather than reaching for `chlog new`.
 
 ## Writing Rules
 
@@ -288,13 +293,16 @@ Moving a project from the hand-written file to fragments:
 1. Release or carry over whatever sits under `[Unreleased]`. Anything left there is invisible to
    `chlog batch`, which only reads fragments -- so either cut a release first, or re-create each
    pending entry with `chlog new`.
-2. Add `.chlog.yaml` at the root, as spelled out in [Configuration](#configuration). This is the step
-   that flips CI; without it the gate keeps asking for a `CHANGELOG.md` diff.
+2. Create `.changes/unreleased/.gitkeep`. The directory is what flips CI, AutoBump, and AutoUpdate to
+   chlog, and the `.gitkeep` keeps it once a release consumes every fragment. Add a `.chlog.yaml`
+   only to change a default (see [Configuration](#configuration)).
 3. Leave the released sections of `CHANGELOG.md` untouched -- chlog appends above them.
 4. Add the header note to `CHANGELOG.md` saying the file is generated, so the next contributor does
    not hand-edit it.
-5. Run `chlog ai setup` to update `AGENTS.md` and `.github/copilot-instructions.md`.
-6. Update `CONTRIBUTING.md`: add chlog to the prerequisites and replace the "update CHANGELOG.md"
+5. Point the agent instructions (`AGENTS.md`, `AGENTS.md`, `.github/copilot-instructions.md`) at
+   fragments, worded as in [AI Assistants](#ai-assistants).
+6. Update `CONTRIBUTING.md`: add chlog to the prerequisites, pointing at the prebuilt binary on the
+   [releases page](https://github.com/luizjhonata/chlog/releases), and replace the "update CHANGELOG.md"
    step with `chlog new`.
 
 ## README Standard
@@ -335,7 +343,7 @@ Update this file whenever the development workflow, architecture, or key command
 Documentation updates must be part of the same commit or PR that introduces the change:
 
 1. **Write the code change.**
-2. **Record the change in the changelog** -- `chlog new --kind <Kind> --body "..."` when the project
+2. **Record the change in the changelog** -- `chlog new --kind <Kind> --body '...'` when the project
    uses chlog, or a bullet under `[Unreleased]` in `CHANGELOG.md` when it does not. See
    [Deciding Which Mode Applies](#deciding-which-mode-applies).
 3. **Update `README.md`** -- if the change affects usage, setup, or architecture.
@@ -531,13 +539,13 @@ Use the prerequisite block that matches your project:
 | **Python**                | Python 3.12+, PDM, Make                                                                |
 | **JavaScript/TypeScript** | Node.js 20+, npm, Make                                                                 |
 
-A project that uses [chlog](https://github.com/luizjhonata/chlog) -- one with a `.chlog.yaml` at its
-root -- additionally needs the tool to write changelog fragments. It is a single self-contained
-binary, so the project itself never gains a Go dependency -- but `go install github.com/luizjhonata/chlog@latest`
-builds it from source and therefore needs a Go toolchain locally. On a Java, Python, or JavaScript
-project, point contributors at the prebuilt binary for their platform on the
-[releases page](https://github.com/luizjhonata/chlog/releases) (Linux, macOS, and Windows; amd64 and
-arm64) and keep the toolchain out of the prerequisites. A project that does not use chlog drops the
+A project that uses [chlog](https://github.com/luizjhonata/chlog) -- one with a `.changes/unreleased/`
+directory at its root -- additionally needs the tool to write changelog fragments. Point
+contributors at the prebuilt binary for their platform on the
+[releases page](https://github.com/luizjhonata/chlog/releases) (Linux, macOS, and Windows; amd64 and arm64), whatever the
+project's language: it is quicker and lighter than `go install github.com/luizjhonata/chlog@latest`,
+which builds the tool from source and needs a Go toolchain, so keep that toolchain out of the
+prerequisites. A project that does not use chlog drops the
 prerequisite entirely and edits `CHANGELOG.md` by hand -- see
 Documentation & Change Control.
 
@@ -555,8 +563,8 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 
 - {LANGUAGE}
 - [Make](https://www.gnu.org/software/make/)
-<!-- Projects that use chlog (a `.chlog.yaml` at the root) -- drop this line if the project edits CHANGELOG.md by hand: -->
-- [chlog](https://github.com/luizjhonata/chlog) -- `go install github.com/luizjhonata/chlog@latest` (needs a Go toolchain), or a prebuilt binary from the [releases page](https://github.com/luizjhonata/chlog/releases)
+<!-- Projects that use chlog (a `.changes/unreleased/` directory at the root) -- drop this line if the project edits CHANGELOG.md by hand: -->
+- [chlog](https://github.com/luizjhonata/chlog) -- a prebuilt binary from the [releases page](https://github.com/luizjhonata/chlog/releases)
 <!-- Add any other tools required by your project -->
 <!-- Java projects: -->
 <!-- - Docker (for integration tests with TestContainers) -->
@@ -581,7 +589,7 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 6. Record the change in the changelog.
    <!-- Projects that use chlog -- never edit CHANGELOG.md, which is generated from the fragments: -->
    ```bash
-   chlog new --kind Added --body "added the thing that was not there before"
+   chlog new --kind Added --body 'added the thing that was not there before'
    ```
    <!-- Projects without chlog -- add the bullet under `[Unreleased]` in `CHANGELOG.md` instead. -->
 7. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Git-Flow) --
@@ -619,6 +627,6 @@ docker compose -f compose.dev.yaml up -d
 2. Implement the required interface/contract
 3. Register it in the dependency injection wiring
 4. Add tests following the [testing guide](https://github.com/rios0rios0/guide/wiki/Tests)
-5. Record the change in the changelog: `chlog new --kind Added --body "added ..."`, or a bullet under `[Unreleased] > Added` in `CHANGELOG.md` when the project does not use chlog
+5. Record the change in the changelog: `chlog new --kind Added --body 'added ...'`, or a bullet under `[Unreleased] > Added` in `CHANGELOG.md` when the project does not use chlog
 -->
 ````

@@ -17,7 +17,7 @@ applies to a given repository.
 `--body`, which becomes one bullet in the compiled file.
 
 ```bash
-chlog new --kind Fixed --body "fixed SQL injection in `handleLogin`"
+chlog new --kind Fixed --body 'fixed SQL injection in `handleLogin`'
 ```
 
 **When it does not**, the entry is the bullet typed directly under `[Unreleased]` in `CHANGELOG.md`.
@@ -122,8 +122,8 @@ with chlog passes the same text to `--body`, and `chlog merge` compiles it into 
 bullets:
 
 ```bash
-chlog new --kind Added --body "added `CreateUser` endpoint using `express` framework"
-chlog new --kind Changed --body "upgraded Go to `v1.23`"
-chlog new --kind Fixed --body "fixed SQL injection in `handleLogin`"
-chlog new --kind Added --body "integrated with GitHub Actions for CI/CD"
+chlog new --kind Added --body 'added `CreateUser` endpoint using `express` framework'
+chlog new --kind Changed --body 'upgraded Go to `v1.23`'
+chlog new --kind Fixed --body 'fixed SQL injection in `handleLogin`'
+chlog new --kind Added --body 'integrated with GitHub Actions for CI/CD'
 ```
