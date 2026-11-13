@@ -39,8 +39,8 @@ First determine which mode the repository is in, by looking at its root:
 
 | Signal                                        | Mode                                                  |
 |-----------------------------------------------|-------------------------------------------------------|
+| `.changes/unreleased/` exists                 | **chlog** -- write a fragment                         |
 | `.chlog.yaml` (or `.chlog.yml`) exists        | **chlog** -- write a fragment                         |
-| No config file, but `.changes/` exists        | **chlog** -- write a fragment, and flag the missing config |
 | Neither exists                                | **No chlog** -- edit `[Unreleased]` in `CHANGELOG.md` |
 
 #### When the repository uses chlog
@@ -51,14 +51,14 @@ First determine which mode the repository is in, by looking at its root:
 1. Write one fragment per change:
 
 ```bash
-chlog new --kind Added --body "added JavaScript updater supporting npm, yarn, and pnpm projects"
+chlog new --kind Added --body 'added JavaScript updater supporting npm, yarn, and pnpm projects'
 ```
 
    For a backward-incompatible change, add `--breaking` -- under SemVer that flag is the only
    thing that bumps the major, and no kind implies one:
 
 ```bash
-chlog new --kind Changed --breaking --body "**BREAKING CHANGE:** changed `Input` to take its value from props"
+chlog new --kind Changed --breaking --body '**BREAKING CHANGE:** changed `Input` to take its value from props'
 ```
 
 2. Stage the new file under `.changes/unreleased/` along with the code change.

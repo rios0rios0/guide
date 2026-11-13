@@ -208,7 +208,7 @@ Check the repository root first -- the mode decides where the entry goes.
 fragments. Write one fragment for the fixes:
 
 ```bash
-chlog new --kind Fixed --body "fixed the `gochecknoglobals` findings in `clear_history.go`"
+chlog new --kind Fixed --body 'fixed the `gochecknoglobals` findings in `clear_history.go`'
 ```
 
 **Otherwise**, add the entry by hand as a bullet under `[Unreleased] > Fixed` in `CHANGELOG.md`:
