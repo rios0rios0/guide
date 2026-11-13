@@ -25,13 +25,13 @@ Use the prerequisite block that matches your project:
 | **Python**                | Python 3.12+, PDM, Make                                                                |
 | **JavaScript/TypeScript** | Node.js 20+, npm, Make                                                                 |
 
-A project that uses [chlog](https://github.com/luizjhonata/chlog) -- one with a `.chlog.yaml` at its
-root -- additionally needs the tool to write changelog fragments. It is a single self-contained
-binary, so the project itself never gains a Go dependency -- but `go install github.com/luizjhonata/chlog@latest`
-builds it from source and therefore needs a Go toolchain locally. On a Java, Python, or JavaScript
-project, point contributors at the prebuilt binary for their platform on the
-[releases page](https://github.com/luizjhonata/chlog/releases) (Linux, macOS, and Windows; amd64 and
-arm64) and keep the toolchain out of the prerequisites. A project that does not use chlog drops the
+A project that uses [chlog](https://github.com/luizjhonata/chlog) -- one with a `.changes/unreleased/`
+directory at its root -- additionally needs the tool to write changelog fragments. Point
+contributors at the prebuilt binary for their platform on the
+[releases page](https://github.com/luizjhonata/chlog/releases) (Linux, macOS, and Windows; amd64 and arm64), whatever the
+project's language: it is quicker and lighter than `go install github.com/luizjhonata/chlog@latest`,
+which builds the tool from source and needs a Go toolchain, so keep that toolchain out of the
+prerequisites. A project that does not use chlog drops the
 prerequisite entirely and edits `CHANGELOG.md` by hand -- see
 [Documentation & Change Control](../Documentation-&-Change-Control.md).
 
@@ -49,8 +49,8 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 
 - {LANGUAGE}
 - [Make](https://www.gnu.org/software/make/)
-<!-- Projects that use chlog (a `.chlog.yaml` at the root) -- drop this line if the project edits CHANGELOG.md by hand: -->
-- [chlog](https://github.com/luizjhonata/chlog) -- `go install github.com/luizjhonata/chlog@latest` (needs a Go toolchain), or a prebuilt binary from the [releases page](https://github.com/luizjhonata/chlog/releases)
+<!-- Projects that use chlog (a `.changes/unreleased/` directory at the root) -- drop this line if the project edits CHANGELOG.md by hand: -->
+- [chlog](https://github.com/luizjhonata/chlog) -- a prebuilt binary from the [releases page](https://github.com/luizjhonata/chlog/releases)
 <!-- Add any other tools required by your project -->
 <!-- Java projects: -->
 <!-- - Docker (for integration tests with TestContainers) -->
@@ -75,7 +75,7 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 6. Record the change in the changelog.
    <!-- Projects that use chlog -- never edit CHANGELOG.md, which is generated from the fragments: -->
    ```bash
-   chlog new --kind Added --body "added the thing that was not there before"
+   chlog new --kind Added --body 'added the thing that was not there before'
    ```
    <!-- Projects without chlog -- add the bullet under `[Unreleased]` in `CHANGELOG.md` instead. -->
 7. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Git-Flow) --
@@ -113,7 +113,7 @@ docker compose -f compose.dev.yaml up -d
 2. Implement the required interface/contract
 3. Register it in the dependency injection wiring
 4. Add tests following the [testing guide](https://github.com/rios0rios0/guide/wiki/Tests)
-5. Record the change in the changelog: `chlog new --kind Added --body "added ..."`, or a bullet under `[Unreleased] > Added` in `CHANGELOG.md` when the project does not use chlog
+5. Record the change in the changelog: `chlog new --kind Added --body 'added ...'`, or a bullet under `[Unreleased] > Added` in `CHANGELOG.md` when the project does not use chlog
 -->
 ````
 

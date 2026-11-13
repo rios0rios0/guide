@@ -9,7 +9,7 @@ development practices, refer to the **[Development Guide](https://github.com/rio
 
 - [Git](https://git-scm.com/downloads) 2.30+
 - [Go](https://go.dev/dl/) 1.26+ (for building and testing the wiki update tool)
-- [chlog](https://github.com/luizjhonata/chlog) (`go install github.com/luizjhonata/chlog@latest`)
+- [chlog](https://github.com/luizjhonata/chlog) (a prebuilt binary from its [releases page](https://github.com/luizjhonata/chlog/releases))
 - A Markdown editor or IDE (e.g., [VS Code](https://code.visualstudio.com/) with the Markdown preview extension)
 
 ## Development Workflow

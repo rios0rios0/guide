@@ -140,4 +140,4 @@ Before any destructive operation, always:
 | **MINOR**    | `1.0.0` -> `1.1.0` | New features, no breaking changes              |
 | **PATCH**    | `1.0.0` -> `1.0.1` | Bug fixes only                                 |
 
-Flag breaking changes in three places: the commit footer, the changelog entry, and the PR description. The changelog entry is a chlog fragment when the project uses chlog (`chlog new --kind Changed --breaking --body "**BREAKING CHANGE:** ..."`), and a `- **BREAKING CHANGE:** ...` bullet under `[Unreleased]` in `CHANGELOG.md` when it does not.
+Flag breaking changes in three places: the commit footer, the changelog entry, and the PR description. The changelog entry is a chlog fragment when the project uses chlog (`chlog new --kind Changed --breaking --body '**BREAKING CHANGE:** ...'`), and a `- **BREAKING CHANGE:** ...` bullet under `[Unreleased]` in `CHANGELOG.md` when it does not.
