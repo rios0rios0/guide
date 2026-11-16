@@ -13,6 +13,12 @@ nothing.
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-11-16
+
+### Fixed
+
+- fixed the chlog standard contradicting the tools and itself: the `.changes/unreleased/` directory, not a `.chlog.yaml`, marks a chlog project, so the configuration file is now optional; every project installs the prebuilt binary instead of `go install`; every `chlog new` example single-quotes its body; and agent instructions follow the Writing Rules instead of the wording `chlog ai setup` injects
+
 ## [0.7.3] - 2026-11-04
 
 ### Changed
